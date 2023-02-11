@@ -1,8 +1,17 @@
-# Crawlee + PuppeteerCrawler + JavaScript project
+# Scrapix 
+This project is an API that will allow you to scrap any website and send the data to Meilisearch.
 
-This template is a production ready boilerplate for developing with `PuppeteerCrawler`. Use this to bootstrap your projects using the most up-to-date code.
+This server have only one endpoint. 
 
-If you're looking for examples or want to learn more visit:
-
-- [Documentation](https://crawlee.dev/api/puppeteer-crawler/class/PuppeteerCrawler)
-- [Examples](https://crawlee.dev/docs/examples/puppeteer-crawler)
+## Endpoint
+### POST /scrap
+This endpoint will scrap the website and send the data to Meilisearch.
+data: 
+```json
+{
+    "urls": "https://www.google.com",
+    "meilisearch_host": "http://localhost:7700",
+    "meilisearch_api_key": "masterKey",
+    "meilisearch_index_name": "google"
+}
+```

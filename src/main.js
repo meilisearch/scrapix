@@ -21,6 +21,7 @@ class Main {
 
   async __crawl(req, res) {
     this.taskQueue.add(req.body);
+    console.log("Crawling started");
     res.send("Crawling started");
   }
 }

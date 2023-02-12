@@ -25,15 +25,20 @@ export default class Sender {
 
   async finish() {
     await this.__sendDocuments();
-    await this.__swapIndex();
+    if (this.index_name !== this.origin_index_name) {
+      await this.__swapIndex();
+    }
   }
 
   async __sendDocuments() {
     console.log("__sendDocuments");
+
     const task = await this.client
       .index(this.index_name)
       .addDocuments(this.queue);
-
+    console.log(
+      `Sending ${this.queue.length} documents to Meilisearch... Task: ${task.taskUid}`
+    );
     if (!this.last_task_number || task.taskUid > this.last_task_number) {
       this.last_task_number = task.taskUid;
     }
@@ -85,7 +90,9 @@ export default class Sender {
     let task = await this.client.swapIndexes([
       { indexes: [this.origin_index_name, this.index_name] },
     ]);
+    console.log("...wait for task: ", task.taskUid);
     await this.client.index(this.index_name).waitForTask(task.taskUid);
     await this.client.deleteIndex(this.index_name);
+    console.log("__swapIndex finished");
   }
 }

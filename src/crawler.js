@@ -1,5 +1,5 @@
 import { createPuppeteerRouter, PuppeteerCrawler } from "crawlee";
-
+import { v4 as uuidv4 } from "uuid";
 // Crawler class
 // This class is responsible for crawling the urls and extract content to send to Meilisearch
 // It uses the createPuppeteerRouter method to create a router that will be used by the PuppeteerCrawler.
@@ -87,7 +87,7 @@ export default class Crawler {
       let tag = await elem.evaluate((el) => el.tagName);
       let text = await elem.evaluate((el) => el.textContent);
       text = this.__cleanText(text);
-      data.uid = i;
+      data.uid = uuidv4();
       data.url = url;
       data.title = title;
       data.meta = meta;

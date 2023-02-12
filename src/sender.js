@@ -46,7 +46,7 @@ export default class Sender {
     console.log(
       `Sending ${this.queue.length} documents to Meilisearch... Task: ${task.taskUid}`
     );
-    await this.client.index(task.indexUid).waitForTask(task.taskUid);
+    await this.client.waitForTask(task.taskUid);
     if (!this.last_task_number || task.taskUid > this.last_task_number) {
       this.last_task_number = task.taskUid;
     }
@@ -56,9 +56,7 @@ export default class Sender {
   async __initIndex() {
     console.log("__initIndex");
     try {
-      // console.log("get index");
       const index = await this.client.getIndex(this.origin_index_name);
-      // console.log(index);
       if (index) {
         this.index_name = this.origin_index_name + "_tmp";
       }
@@ -82,7 +80,7 @@ export default class Sender {
       distinctAttribute: "url",
     });
 
-    await this.client.index(task.indexUid).waitForTask(task.taskUid);
+    await this.client.waitForTask(task.taskUid);
 
     if (!this.last_task_number || task.taskUid > this.last_task_number) {
       this.last_task_number = task.taskUid;
@@ -91,9 +89,6 @@ export default class Sender {
 
   async __swapIndex() {
     console.log("__swapIndex");
-    if (this.origin_index_name === this.index_name) {
-      return;
-    }
     console.log("...wait for task: ", this.last_task_number);
     await this.client.index(this.index_name).waitForTask(this.last_task_number);
     let task = await this.client.swapIndexes([

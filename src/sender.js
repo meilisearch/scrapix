@@ -19,9 +19,13 @@ export default class Sender {
 
   //Add a json object to the queue
   async add(data) {
+    if (!data.uid) {
+      return;
+    }
     if (this.adapt_to_docsearch) {
       data = this.__adaptToDocsearch(data);
     }
+    // console.log(data.uid);
     this.queue.push(data);
   }
 
@@ -39,7 +43,7 @@ export default class Sender {
 
   async __sendDocuments() {
     console.log("__sendDocuments");
-
+    // console.log(this.queue);
     const task = await this.client
       .index(this.index_name)
       .addDocuments(this.queue);
@@ -102,6 +106,7 @@ export default class Sender {
 
   __adaptDataToDocsearch(data) {
     let new_data = {};
+    new_data.uid = data.uid;
     new_data.hierarchy_lvl0 = data.url_tags[0];
     new_data.hierarchy_lvl1 = data.h1;
     new_data.hierarchy_lvl2 = data.h2;

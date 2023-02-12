@@ -74,12 +74,10 @@ export default class Crawler {
     ///for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
     let data = {};
     let elems = await page.$$(
-      "main h1, main h2, main h3, main p, main td, main li"
+      "main h1, main h2, main h3, main p, main td, main li, main span"
     );
-    console.log("mains elems number:", elems.length);
     if (elems.length === 0) {
-      elems = await page.$$("h1, h2, h3, p, td, li");
-      console.log("all elems number:", elems.length);
+      elems = await page.$$("h1, h2, h3, p, td, li, span");
     }
     let page_block = 0;
     for (let i = 0; i < elems.length; i++) {
@@ -162,7 +160,12 @@ export default class Crawler {
         }
         data.anchor = "#" + id;
         data["h6"] = text;
-      } else if (tag === "P" || tag === "TD" || tag === "LI") {
+      } else if (
+        tag === "P" ||
+        tag === "TD" ||
+        tag === "LI" ||
+        tag === "SPAN"
+      ) {
         if (!data["p"]) {
           data["p"] = [];
         }
@@ -184,6 +187,7 @@ export default class Crawler {
     text = text.replace("# ", "");
     /// Trim leading and trailing spaces
     text = text.replace(/^\s+|\s+$/g, "");
+    return text;
   }
 
   async __sendData(data) {

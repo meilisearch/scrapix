@@ -46,6 +46,7 @@ export default class Sender {
     console.log(
       `Sending ${this.queue.length} documents to Meilisearch... Task: ${task.taskUid}`
     );
+    await this.client.index(task.indexUid).waitForTask(task.taskUid);
     if (!this.last_task_number || task.taskUid > this.last_task_number) {
       this.last_task_number = task.taskUid;
     }
@@ -65,7 +66,6 @@ export default class Sender {
       // console.log(e);
     }
 
-    await this.client.createIndex(this.index_name);
     let task = await this.client.index(this.index_name).updateSettings({
       searchableAttributes: [
         "h1",
@@ -81,6 +81,8 @@ export default class Sender {
       filterableAttributes: ["urls_tags"],
       distinctAttribute: "url",
     });
+
+    await this.client.index(task.indexUid).waitForTask(task.taskUid);
 
     if (!this.last_task_number || task.taskUid > this.last_task_number) {
       this.last_task_number = task.taskUid;

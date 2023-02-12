@@ -14,8 +14,6 @@ export default class Sender {
       host: config.meilisearch_host,
       apiKey: config.meilisearch_api_key,
     });
-
-    this.__initIndex();
   }
 
   //Add a json object to the queue
@@ -28,6 +26,7 @@ export default class Sender {
       console.log("No documents to send");
       return;
     }
+    await this.__initIndex();
     await this.__sendDocuments();
     if (this.index_name !== this.origin_index_name) {
       await this.__swapIndex();

@@ -18,6 +18,13 @@ export default class Crawler {
     this.crawler = new PuppeteerCrawler({
       // proxyConfiguration: new ProxyConfiguration({ proxyUrls: ['...'] }),
       requestHandler: router,
+      launchContext: {
+        launchOptions: {
+          headless: true,
+          args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          ignoreDefaultArgs: ["--disable-extensions"],
+        },
+      },
     });
   }
 

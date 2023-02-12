@@ -12,7 +12,8 @@ data:
     "urls": "https://www.google.com",
     "meilisearch_host": "http://localhost:7700",
     "meilisearch_api_key": "masterKey",
-    "meilisearch_index_name": "google"
+    "meilisearch_index_name": "google",
+    "adapt_to_docsearch": false,
 }
 ```
 

@@ -8,6 +8,7 @@ export default class Sender {
     this.index_name = this.origin_index_name;
     this.crawing_finished = false;
     this.last_task_number = null;
+    this.adapt_to_docsearch = config.adapt_to_docsearch || false;
 
     //Create a Meilisearch client
     this.client = new MeiliSearch({
@@ -18,6 +19,9 @@ export default class Sender {
 
   //Add a json object to the queue
   async add(data) {
+    if (this.adapt_to_docsearch) {
+      data = this.__adaptToDocsearch(data);
+    }
     this.queue.push(data);
   }
 
@@ -97,5 +101,25 @@ export default class Sender {
     await this.client.index(this.index_name).waitForTask(task.taskUid);
     await this.client.deleteIndex(this.index_name);
     console.log("__swapIndex finished");
+  }
+
+  __adaptDataToDocsearch(data) {
+    let new_data = {};
+    new_data.hierarchy_lvl0 = data.url_tags[0];
+    new_data.hierarchy_lvl1 = data.h1;
+    new_data.hierarchy_lvl2 = data.h2;
+    new_data.hierarchy_lvl3 = data.h3;
+    new_data.hierarchy_lvl4 = data.h4;
+    new_data.hierarchy_lvl5 = data.h5;
+    new_data.hierarchy_radio_lvl0 = null;
+    new_data.hierarchy_radio_lvl1 = data.h1;
+    new_data.hierarchy_radio_lvl2 = data.h2;
+    new_data.hierarchy_radio_lvl3 = data.h3;
+    new_data.hierarchy_radio_lvl4 = data.h4;
+    new_data.hierarchy_radio_lvl5 = data.h5;
+    new_data.content = data.p;
+    new_data.url = data.url + "#" + data.anchor;
+    new_data.anchor = data.anchor.substring(1);
+    return new_data;
   }
 }

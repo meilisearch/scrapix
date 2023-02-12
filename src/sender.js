@@ -24,6 +24,10 @@ export default class Sender {
   }
 
   async finish() {
+    if (this.queue.length === 0) {
+      console.log("No documents to send");
+      return;
+    }
     await this.__sendDocuments();
     if (this.index_name !== this.origin_index_name) {
       await this.__swapIndex();

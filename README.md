@@ -64,5 +64,5 @@ The setting applied:
 ## Todo
 - [ ] Add the possibility to take a list of char to strip from the text
 - [ ] Add a list of url to ignore
-- [ ] Add the possibility to configure your Meiliasearch (stopwords, synonyms, etc...)
+- [ ] Add the possibility to configure your Meilisearch (stopwords, synonyms, etc...)
 - [ ] Create scraper for specific uses cases websites (like ecommerce, blog, etc...)

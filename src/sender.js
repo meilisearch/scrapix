@@ -29,6 +29,7 @@ export default class Sender {
   }
 
   async __sendDocuments() {
+    console.log("__sendDocuments");
     const task = await this.client
       .index(this.index_name)
       .addDocuments(this.queue);
@@ -38,16 +39,18 @@ export default class Sender {
     }
   }
 
+  // TODO: delete the tmp index if it already exists
   async __initIndex() {
+    console.log("__initIndex");
     try {
-      console.log("get index");
+      // console.log("get index");
       const index = await this.client.getIndex(this.origin_index_name);
-      console.log(index);
+      // console.log(index);
       if (index) {
         this.index_name = this.origin_index_name + "_tmp";
       }
     } catch (e) {
-      console.log(e);
+      // console.log(e);
     }
 
     await this.client.createIndex(this.index_name);
@@ -63,6 +66,7 @@ export default class Sender {
         "title",
         "meta.description",
       ],
+      filterableAttributes: ["urls_tags"],
       distinctAttribute: "url",
     });
 
@@ -72,15 +76,16 @@ export default class Sender {
   }
 
   async __swapIndex() {
-    // console.log("__swapIndex");
+    console.log("__swapIndex");
     if (this.origin_index_name === this.index_name) {
       return;
     }
-    // console.log({ ...this.last_task_number });
+    console.log("...wait for task: ", this.last_task_number);
     await this.client.index(this.index_name).waitForTask(this.last_task_number);
-    await this.client.swapIndexes([
+    let task = await this.client.swapIndexes([
       { indexes: [this.origin_index_name, this.index_name] },
     ]);
+    await this.client.index(this.index_name).waitForTask(task.taskUid);
     await this.client.deleteIndex(this.index_name);
   }
 }

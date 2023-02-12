@@ -1,31 +1,26 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
-import Sender from "./sender.js";
-import Crawler from "./crawler.js";
 
-const app = express();
+import TaskQueue from "./taskQueue.js";
 
-app.use(express.json());
+class Main {
+  constructor() {
+    this.taskQueue = new TaskQueue();
 
-app.post("/crawl", async (req, res) => {
-  ///get the urls from the request body
-  console.log(req.body);
-  const urls = req.body.urls;
-  const meilisearch_host = req.body.meilisearch_host;
-  const meilisearch_api_key = req.body.meilisearch_api_key;
-  const meilisearch_index_name = req.body.meilisearch_index_name;
+    this.app = express();
+    this.app.use(express.json());
+    this.app.post("/crawl", this.__crawl.bind(this));
+    this.app.listen(3000, () =>
+      console.log("Example app listening on port 3000!")
+    );
+  }
 
-  //configure the Sender
-  const sender = new Sender({
-    meilisearch_host,
-    meilisearch_api_key,
-    meilisearch_index_name,
-  });
+  async __crawl(req, res) {
+    this.taskQueue.add(req.body);
+    res.send("Crawling started");
+  }
+}
 
-  const crawler = new Crawler(sender, { urls });
-  await crawler.run();
-  await sender.finish();
-  ///return the response
-  res.send("Crawling finished");
-});
-
-app.listen(3000, () => console.log("Example app listening on port 3000!"));
+new Main();

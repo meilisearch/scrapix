@@ -2,8 +2,9 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-
 import TaskQueue from "./taskQueue.js";
+
+const port = process.env.PORT || 3000;
 
 class Main {
   constructor() {
@@ -12,8 +13,9 @@ class Main {
     this.app = express();
     this.app.use(express.json());
     this.app.post("/crawl", this.__crawl.bind(this));
-    this.app.listen(3000, () =>
-      console.log("Example app listening on port 3000!")
+
+    this.app.listen(port, () =>
+      console.log(`Example app listening on port ${port}!`)
     );
   }
 

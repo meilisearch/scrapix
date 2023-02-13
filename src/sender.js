@@ -6,9 +6,8 @@ export default class Sender {
     this.queue = [];
     this.origin_index_name = config.meilisearch_index_name;
     this.index_name = this.origin_index_name;
-    this.crawing_finished = false;
-    this.last_task_number = null;
-    this.adapt_to_docsearch = config.adapt_to_docsearch || false;
+    this.docsearch_format = config.docsearch_format || false;
+    this.batch_size = config.batch_size || 100;
 
     //Create a Meilisearch client
     this.client = new MeiliSearch({
@@ -17,55 +16,19 @@ export default class Sender {
     });
   }
 
-  //Add a json object to the queue
-  async add(data) {
-    if (!data.uid) {
-      return;
-    }
-    if (this.adapt_to_docsearch) {
-      data = this.__adaptToDocsearch(data);
-    }
-    // console.log(data.uid);
-    this.queue.push(data);
-  }
-
-  async finish() {
-    if (this.queue.length === 0) {
-      console.log("No documents to send");
-      return;
-    }
-    await this.__initIndex();
-    await this.__sendDocuments();
-    if (this.index_name !== this.origin_index_name) {
-      await this.__swapIndex();
-    }
-  }
-
-  async __sendDocuments() {
-    console.log("__sendDocuments");
-    // console.log(this.queue);
-    const task = await this.client
-      .index(this.index_name)
-      .addDocuments(this.queue);
-    console.log(
-      `Sending ${this.queue.length} documents to Meilisearch... Task: ${task.taskUid}`
-    );
-    await this.client.waitForTask(task.taskUid);
-    if (!this.last_task_number || task.taskUid > this.last_task_number) {
-      this.last_task_number = task.taskUid;
-    }
-  }
-
-  // TODO: delete the tmp index if it already exists
-  async __initIndex() {
+  async init() {
     console.log("__initIndex");
     try {
       const index = await this.client.getIndex(this.origin_index_name);
       if (index) {
         this.index_name = this.origin_index_name + "_tmp";
+        console.log("index already exists, creating tmp index");
+
+        const task = await this.client.deleteIndex(this.index_name);
+        await this.client.waitForTask(task.taskUid);
       }
     } catch (e) {
-      // console.log(e);
+      console.log(e);
     }
 
     let task = await this.client.index(this.index_name).updateSettings({
@@ -83,22 +46,51 @@ export default class Sender {
       filterableAttributes: ["urls_tags"],
       distinctAttribute: "url",
     });
-
     await this.client.waitForTask(task.taskUid);
+    console.log("__initIndex finished");
+  }
 
-    if (!this.last_task_number || task.taskUid > this.last_task_number) {
-      this.last_task_number = task.taskUid;
+  //Add a json object to the queue
+  async add(data) {
+    if (!data.uid) {
+      return;
     }
+    if (this.docsearch_format) {
+      data = this.__adaptToDocsearch(data);
+    }
+    if (this.batch_size) {
+      this.queue.push(data);
+      if (this.queue.length >= this.batch_size) {
+        await this.__batchSend();
+      }
+    } else {
+      const task = await this.client.index(this.index_name).addDocuments(data);
+    }
+  }
+
+  async finish() {
+    if (this.index_name !== this.origin_index_name) {
+      await this.__batchSend();
+      await this.__swapIndex();
+    }
+  }
+
+  async __batchSend() {
+    console.log("__batchSend - size:");
+    console.log(this.queue.length);
+    const task = await this.client
+      .index(this.index_name)
+      .addDocuments(this.queue);
+    this.queue = [];
+    await this.client.waitForTask(task.taskUid);
+    console.log("__batchSend finished");
   }
 
   async __swapIndex() {
     console.log("__swapIndex");
-    console.log("...wait for task: ", this.last_task_number);
-    await this.client.index(this.index_name).waitForTask(this.last_task_number);
     let task = await this.client.swapIndexes([
       { indexes: [this.origin_index_name, this.index_name] },
     ]);
-    console.log("...wait for task: ", task.taskUid);
     await this.client.index(this.index_name).waitForTask(task.taskUid);
     await this.client.deleteIndex(this.index_name);
     console.log("__swapIndex finished");

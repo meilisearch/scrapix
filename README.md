@@ -9,11 +9,12 @@ This endpoint will scrap the website and send the data to Meilisearch.
 data: 
 ```json
 {
-    "urls": "https://www.google.com",
+    "urls": ["https://www.google.com"],
     "meilisearch_host": "http://localhost:7700",
     "meilisearch_api_key": "masterKey",
     "meilisearch_index_name": "google",
-    "adapt_to_docsearch": false,
+    "docsearch_format": false,
+    "batch_size": 100, //null with send documents one by one
 }
 ```
 

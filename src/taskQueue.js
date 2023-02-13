@@ -1,5 +1,5 @@
 import Queue from "bull";
-
+import { MeiliSearch } from "meilisearch";
 import Sender from "./sender.js";
 import Crawler from "./crawler.js";
 
@@ -27,9 +27,11 @@ export default class TaskQueue {
       meilisearch_api_key: job.data.meilisearch_api_key,
       meilisearch_index_name: job.data.meilisearch_index_name,
     });
+    await sender.init();
 
     const urls = job.data.urls;
     const crawler = new Crawler(sender, { urls });
+
     await crawler.run();
     await sender.finish();
     done();
@@ -45,6 +47,18 @@ export default class TaskQueue {
 
   async __jobFailed(job) {
     console.log("Job failed", job.id);
+    let client = new MeiliSearch({
+      host: config.meilisearch_host,
+      apiKey: config.meilisearch_api_key,
+    });
+
+    //check if the tmp index exists
+    const tmp_index_name = job.data.meilisearch_index_name + "_tmp";
+    const index = await this.client.getIndex(tmp_index_name);
+    if (index) {
+      const task = await this.client.deleteIndex(tmp_index_name);
+      await this.client.waitForTask(task.taskUid);
+    }
   }
 
   async __jobActive(job) {

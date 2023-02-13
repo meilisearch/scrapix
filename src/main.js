@@ -29,14 +29,12 @@ class Main {
   }
 
   async __syncCrawl(req, res) {
-    const sender = new Sender({
-      meilisearch_host: req.body.meilisearch_host,
-      meilisearch_api_key: req.body.meilisearch_api_key,
-      meilisearch_index_name: req.body.meilisearch_index_name,
-    });
+    const sender = new Sender(req.body);
+    await sender.init();
 
     const urls = req.body.urls;
     const crawler = new Crawler(sender, { urls });
+
     await crawler.run();
     await sender.finish();
     res.send("Crawling finished");

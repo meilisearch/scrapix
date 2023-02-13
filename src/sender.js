@@ -76,8 +76,7 @@ export default class Sender {
   }
 
   async __batchSend() {
-    console.log("__batchSend - size:");
-    console.log(this.queue.length);
+    console.log("__batchSend - size:" + this.queue.length);
     const task = await this.client
       .index(this.index_name)
       .addDocuments(this.queue);

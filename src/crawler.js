@@ -42,15 +42,19 @@ export default class Crawler {
       return url + "/**";
     });
 
-    if (
-      !this.__isFileUrl(request.loadedUrl) &&
-      !this.__isPaginatedUrl(request.loadedUrl)
-    ) {
+    if (!this.__isPaginatedUrl(request.loadedUrl)) {
       await this.__extractContent(request.loadedUrl, page);
     }
 
     await enqueueLinks({
       globs,
+      transformRequestFunction: (req) => {
+        // exclude all links that are files not parsable by puppeteer
+        if (this.__isFileUrl(req.url)) {
+          return false;
+        }
+        return req;
+      },
     });
   }
 

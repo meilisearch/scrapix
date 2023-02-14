@@ -245,6 +245,6 @@ export default class Crawler {
   __isPaginatedUrl(url) {
     const urlObject = new URL(url);
     const pathname = urlObject.pathname;
-    return /\d+/.test(pathname);
+    return /\/\d+\//.test(pathname);
   }
 }

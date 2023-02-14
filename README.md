@@ -4,8 +4,8 @@ This project is an API that will allow you to scrap any website and send the dat
 This server have only one endpoint. 
 
 ## Endpoint
-### POST /scrap
-This endpoint will scrap the website and send the data to Meilisearch.
+### POST /crawl
+This endpoint will crawl the website and send the data to Meilisearch.
 data: 
 ```json
 {
@@ -24,9 +24,9 @@ While the server receive a crawling request it will add it to the queue. When th
 The queue is handle by redis ([Bull](https://github.com/OptimalBits/bull)). 
 The queue will dispatch the job to the worker.
 
-### 2. Scrap the website
-The worker will crawl the website by keeping only the page that have the same domain as urls given in parameters. It will not try to scrap the external links or files. It will also not try to scrap when pages are paginated pages (like `/page/1`).
-For each scrappable page it will scrap the data by trying to create blocks of titles and text. Each block will contains:
+### 2. Scrape the website
+The worker will crawl the website by keeping only the page that have the same domain as urls given in parameters. It will not try to scrap the external links or files. It will also not try to scrape when pages are paginated pages (like `/page/1`).
+For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contains:
 - h1: The title of the block
 - h2: The sub title of the block
 - h3...h6: The sub sub title of the block

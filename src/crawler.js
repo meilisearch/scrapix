@@ -78,10 +78,10 @@ export default class Crawler {
     ///for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
     let data = {};
     let elems = await page.$$(
-      "main h1, main h2, main h3, main p, main td, main li, main span"
+      "main h1, main h2, main h3, main h4, main h5, main h6, main p, main td, main li, main span"
     );
     if (elems.length === 0) {
-      elems = await page.$$("h1, h2, h3, p, td, li, span");
+      elems = await page.$$("h1, h2, h3, h4, h5, h6, p, td, li, span");
     }
     let page_block = 0;
     for (let i = 0; i < elems.length; i++) {

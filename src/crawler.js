@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import DefaultScraper from "./defaultScraper";
 import DocsearchScraper from "./docsearchScraper";
 import CustomScraper from "./customScraper";
+import SchemaScraper from "./schemaScraper";
 
 // Crawler class
 // This class is responsible for crawling the urls and extract content to send to Meilisearch
@@ -19,6 +20,8 @@ export default class Crawler {
         ? new DocsearchScraper(this.sender, config)
         : config.strategy === "custom"
         ? new CustomScraper(this.sender, config)
+        : config.strategy === "schema"
+        ? new SchemaScraper(this.sender, config)
         : new DefaultScraper(this.sender, config);
 
     //Create the router

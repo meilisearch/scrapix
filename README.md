@@ -13,8 +13,52 @@ data:
     "meilisearch_host": "http://localhost:7700",
     "meilisearch_api_key": "masterKey",
     "meilisearch_index_name": "google",
-    "docsearch_format": false,
+    "stategy": "default", // docsearch, schema, custom or default
+    "headless": true, // true or false
     "batch_size": 100, //null with send documents one by one
+    "custom_settings": {
+        "searchableAttributes": [
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "p",
+            "title",
+            "meta.description",
+        ],
+        "filterableAttributes": ["urls_tags"],
+        "distinctAttribute": "url",
+    },
+    "custom_crawler": {
+        "get_title":true,
+        "get_meta":true,
+        "get_url":true,
+        "generate_uid":true,
+        "selectors": {
+            "name": {
+                "selector": "h1",
+                "attribute": "text",
+            },
+            "description": {
+                "selector": "p",
+                "attribute": "text"
+            },
+            "images": {
+                "selector": ".carousel > img",
+                "attribute": "src"
+            },
+            "price": {
+                "selector": ".price > span",
+                "attribute": "text"
+            },
+            "variation": {
+                "selector": "select > option",
+                "attribute": "text"
+            },
+        }
+    }
 }
 ```
 

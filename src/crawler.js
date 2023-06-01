@@ -1,5 +1,4 @@
 import { createPuppeteerRouter, PuppeteerCrawler } from "crawlee";
-import { v4 as uuidv4 } from "uuid";
 import DefaultScraper from "./defaultScraper";
 import DocsearchScraper from "./docsearchScraper";
 import CustomScraper from "./customScraper";

@@ -1,4 +1,5 @@
 import prettier from "prettier";
+import { v4 as uuidv4 } from "uuid";
 
 export default class CustomScaper {
   constructor(sender, config) {
@@ -17,6 +18,8 @@ export default class CustomScaper {
       data.title = await page.title();
     }
 
+    data.uid = uuidv4();
+
     if (this.custom_crawler.get_meta || false) {
       const meta = await page.evaluate(() => {
         const metas = document.getElementsByTagName("meta");
@@ -31,6 +34,10 @@ export default class CustomScaper {
         return meta;
       });
       data.meta = meta;
+    }
+
+    if (this.custom_crawler.get_url || false) {
+      data.url = url;
     }
 
     await this.sender.add(data);

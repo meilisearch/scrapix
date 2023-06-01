@@ -13,7 +13,7 @@ data:
     "meilisearch_host": "http://localhost:7700",
     "meilisearch_api_key": "masterKey",
     "meilisearch_index_name": "google",
-    "stategy": "default", // docsearch, schema, custom or default
+    "stategy": "default", // docsearch, schema*, custom or default
     "headless": true, // true or false
     "batch_size": 100, //null with send documents one by one
     "custom_settings": {
@@ -35,7 +35,6 @@ data:
         "get_title":true,
         "get_meta":true,
         "get_url":true,
-        "generate_uid":true,
         "selectors": {
             "name": {
                 "selector": "h1",
@@ -69,6 +68,8 @@ The queue is handle by redis ([Bull](https://github.com/OptimalBits/bull)).
 The queue will dispatch the job to the worker.
 
 ### 2. Scrape the website
+
+#### 2.1. Default strategy
 The worker will crawl the website by keeping only the page that have the same domain as urls given in parameters. It will not try to scrap the external links or files. It will also not try to scrape when pages are paginated pages (like `/page/1`).
 For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contains:
 - h1: The title of the block
@@ -82,6 +83,26 @@ For each scrappable page it will scrape the data by trying to create blocks of t
 - anchor: The anchor of the block (the lower title id of the block)
 - meta: The meta of the page present in the head tag (json object containing the desciption, keywords, author, twitter, og, etc...)
 - url_tags: the url pathname split by / (array of string). The last element has been removed because it's the page name.
+
+#### 2.2. Docsearch strategy
+The worker will crawl the website by keeping only the page that have the same domain as urls given in parameters. It will not try to scrap the external links or files. It will also not try to scrape when pages are paginated pages (like `/page/1`).
+For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contains:
+- uid: a generated and incremental uid for the block
+- hierarchy_lvl0: the url pathname split by / (array of string). The last element has been removed because it's the page name.
+- hierarchy_lvl1: the h1 of the block
+- hierarchy_lvl2: the h2 of the block
+- hierarchy_lvl3: the h3 of the block
+- hierarchy_lvl4: the h4 of the block
+- hierarchy_lvl5: the h5 of the block
+- hierarchy_radio_lvl0: same as hierarchy_lvl0
+- hierarchy_radio_lvl1: same as hierarchy_lvl1
+- hierarchy_radio_lvl2: same as hierarchy_lvl2
+- hierarchy_radio_lvl3: same as hierarchy_lvl3
+- hierarchy_radio_lvl4: same as hierarchy_lvl4
+- hierarchy_radio_lvl5: same as hierarchy_lvl5
+- content: The text of the block (will create an array of text if there is multiple p in the block)
+- url: The url of the page with the anchor
+- anchor: The anchor of the block (the lower title id of the block)
 
 ### 3. Send the data to Meilisearch
 

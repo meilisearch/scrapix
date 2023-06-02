@@ -1,9 +1,9 @@
 import { createPuppeteerRouter, PuppeteerCrawler } from "crawlee";
 import { minimatch } from "minimatch";
-import DefaultScraper from "./defaultScraper.js";
-import DocsearchScraper from "./docsearchScraper.js";
-import CustomScraper from "./customScraper.js";
-import SchemaScraper from "./schemaScraper.js";
+import DefaultScraper from "./scrapers/default.js";
+import DocsearchScraper from "./scrapers/docsearch.js";
+import CustomScraper from "./scrapers/custom.js";
+import SchemaScraper from "./scrapers/schema.js";
 
 // Crawler class
 // This class is responsible for crawling the urls and extract content to send to Meilisearch

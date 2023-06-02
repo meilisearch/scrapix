@@ -1,0 +1,183 @@
+{
+	"info": {
+		"_postman_id": "00db6d82-0d03-4800-a721-219a02dd18b3",
+		"name": "Scrapix",
+		"description": "Scrapix is an API that will allow you to scrap any website and send the data to Meilisearch.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28269"
+	},
+	"item": [
+		{
+			"name": "Crawl - Default - Simple",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{scrapix_url}}/crawl",
+					"host": [
+						"{{scrapix_url}}"
+					],
+					"path": [
+						"crawl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crawl - Default - Bigger batches",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"batch_size\": 1000\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{scrapix_url}}/crawl",
+					"host": [
+						"{{scrapix_url}}"
+					],
+					"path": [
+						"crawl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crawl - Docsearch - Simple",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"strategy\": \"docsearch\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{scrapix_url}}/crawl",
+					"host": [
+						"{{scrapix_url}}"
+					],
+					"path": [
+						"crawl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crawl - Schema - Simple",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"urls\": [\n        \"https://eu.patagonia.com/fr/fr/shop\",\n        \"https://eu.patagonia.com/fr/fr/product\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"strategy\": \"schema\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{scrapix_url}}/crawl",
+					"host": [
+						"{{scrapix_url}}"
+					],
+					"path": [
+						"crawl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crawl - Schema - Index Only Urls",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"urls\": [\n        \"https://eu.patagonia.com/fr/fr/shop\",\n        \"https://eu.patagonia.com/fr/fr/product\"\n    ],\n    \"index_only_urls\": [\"https://eu.patagonia.com/fr/fr/product\"],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"strategy\": \"schema\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{scrapix_url}}/crawl",
+					"host": [
+						"{{scrapix_url}}"
+					],
+					"path": [
+						"crawl"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "scrapix_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "meilisearch_host",
+			"value": "http://localhost:7700",
+			"type": "string"
+		},
+		{
+			"key": "meilisearch_api_key",
+			"value": "masterKey",
+			"type": "string"
+		},
+		{
+			"key": "meilisearch_index_name",
+			"value": "main",
+			"type": "string"
+		}
+	]
+}

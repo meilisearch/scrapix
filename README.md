@@ -33,6 +33,10 @@ data:
         "filterableAttributes": ["urls_tags"],
         "distinctAttribute": "url",
     },
+    "schema": {
+        "only_type": "Product", // Product, Article, etc...
+        "convert_dates": true, // default false
+    },
     "custom_crawler": {
         "get_title":true,
         "get_meta":true,

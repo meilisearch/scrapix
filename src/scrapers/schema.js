@@ -27,17 +27,24 @@ export default class SchemaScaper {
       return {};
     });
 
-    this._clean_schema(data);
+    if (this.config.schema.only_type) {
+      if (data["@type"] !== this.config.schema_config.only_type) {
+        return;
+      }
+    }
 
-    // convert dates to timestamps
-    // Object.keys(data).forEach((key) => {
-    //   if (typeof data[key] === "string") {
-    //     // check if it is a date
-    //     if (Date.parse(data[key])) {
-    //       data[key] = Date.parse(data[key]);
-    //     }
-    //   }
-    // });
+    this._clean_schema(data);
+    if (this.config.schema.convert_dates) {
+      // convert dates to timestamps
+      Object.keys(data).forEach((key) => {
+        if (typeof data[key] === "string") {
+          // check if it is a date
+          if (Date.parse(data[key])) {
+            data[key] = Date.parse(data[key]);
+          }
+        }
+      });
+    }
 
     // if (!this.settings_sent) {
     //   await this._discover_and_push_settings(data);

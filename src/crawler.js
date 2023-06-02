@@ -81,6 +81,11 @@ export default class Crawler {
         if (this.__is_file_url(req.url)) {
           return false;
         }
+        // remove all query params to avoid duplicates
+        const urlObject = new URL(req.url);
+        urlObject.search = "";
+        req.url = urlObject.toString();
+
         return req;
       },
     });

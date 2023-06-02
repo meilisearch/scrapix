@@ -7,6 +7,7 @@ const redis_url = process.env.REDIS_URL;
 
 export default class TaskQueue {
   constructor() {
+    console.info("TaskQueue::constructor");
     this.queue = new Queue("crawling", redis_url);
     this.queue.process(this.__process.bind(this));
     this.queue.on("added", this.__jobAdded.bind(this));

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default class DefaultScraper {
   constructor(sender, config) {
-    console.log("init DefaultScraper");
+    console.info("DefaultScraper::constructor");
     this.sender = sender;
     this.settings = config.custom_settings || {
       searchableAttributes: [

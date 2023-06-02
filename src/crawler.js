@@ -11,13 +11,12 @@ import SchemaScraper from "./scrapers/schema.js";
 // The constructor take a Sender object as a parameter
 export default class Crawler {
   constructor(sender, config) {
+    console.info("Crawler::constructor");
     this.sender = sender;
     this.config = config;
     this.urls = config.urls;
     this.custom_crawler = config.custom_crawler;
     // init the custome scraper depending on if config.strategy is docsearch, custom or default
-    console.log({ ...config });
-    console.log("strategy", config.strategy);
     this.scraper =
       config.strategy == "docsearch"
         ? new DocsearchScraper(this.sender, config)
@@ -51,7 +50,7 @@ export default class Crawler {
 
   async defaultHandler({ request, enqueueLinks, page, log }) {
     const title = await page.title();
-    log.info(`${title}`, { url: request.loadedUrl });
+    console.log(`${title}`, { url: request.loadedUrl });
     const globs = this.urls.map((url) => {
       if (url.endsWith("/")) {
         return url + "**";

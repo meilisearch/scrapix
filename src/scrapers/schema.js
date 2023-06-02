@@ -3,13 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 
 export default class SchemaScaper {
   constructor(sender, config) {
-    console.log("init SchemaScaper");
+    console.info("SchemaScaper::constructor");
     this.sender = sender;
     this.config = config;
     this.settings_sent = false;
 
     if (this.config.custom_settings) {
-      console.log("update settings" + this.config.custom_settings);
       this.sender.updateSettings(this.config.custom_settings);
       this.settings_sent = true;
     }

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default class DocsearchScaper {
   constructor(sender, config) {
-    console.log("init DocsearchScaper");
+    console.info("DocsearchScaper::constructor");
     this.sender = sender;
 
     this.sender.updateSettings({

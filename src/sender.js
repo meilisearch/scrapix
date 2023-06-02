@@ -3,7 +3,9 @@ import { MeiliSearch } from "meilisearch";
 //Create a class called Sender that will queue the json data and batch it to a Meilisearch instance
 export default class Sender {
   constructor(config) {
+    console.info("Sender::constructor");
     this.queue = [];
+    this.config = config;
     this.origin_index_name = config.meilisearch_index_name;
     this.index_name = this.origin_index_name;
     this.batch_size = config.batch_size || 100;
@@ -16,7 +18,7 @@ export default class Sender {
   }
 
   async init() {
-    console.log("__initIndex");
+    console.log("Sender::init");
     try {
       const index = await this.client.getIndex(this.origin_index_name);
 
@@ -30,18 +32,28 @@ export default class Sender {
         }
       }
     } catch (e) {
-      console.error(e);
+      console.log("try to delete a tmp index if it exists");
+      // console.error(e);
     }
+
     if (this.config.primary_key) {
-      await this.client
-        .index(this.index_name)
-        .update({ primaryKey: this.config.primary_key });
+      try {
+        await this.client
+          .index(this.index_name)
+          .update({ primaryKey: this.config.primary_key });
+      } catch (e) {
+        console.log("try to create or update the index with the primary key");
+        // console.error(e);
+        await this.client.createIndex(this.index_name, {
+          primaryKey: this.config.primary_key,
+        });
+      }
     }
-    console.log("__initIndex finished");
   }
 
   //Add a json object to the queue
   async add(data) {
+    console.log("Sender::add");
     if (this.config.primary_key) {
       delete data["uid"];
     }
@@ -57,6 +69,7 @@ export default class Sender {
   }
 
   async updateSettings(settings) {
+    console.log("Sender::updateSettings");
     let task = await this.client
       .index(this.index_name)
       .updateSettings(settings);
@@ -64,6 +77,7 @@ export default class Sender {
   }
 
   async finish() {
+    console.log("Sender::finish");
     if (this.index_name !== this.origin_index_name) {
       await this.__batchSend();
       await this.__swapIndex();
@@ -71,22 +85,20 @@ export default class Sender {
   }
 
   async __batchSend() {
-    console.log("__batchSend - size:" + this.queue.length);
+    console.log("Sender::__batchSend - size:" + this.queue.length);
     const task = await this.client
       .index(this.index_name)
       .addDocuments(this.queue);
     this.queue = [];
     await this.client.waitForTask(task.taskUid);
-    console.log("__batchSend finished");
   }
 
   async __swapIndex() {
-    console.log("__swapIndex");
+    console.log("Sender::__swapIndex");
     let task = await this.client.swapIndexes([
       { indexes: [this.origin_index_name, this.index_name] },
     ]);
     await this.client.index(this.index_name).waitForTask(task.taskUid);
     // await this.client.deleteIndex(this.index_name);
-    console.log("__swapIndex finished");
   }
 }

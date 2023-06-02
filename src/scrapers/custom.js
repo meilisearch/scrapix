@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default class CustomScaper {
   constructor(sender, config) {
-    console.log("init CustomScaper");
+    console.info("CustomScaper::constructor");
     this.sender = sender;
     this.config = config;
 
@@ -13,7 +13,6 @@ export default class CustomScaper {
   }
 
   async get(url, page) {
-    console.log("__extractContent", url);
     let data = {};
     if (this.custom_crawler.get_title || false) {
       data.title = await page.title();

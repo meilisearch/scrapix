@@ -48,16 +48,16 @@ export default class TaskQueue {
   async __jobFailed(job) {
     console.log("Job failed", job.id);
     let client = new MeiliSearch({
-      host: config.meilisearch_host,
-      apiKey: config.meilisearch_api_key,
+      host: job.data.meilisearch_host,
+      apiKey: job.data.meilisearch_api_key,
     });
 
     //check if the tmp index exists
     const tmp_index_name = job.data.meilisearch_index_name + "_tmp";
-    const index = await this.client.getIndex(tmp_index_name);
+    const index = await client.getIndex(tmp_index_name);
     if (index) {
-      const task = await this.client.deleteIndex(tmp_index_name);
-      await this.client.waitForTask(task.taskUid);
+      const task = await client.deleteIndex(tmp_index_name);
+      await client.waitForTask(task.taskUid);
     }
   }
 

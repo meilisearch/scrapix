@@ -52,7 +52,7 @@ export default class SchemaScaper {
     let settings = {};
     // Recusivelly flatten the schema.org data
 
-    let data = _flatten_data(data);
+    data = _flatten_data(data);
 
     // Get searchable attributes
     Object.keys(data).forEach((key) => {

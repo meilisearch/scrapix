@@ -1,8 +1,8 @@
 import { createPuppeteerRouter, PuppeteerCrawler } from "crawlee";
-import DefaultScraper from "./defaultScraper";
-import DocsearchScraper from "./docsearchScraper";
-import CustomScraper from "./customScraper";
-import SchemaScraper from "./schemaScraper";
+import DefaultScraper from "./defaultScraper.js";
+import DocsearchScraper from "./docsearchScraper.js";
+import CustomScraper from "./customScraper.js";
+import SchemaScraper from "./schemaScraper.js";
 
 // Crawler class
 // This class is responsible for crawling the urls and extract content to send to Meilisearch
@@ -47,7 +47,7 @@ export default class Crawler {
 
   async defaultHandler({ request, enqueueLinks, page, log }) {
     const title = await page.title();
-    // log.info(`${title}`, { url: request.loadedUrl });
+    log.info(`${title}`, { url: request.loadedUrl });
     const globs = this.urls.map((url) => {
       if (url.endsWith("/")) {
         return url + "**";

@@ -27,7 +27,7 @@ export default class Sender {
         await this.client.waitForTask(task.taskUid);
       }
     } catch (e) {
-      console.log(e);
+      console.log("index does not exist");
     }
     console.log("__initIndex finished");
   }

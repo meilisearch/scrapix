@@ -30,7 +30,7 @@ export default class TaskQueue {
     await sender.init();
 
     const urls = job.data.urls;
-    const crawler = new Crawler(sender, { urls });
+    const crawler = new Crawler(sender, job.data);
 
     await crawler.run();
     await sender.finish();

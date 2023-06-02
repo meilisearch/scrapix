@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default class DocsearchScaper {
   constructor(sender, config) {
+    console.log("init DocsearchScaper");
     this.sender = sender;
 
     this.sender.updateSettings({
@@ -19,8 +20,6 @@ export default class DocsearchScaper {
   }
 
   async get(url, page) {
-    console.log("scrap_content_page", url);
-
     //for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
     let data = {};
     let elems = await page.$$(

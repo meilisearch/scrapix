@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default class DefaultScraper {
   constructor(sender, config) {
+    console.log("init DefaultScraper");
     this.sender = sender;
     this.settings = config.custom_settings || {
       searchableAttributes: [
@@ -23,7 +24,6 @@ export default class DefaultScraper {
   }
 
   async get(url, page) {
-    console.log("scrap_content_page", url);
     const title = await page.title();
     //get the meta of the page
     const meta = await this._extract_metadata_from_page(page);

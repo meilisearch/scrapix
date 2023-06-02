@@ -33,8 +33,7 @@ class Main {
     const sender = new Sender(req.body);
     await sender.init();
 
-    const urls = req.body.urls;
-    const crawler = new Crawler(sender, { urls });
+    const crawler = new Crawler(sender, req.body);
 
     await crawler.run();
     await sender.finish();

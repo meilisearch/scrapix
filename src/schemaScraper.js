@@ -3,12 +3,14 @@ import { v4 as uuidv4 } from "uuid";
 
 export default class SchemaScaper {
   constructor(sender, config) {
+    console.log("init SchemaScaper");
     this.sender = sender;
     this.config = config;
     this.settings_sent = false;
 
-    if (config.custom_settings) {
-      this.sender.updateSettings(config.custom_settings);
+    if (this.config.custom_settings) {
+      console.log("update settings" + this.config.custom_settings);
+      this.sender.updateSettings(this.config.custom_settings);
       this.settings_sent = true;
     }
   }
@@ -26,21 +28,21 @@ export default class SchemaScaper {
       return {};
     });
 
-    _clean_schema(data);
+    this._clean_schema(data);
 
     // convert dates to timestamps
-    Object.keys(data).forEach((key) => {
-      if (typeof data[key] === "string") {
-        // check if it is a date
-        if (Date.parse(data[key])) {
-          data[key] = Date.parse(data[key]);
-        }
-      }
-    });
+    // Object.keys(data).forEach((key) => {
+    //   if (typeof data[key] === "string") {
+    //     // check if it is a date
+    //     if (Date.parse(data[key])) {
+    //       data[key] = Date.parse(data[key]);
+    //     }
+    //   }
+    // });
 
-    if (!this.settings_sent) {
-      await this._discover_and_push_settings(data);
-    }
+    // if (!this.settings_sent) {
+    //   await this._discover_and_push_settings(data);
+    // }
 
     data.uid = uuidv4();
 
@@ -48,34 +50,35 @@ export default class SchemaScaper {
   }
 
   // Try to discover the best settings for Meilisearch from the schema.org data
-  async _discover_and_push_settings(data) {
-    let settings = {};
-    // Recusivelly flatten the schema.org data
+  // async _discover_and_push_settings(data) {
+  //   let settings = {};
+  //   // Recusivelly flatten the schema.org data
 
-    data = _flatten_data(data);
+  //   data = this._flatten_data(data);
 
-    // Get searchable attributes
-    Object.keys(data).forEach((key) => {
-      // Get searchable attributes
-      if (typeof data[key] === "string") {
-        // check if it is an url
-        if (data[key].startsWith("http")) {
-          return;
-        }
-        settings.searchableAttributes.push(key);
-      }
-      // Get sortable attributes
-      if (typeof data[key] === "number") {
-        settings.sortableAttributes.push(key);
-      }
-      // Get filterable attributes
-      if (typeof data[key] === "boolean" || typeof data[key] === "array") {
-        settings.filterableAttributes.push(key);
-      }
-    });
-    this.sender.updateSettings(config.custom_settings);
-    this.settings_sent = true;
-  }
+  //   // Get searchable attributes
+  //   Object.keys(data).forEach((key) => {
+  //     // Get searchable attributes
+  //     if (typeof data[key] === "string") {
+  //       // check if it is an url
+  //       if (data[key].startsWith("http")) {
+  //         return;
+  //       }
+  //       settings.searchableAttributes.push(key);
+  //     }
+  //     // Get sortable attributes
+  //     if (typeof data[key] === "number") {
+  //       settings.sortableAttributes.push(key);
+  //     }
+  //     // Get filterable attributes
+  //     if (typeof data[key] === "boolean" || typeof data[key] === "array") {
+  //       settings.filterableAttributes.push(key);
+  //     }
+  //   });
+  //   console.log({ ...settings });
+  //   this.sender.updateSettings(this.config.custom_settings);
+  //   this.settings_sent = true;
+  // }
 
   _clean_schema(data) {
     if (data["@context"]) {
@@ -91,20 +94,20 @@ export default class SchemaScaper {
     });
   }
 
-  __flatten_data(obj, prefix = "") {
-    Object.keys(obj).reduce((acc, k) => {
-      const pre = prefix.length ? prefix + "." : "";
-      if (
-        typeof obj[k] === "object" &&
-        obj[k] !== null &&
-        Object.keys(obj[k]).length > 0
-      ) {
-        Object.assign(acc, __flatten_data(obj[k], pre + k));
-      }
-      acc[pre + k] = obj[k];
-      return acc;
-    }, {});
+  // _flatten_data(obj, prefix = "") {
+  //   Object.keys(obj).reduce((acc, k) => {
+  //     const pre = prefix.length ? prefix + "." : "";
+  //     if (
+  //       typeof obj[k] === "object" &&
+  //       obj[k] !== null &&
+  //       Object.keys(obj[k]).length > 0
+  //     ) {
+  //       Object.assign(acc, this._flatten_data(obj[k], pre + k));
+  //     }
+  //     acc[pre + k] = obj[k];
+  //     return acc;
+  //   }, {});
 
-    return obj;
-  }
+  //   return obj;
+  // }
 }

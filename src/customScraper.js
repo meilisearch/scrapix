@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default class CustomScaper {
   constructor(sender, config) {
+    console.log("init CustomScaper");
     this.sender = sender;
     this.config = config;
 

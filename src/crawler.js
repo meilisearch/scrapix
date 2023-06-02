@@ -14,12 +14,14 @@ export default class Crawler {
     this.urls = config.urls;
     this.custom_crawler = config.custom_crawler;
     // init the custome scraper depending on if config.strategy is docsearch, custom or default
+    console.log({ ...config });
+    console.log("strategy", config.strategy);
     this.scraper =
-      config.strategy === "docsearch"
+      config.strategy == "docsearch"
         ? new DocsearchScraper(this.sender, config)
-        : config.strategy === "custom"
+        : config.strategy == "custom"
         ? new CustomScraper(this.sender, config)
-        : config.strategy === "schema"
+        : config.strategy == "schema"
         ? new SchemaScraper(this.sender, config)
         : new DefaultScraper(this.sender, config);
 

@@ -92,7 +92,33 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://eu.patagonia.com/fr/fr/shop\",\n        \"https://eu.patagonia.com/fr/fr/product\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"strategy\": \"schema\"\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://blog.meilisearch.com/\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"strategy\": \"schema\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{scrapix_url}}/crawl",
+					"host": [
+						"{{scrapix_url}}"
+					],
+					"path": [
+						"crawl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crawl - Schema - Config",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"urls\": [\n        \"https://blog.meilisearch.com/\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"strategy\": \"schema\",\n    \"schema\": {\n        \"only_type\": \"Article\",\n        \"convert_dates\": true\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -118,7 +144,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://eu.patagonia.com/fr/fr/shop\",\n        \"https://eu.patagonia.com/fr/fr/product\"\n    ],\n    \"index_only_urls\": [\"https://eu.patagonia.com/fr/fr/product\"],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"strategy\": \"schema\"\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://eu.patagonia.com/fr/fr/shop\",\n        \"https://eu.patagonia.com/fr/fr/product\"\n    ],\n    \"index_only_urls\": [\"https://eu.patagonia.com/fr/fr/product\"],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_name\": \"{{meilisearch_index_name}}\",\n    \"strategy\": \"schema\",\n    \"primary_key\": \"sku\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"

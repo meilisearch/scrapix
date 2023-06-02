@@ -1,4 +1,5 @@
 import { createPuppeteerRouter, PuppeteerCrawler } from "crawlee";
+import { minimatch } from "minimatch";
 import DefaultScraper from "./defaultScraper.js";
 import DocsearchScraper from "./docsearchScraper.js";
 import CustomScraper from "./customScraper.js";
@@ -11,6 +12,7 @@ import SchemaScraper from "./schemaScraper.js";
 export default class Crawler {
   constructor(sender, config) {
     this.sender = sender;
+    this.config = config;
     this.urls = config.urls;
     this.custom_crawler = config.custom_crawler;
     // init the custome scraper depending on if config.strategy is docsearch, custom or default
@@ -57,8 +59,19 @@ export default class Crawler {
       return url + "/**";
     });
 
+    const urls_to_scrap = this.config.index_only_urls || this.urls;
+    const scrap_globs = urls_to_scrap.map((url) => {
+      if (url.endsWith("/")) {
+        return url + "**";
+      }
+      return url + "/**";
+    });
+
     if (!this.__is_paginated_url(request.loadedUrl)) {
-      await this.scraper.get(request.loadedUrl, page);
+      //check if the url is in the list of urls to scrap
+      if (scrap_globs.some((glob) => minimatch(request.loadedUrl, glob))) {
+        await this.scraper.get(request.loadedUrl, page);
+      }
     }
 
     await enqueueLinks({

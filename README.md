@@ -17,6 +17,7 @@ data:
     "stategy": "default", // docsearch, schema*, custom or default
     "headless": true, // true or false
     "batch_size": 100, //null with send documents one by one
+    "primary_key": null,
     "custom_settings": {
         "searchableAttributes": [
             "h1",

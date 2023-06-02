@@ -19,23 +19,31 @@ export default class Sender {
     console.log("__initIndex");
     try {
       const index = await this.client.getIndex(this.origin_index_name);
+
       if (index) {
         this.index_name = this.origin_index_name + "_tmp";
-        console.log("index already exists, creating tmp index");
 
-        const task = await this.client.deleteIndex(this.index_name);
-        await this.client.waitForTask(task.taskUid);
+        const tmp_index = await this.client.getIndex(this.index_name);
+        if (tmp_index) {
+          const task = await this.client.deleteIndex(this.index_name);
+          await this.client.waitForTask(task.taskUid);
+        }
       }
     } catch (e) {
-      console.log("index does not exist");
+      console.error(e);
+    }
+    if (this.config.primary_key) {
+      await this.client
+        .index(this.index_name)
+        .update({ primaryKey: this.config.primary_key });
     }
     console.log("__initIndex finished");
   }
 
   //Add a json object to the queue
   async add(data) {
-    if (!data.uid) {
-      return;
+    if (this.config.primary_key) {
+      delete data["uid"];
     }
 
     if (this.batch_size) {
@@ -78,7 +86,7 @@ export default class Sender {
       { indexes: [this.origin_index_name, this.index_name] },
     ]);
     await this.client.index(this.index_name).waitForTask(task.taskUid);
-    await this.client.deleteIndex(this.index_name);
+    // await this.client.deleteIndex(this.index_name);
     console.log("__swapIndex finished");
   }
 }

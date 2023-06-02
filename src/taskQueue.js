@@ -54,10 +54,14 @@ export default class TaskQueue {
 
     //check if the tmp index exists
     const tmp_index_name = job.data.meilisearch_index_name + "_tmp";
-    const index = await client.getIndex(tmp_index_name);
-    if (index) {
-      const task = await client.deleteIndex(tmp_index_name);
-      await client.waitForTask(task.taskUid);
+    try {
+      const index = await client.getIndex(tmp_index_name);
+      if (index) {
+        const task = await client.deleteIndex(tmp_index_name);
+        await client.waitForTask(task.taskUid);
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 

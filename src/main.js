@@ -15,7 +15,8 @@ class Main {
     this.app = express();
     this.app.use(express.json());
     this.app.post("/crawl", this.__crawl.bind(this));
-    this.app.post("/sync_crawl", this.__syncCrawl.bind(this));
+    this.app.post("/crawl/async", this.__crawl.bind(this));
+    this.app.post("/crawl/sync", this.__syncCrawl.bind(this));
 
     this.app.listen(port, () =>
       console.log(`Example app listening on port ${port}!`)

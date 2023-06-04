@@ -2,11 +2,13 @@ import Queue from "bull";
 import { MeiliSearch } from "meilisearch";
 import Sender from "./sender.js";
 import Crawler from "./crawler.js";
+import { fork } from "child_process";
 
 const redis_url = process.env.REDIS_URL;
 
 export default class TaskQueue {
   constructor() {
+    console.info("TaskQueue::constructor");
     this.queue = new Queue("crawling", redis_url);
     this.queue.process(this.__process.bind(this));
     this.queue.on("added", this.__jobAdded.bind(this));
@@ -22,19 +24,13 @@ export default class TaskQueue {
   }
 
   async __process(job, done) {
-    const sender = new Sender({
-      meilisearch_host: job.data.meilisearch_host,
-      meilisearch_api_key: job.data.meilisearch_api_key,
-      meilisearch_index_name: job.data.meilisearch_index_name,
+    console.log("Job process", job.id);
+    const childProcess = fork("./src/crawler_process.js");
+    childProcess.send(job.data);
+    childProcess.on("message", (message) => {
+      console.log(message);
+      done();
     });
-    await sender.init();
-
-    const urls = job.data.urls;
-    const crawler = new Crawler(sender, { urls });
-
-    await crawler.run();
-    await sender.finish();
-    done();
   }
 
   async __jobAdded(job) {
@@ -48,16 +44,20 @@ export default class TaskQueue {
   async __jobFailed(job) {
     console.log("Job failed", job.id);
     let client = new MeiliSearch({
-      host: config.meilisearch_host,
-      apiKey: config.meilisearch_api_key,
+      host: job.data.meilisearch_host,
+      apiKey: job.data.meilisearch_api_key,
     });
 
     //check if the tmp index exists
     const tmp_index_name = job.data.meilisearch_index_name + "_tmp";
-    const index = await this.client.getIndex(tmp_index_name);
-    if (index) {
-      const task = await this.client.deleteIndex(tmp_index_name);
-      await this.client.waitForTask(task.taskUid);
+    try {
+      const index = await client.getIndex(tmp_index_name);
+      if (index) {
+        const task = await client.deleteIndex(tmp_index_name);
+        await client.waitForTask(task.taskUid);
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 

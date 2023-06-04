@@ -80,7 +80,13 @@ export default class Sender {
     console.log("Sender::finish");
     if (this.index_name !== this.origin_index_name) {
       await this.__batchSend();
-      await this.__swapIndex();
+      // If the new index have more than 0 document we swap the index
+      const index = await this.client.getIndex(this.index_name);
+      const stats = await index.getStats();
+      console.log("stats", stats);
+      if (stats.numberOfDocuments > 0) {
+        await this.__swapIndex();
+      }
     }
   }
 

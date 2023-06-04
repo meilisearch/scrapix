@@ -2,6 +2,7 @@ import Queue from "bull";
 import { MeiliSearch } from "meilisearch";
 import Sender from "./sender.js";
 import Crawler from "./crawler.js";
+import { fork } from "child_process";
 
 const redis_url = process.env.REDIS_URL;
 
@@ -23,19 +24,13 @@ export default class TaskQueue {
   }
 
   async __process(job, done) {
-    const sender = new Sender({
-      meilisearch_host: job.data.meilisearch_host,
-      meilisearch_api_key: job.data.meilisearch_api_key,
-      meilisearch_index_name: job.data.meilisearch_index_name,
+    console.log("Job process", job.id);
+    const childProcess = fork("./src/crawler_process.js");
+    childProcess.send(job.data);
+    childProcess.on("message", (message) => {
+      console.log(message);
+      done();
     });
-    await sender.init();
-
-    const urls = job.data.urls;
-    const crawler = new Crawler(sender, job.data);
-
-    await crawler.run();
-    await sender.finish();
-    done();
   }
 
   async __jobAdded(job) {

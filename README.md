@@ -10,7 +10,8 @@ data:
 ```json
 {
     "urls": ["https://www.google.com"],
-    "index_only_urls": ["https://www.google.com"],
+    "indexed_url": ["https://www.google.com"],
+    "exclude_indexed_url": ["https://www.google.com"],
     "meilisearch_host": "http://localhost:7700",
     "meilisearch_api_key": "masterKey",
     "meilisearch_index_name": "google",

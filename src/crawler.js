@@ -58,7 +58,7 @@ export default class Crawler {
       return url + "/**";
     });
 
-    const urls_to_scrap = this.config.index_only_urls || this.urls;
+    const urls_to_scrap = this.config.indexed_url || this.urls;
     const scrap_globs = urls_to_scrap.map((url) => {
       if (url.endsWith("/")) {
         return url + "**";
@@ -66,10 +66,23 @@ export default class Crawler {
       return url + "/**";
     });
 
+    const excluded_globs = (this.config.exclude_indexed_url || []).map(
+      (url) => {
+        if (url.endsWith("/")) {
+          return url + "**";
+        }
+        return url + "/**";
+      }
+    );
+
     if (!this.__is_paginated_url(request.loadedUrl)) {
       //check if the url is in the list of urls to scrap
       if (scrap_globs.some((glob) => minimatch(request.loadedUrl, glob))) {
-        await this.scraper.get(request.loadedUrl, page);
+        if (
+          !excluded_globs.some((glob) => minimatch(request.loadedUrl, glob))
+        ) {
+          await this.scraper.get(request.loadedUrl, page);
+        }
       }
     }
 

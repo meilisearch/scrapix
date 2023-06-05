@@ -27,6 +27,8 @@ export default class SchemaScaper {
       return {};
     });
 
+    if (data.length === 0) return;
+
     if (this.config.schema?.only_type) {
       if (data["@type"] !== this.config.schema_config?.only_type) return;
     }

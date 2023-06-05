@@ -14,7 +14,7 @@ export default class Crawler {
     console.info("Crawler::constructor");
     this.sender = sender;
     this.config = config;
-    this.urls = config.urls;
+    this.urls = config.crawled_urls;
     this.custom_crawler = config.custom_crawler;
     // init the custome scraper depending on if config.strategy is docsearch, custom or default
     this.scraper =
@@ -51,43 +51,30 @@ export default class Crawler {
   async defaultHandler({ request, enqueueLinks, page, log }) {
     const title = await page.title();
     console.log(`${title}`, { url: request.loadedUrl });
-    const globs = this.urls.map((url) => {
-      if (url.endsWith("/")) {
-        return url + "**";
-      }
-      return url + "/**";
-    });
-
-    const urls_to_scrap = this.config.indexed_url || this.urls;
-    const scrap_globs = urls_to_scrap.map((url) => {
-      if (url.endsWith("/")) {
-        return url + "**";
-      }
-      return url + "/**";
-    });
-
-    const excluded_globs = (this.config.exclude_indexed_url || []).map(
-      (url) => {
-        if (url.endsWith("/")) {
-          return url + "**";
-        }
-        return url + "/**";
-      }
+    const crawled_globs = this.__generate_globs(this.urls);
+    const excluded_crawled_globs = this.__generate_globs(
+      this.config.exclude_crawled_urls || []
+    );
+    const indexed_globs = this.__generate_globs(
+      this.config.indexed_urls || this.urls
+    );
+    const excluded_indexed_globs = this.__generate_globs(
+      this.config.exclude_indexed_urls || []
     );
 
     if (!this.__is_paginated_url(request.loadedUrl)) {
       //check if the url is in the list of urls to scrap
-      if (scrap_globs.some((glob) => minimatch(request.loadedUrl, glob))) {
-        if (
-          !excluded_globs.some((glob) => minimatch(request.loadedUrl, glob))
-        ) {
-          await this.scraper.get(request.loadedUrl, page);
-        }
+      if (
+        this.__match_globs(request.loadedUrl, indexed_globs) &&
+        !this.__match_globs(excluded_indexed_globs, request.loadedUrl)
+      ) {
+        await this.scraper.get(request.loadedUrl, page);
       }
     }
 
     await enqueueLinks({
-      globs,
+      globs: crawled_globs,
+      exclude: excluded_crawled_globs,
       transformRequestFunction: (req) => {
         // exclude all links that are files not parsable by puppeteer
         if (this.__is_file_url(req.url)) {
@@ -101,6 +88,19 @@ export default class Crawler {
         return req;
       },
     });
+  }
+
+  __generate_globs(urls) {
+    return urls.map((url) => {
+      if (url.endsWith("/")) {
+        return url + "**";
+      }
+      return url + "/**";
+    });
+  }
+
+  __match_globs(url, globs) {
+    return globs.some((glob) => minimatch(url, glob));
   }
 
   __is_file_url(url) {

@@ -8,7 +8,7 @@ import Crawler from "./crawler.js";
 
 const port = process.env.PORT || 3000;
 
-class Main {
+class Server {
   constructor() {
     this.taskQueue = new TaskQueue();
 
@@ -41,4 +41,4 @@ class Main {
   }
 }
 
-new Main();
+new Server();

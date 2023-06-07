@@ -1,0 +1,12 @@
+{
+  "crawled_urls": [
+    "https://eu.patagonia.com/fr/fr/shop",
+    "https://eu.patagonia.com/fr/fr/product"
+  ],
+  "indexed_urls": ["https://eu.patagonia.com/fr/fr/product"],
+  "meilisearch_host": "{{meilisearch_host}}",
+  "meilisearch_api_key": "{{meilisearch_api_key}}",
+  "meilisearch_index_name": "{{meilisearch_index_name}}",
+  "strategy": "schema",
+  "primary_key": "sku"
+}

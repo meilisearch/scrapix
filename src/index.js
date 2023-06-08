@@ -3,10 +3,12 @@ dotenv.config();
 
 import fs from "fs";
 import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 import Sender from "./sender.js";
 import Crawler from "./crawler.js";
 
-const argv = yargs.option("config", {
+// Parse command line arguments and get a configuration file path
+const argv = yargs(hideBin(process.argv)).option("config", {
   alias: "c",
   describe: "Path to configuration file",
   demandOption: true,

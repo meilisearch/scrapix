@@ -66,7 +66,7 @@ export default class Crawler {
       //check if the url is in the list of urls to scrap
       if (
         this.__match_globs(request.loadedUrl, indexed_globs) &&
-        !this.__match_globs(excluded_indexed_globs, request.loadedUrl)
+        !this.__match_globs(request.loadedUrl, excluded_indexed_globs)
       ) {
         await this.scraper.get(request.loadedUrl, page);
       }

@@ -1,0 +1,6 @@
+{
+  "crawled_urls": ["https://platform.openai.com/docs"],
+  "meilisearch_host": "localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_name": "openai"
+}

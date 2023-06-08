@@ -1,23 +1,25 @@
 {
-    "name": "doc-crawler-test",
-    "version": "0.0.1",
-    "type": "module",
-    "description": "This is an example of a Crawlee project.",
-    "dependencies": {
-        "bull": "^4.10.4",
-        "crawlee": "^3.0.0",
-        "dotenv": "^16.0.3",
-        "express": "^4.18.2",
-        "meilisearch": "^0.31.1",
-        "minimatch": "^9.0.1",
-        "prettier": "^2.8.4",
-        "puppeteer": "*",
-        "uuid": "^9.0.0"
-    },
-    "scripts": {
-        "start": "node src/main.js",
-        "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
-    },
-    "author": "It's not you it's me",
-    "license": "ISC"
+  "name": "doc-crawler-test",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "This is an example of a Crawlee project.",
+  "dependencies": {
+    "bull": "^4.10.4",
+    "crawlee": "^3.0.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "meilisearch": "^0.31.1",
+    "minimatch": "^9.0.1",
+    "prettier": "^2.8.4",
+    "puppeteer": "*",
+    "uuid": "^9.0.0",
+    "yargs": "^17.7.2"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "serve": "node src/server.js",
+    "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+  },
+  "author": "It's not you it's me",
+  "license": "ISC"
 }

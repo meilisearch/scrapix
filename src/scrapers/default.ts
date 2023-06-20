@@ -1,8 +1,16 @@
 import prettier from "prettier";
 import { v4 as uuidv4 } from "uuid";
+import { Sender } from "../sender";
+import { Config, Meta } from "../types";
+import { Page } from "puppeteer";
+import { DefaultData } from "../types";
+
 
 export default class DefaultScraper {
-  constructor(sender, config) {
+  sender: Sender;
+  settings: Config["custom_settings"];
+
+  constructor(sender: Sender, config: Config) {
     console.info("DefaultScraper::constructor");
     this.sender = sender;
     this.settings = config.custom_settings || {
@@ -23,13 +31,13 @@ export default class DefaultScraper {
     this.sender.updateSettings(this.settings);
   }
 
-  async get(url, page) {
+  async get(url: string, page: Page) {
     const title = await page.title();
     //get the meta of the page
     const meta = await this._extract_metadata_from_page(page);
 
     //for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
-    let data = {};
+    let data: DefaultData = {} as DefaultData;
     let elems = await page.$$(
       "main h1, main h2, main h3, main h4, main h5, main h6, main p, main td, main li, main span"
     );
@@ -40,7 +48,7 @@ export default class DefaultScraper {
     for (let i = 0; i < elems.length; i++) {
       let elem = elems[i];
       let tag = await elem.evaluate((el) => el.tagName);
-      let text = await elem.evaluate((el) => el.textContent);
+      let text = await elem.evaluate((el) => el.textContent) || '';
       text = this._clean_text(text);
       data.uid = uuidv4();
       data.url = url;
@@ -48,7 +56,7 @@ export default class DefaultScraper {
       data.meta = meta;
       data.image_url = this._get_image_url_from_meta(meta);
       data.page_block = page_block;
-      let urls_tags = new URL(url).pathname.split("/");
+      let urls_tags = new URL(url).pathname.split("/"); // TODO: Rename to path_segments
       data.urls_tags = urls_tags.slice(1, urls_tags.length - 1);
 
       let id = await elem.evaluate((el) => el.id);
@@ -56,7 +64,7 @@ export default class DefaultScraper {
         if (data["h1"]) {
           await this.sender.add(data);
           page_block++;
-          data = {};
+          data = {} as DefaultData;
         }
         data["h1"] = text;
         data.anchor = "#" + id;
@@ -64,7 +72,7 @@ export default class DefaultScraper {
         if (data["h2"]) {
           await this.sender.add(data);
           page_block++;
-          data = { h1: data["h1"] };
+          data = { h1: data["h1"] } as DefaultData;
         }
         data.anchor = "#" + id;
         data["h2"] = text;
@@ -72,7 +80,7 @@ export default class DefaultScraper {
         if (data["h3"]) {
           await this.sender.add(data);
           page_block++;
-          data = { h1: data["h1"], h2: data["h2"] };
+          data = { h1: data["h1"], h2: data["h2"] } as DefaultData;
         }
         data.anchor = "#" + id;
         data["h3"] = text;
@@ -80,7 +88,7 @@ export default class DefaultScraper {
         if (data["h4"]) {
           await this.sender.add(data);
           page_block++;
-          data = { h1: data["h1"], h2: data["h2"], h3: data["h3"] };
+          data = { h1: data["h1"], h2: data["h2"], h3: data["h3"] } as DefaultData;
         }
         data.anchor = "#" + id;
         data["h4"] = text;
@@ -93,7 +101,7 @@ export default class DefaultScraper {
             h2: data["h2"],
             h3: data["h3"],
             h4: data["h4"],
-          };
+          } as DefaultData;
         }
         data.anchor = "#" + id;
         data["h5"] = text;
@@ -107,7 +115,7 @@ export default class DefaultScraper {
             h3: data["h3"],
             h4: data["h4"],
             h5: data["h5"],
-          };
+          } as DefaultData;
         }
         data.anchor = "#" + id;
         data["h6"] = text;
@@ -120,7 +128,8 @@ export default class DefaultScraper {
         if (!data["p"]) {
           data["p"] = [];
         }
-        if (!data["p"].includes(text)) {
+        // TODO: should we leave `null` values in the `p` array?
+        if (text && !data["p"].includes(text)) {
           data["p"].push(text);
         }
       }
@@ -132,7 +141,7 @@ export default class DefaultScraper {
 
   // Remove from a text all multiple spaces, new lines, and leading and trailing spaces, and
   // remove '# ' from the beginning of the text
-  _clean_text(text) {
+  _clean_text(text: string) {
     text = text.replace(/[\r\n]+/gm, " ");
     ///remove multiple spaces
     text = text.replace(/\s+/g, " ");
@@ -143,11 +152,12 @@ export default class DefaultScraper {
     return text;
   }
 
+  
   // Extract the meta of a page
-  async _extract_metadata_from_page(page) {
+  async _extract_metadata_from_page(page: Page) {
     return await page.evaluate(() => {
       const metas = document.getElementsByTagName("meta");
-      const meta = {};
+      const meta: Meta = {} as Meta;
       for (let i = 0; i < metas.length; i++) {
         const name = metas[i].getAttribute("name");
         const content = metas[i].getAttribute("content");
@@ -160,7 +170,7 @@ export default class DefaultScraper {
   }
 
   // Extract the image url from the meta of a page
-  _get_image_url_from_meta(meta) {
+  _get_image_url_from_meta(meta: Meta) {
     if (meta["og:image"]) {
       return meta["og:image"];
     } else if (meta["twitter:image"]) {
@@ -168,10 +178,12 @@ export default class DefaultScraper {
     } else if (meta["image"]) {
       return meta["image"];
     }
+    return;
   }
 
   // A function that retro-engineer the hljs generated html to extract the code
-  async _extract_code_from_page(page) {
+  // TODO: Does it work?
+  async _extract_code_from_page(page: Page) {
     let code = await page.evaluate(() => {
       let code = "";
       let pre = document.getElementsByTagName("pre");
@@ -183,11 +195,11 @@ export default class DefaultScraper {
       }
       return code;
     });
-    return format_code(code);
+    return this._format_code(code);
   }
   // A function that use prettier to format the code that has been extracted in a html page.
   // Format only if the language is supported by prettier
-  _format_code(code) {
+  _format_code(code: string) {
     let formatted_code = "";
     try {
       formatted_code = prettier.format(code, {

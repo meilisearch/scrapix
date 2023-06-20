@@ -1,8 +1,13 @@
-import prettier from "prettier";
 import { v4 as uuidv4 } from "uuid";
+import { Sender } from "../sender";
+import { Page } from "puppeteer";
+import { DocsSearchData } from "../types";
 
 export default class DocsearchScaper {
-  constructor(sender, config) {
+  sender: Sender;
+
+  //
+  constructor(sender: Sender) {
     console.info("DocsearchScaper::constructor");
     this.sender = sender;
 
@@ -19,9 +24,9 @@ export default class DocsearchScaper {
     });
   }
 
-  async get(url, page) {
+  async get(url: string, page: Page) {
     //for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
-    let data = {};
+    let data = {} as DocsSearchData;
     let elems = await page.$$(
       "main h1, main h2, main h3, main h4, main h5, main p, main td, main li, main span"
     );
@@ -32,7 +37,7 @@ export default class DocsearchScaper {
     for (let i = 0; i < elems.length; i++) {
       let elem = elems[i];
       let tag = await elem.evaluate((el) => el.tagName);
-      let text = await elem.evaluate((el) => el.textContent);
+      let text = await elem.evaluate((el) => el.textContent) || '';
       text = this._clean_text(text);
       data.uid = uuidv4();
       data.url = url;
@@ -45,7 +50,7 @@ export default class DocsearchScaper {
         if (data["hierarchy_lvl1"]) {
           await this.sender.add(data);
           page_block++;
-          data = {};
+          data = {} as DocsSearchData;
         }
         data["hierarchy_lvl1"] = text;
         data.anchor = "#" + id;
@@ -53,7 +58,7 @@ export default class DocsearchScaper {
         if (data["hierarchy_lvl2"]) {
           await this.sender.add(data);
           page_block++;
-          data = { hierarchy_lvl1: data["hierarchy_lvl1"] };
+          data = { hierarchy_lvl1: data["hierarchy_lvl1"] } as DocsSearchData;
         }
         data.anchor = "#" + id;
         data["hierarchy_lvl2"] = text;
@@ -64,7 +69,7 @@ export default class DocsearchScaper {
           data = {
             hierarchy_lvl1: data["hierarchy_lvl1"],
             hierarchy_lvl2: data["hierarchy_lvl2"],
-          };
+          } as DocsSearchData;
         }
         data.anchor = "#" + id;
         data["hierarchy_lvl3"] = text;
@@ -76,7 +81,7 @@ export default class DocsearchScaper {
             hierarchy_lvl1: data["hierarchy_lvl1"],
             hierarchy_lvl2: data["hierarchy_lvl2"],
             hierarchy_lvl3: data["hierarchy_lvl3"],
-          };
+          } as DocsSearchData;
         }
         data.anchor = "#" + id;
         data["hierarchy_lvl4"] = text;
@@ -89,7 +94,7 @@ export default class DocsearchScaper {
             hierarchy_lvl2: data["hierarchy_lvl2"],
             hierarchy_lvl3: data["hierarchy_lvl3"],
             hierarchy_lvl4: data["hierarchy_lvl4"],
-          };
+          } as DocsSearchData;
         }
         data.anchor = "#" + id;
         data["hierarchy_lvl5"] = text;
@@ -102,7 +107,7 @@ export default class DocsearchScaper {
         if (!data["content"]) {
           data["content"] = [];
         }
-        if (!data["content"].includes(text)) {
+        if (text !== null && !data["content"].includes(text)) {
           data["content"].push(text);
         }
       }
@@ -122,7 +127,7 @@ export default class DocsearchScaper {
 
   // Remove from a text all multiple spaces, new lines, and leading and trailing spaces, and
   // remove '# ' from the beginning of the text
-  _clean_text(text) {
+  _clean_text(text: string) {
     text = text.replace(/[\r\n]+/gm, " ");
     ///remove multiple spaces
     text = text.replace(/\s+/g, " ");

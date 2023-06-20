@@ -1,8 +1,16 @@
-import { MeiliSearch } from "meilisearch";
+import { MeiliSearch, Settings } from "meilisearch";
+import { Config, DocsSearchData, DefaultData } from "./types";
 
 //Create a class called Sender that will queue the json data and batch it to a Meilisearch instance
-export default class Sender {
-  constructor(config) {
+export class Sender {
+  config: Config
+  queue: Array<DocsSearchData | DefaultData>
+  origin_index_name: string
+  index_name: string
+  batch_size: number
+  client: MeiliSearch
+
+  constructor(config: Config) {
     console.info("Sender::constructor");
     this.queue = [];
     this.config = config;
@@ -32,8 +40,9 @@ export default class Sender {
         }
       }
     } catch (e) {
+      // TODO: better console.log
       console.log("try to delete a tmp index if it exists");
-      // console.error(e);
+      console.error(e);
     }
 
     if (this.config.primary_key) {
@@ -43,7 +52,8 @@ export default class Sender {
           .update({ primaryKey: this.config.primary_key });
       } catch (e) {
         console.log("try to create or update the index with the primary key");
-        // console.error(e);
+
+        // TODO: why?
         await this.client.createIndex(this.index_name, {
           primaryKey: this.config.primary_key,
         });
@@ -52,7 +62,10 @@ export default class Sender {
   }
 
   //Add a json object to the queue
-  async add(data) {
+
+  
+  // TODO: should be better specified
+  async add(data: DocsSearchData | DefaultData) {
     console.log("Sender::add");
     if (this.config.primary_key) {
       delete data["uid"];
@@ -64,11 +77,11 @@ export default class Sender {
         await this.__batchSend();
       }
     } else {
-      const task = await this.client.index(this.index_name).addDocuments(data);
+      await this.client.index(this.index_name).addDocuments([data]);
     }
   }
 
-  async updateSettings(settings) {
+  async updateSettings(settings: Settings) {
     console.log("Sender::updateSettings");
     let task = await this.client
       .index(this.index_name)
@@ -105,6 +118,7 @@ export default class Sender {
       { indexes: [this.origin_index_name, this.index_name] },
     ]);
     await this.client.index(this.index_name).waitForTask(task.taskUid);
+    // TODO: should we wait for task?
     // await this.client.deleteIndex(this.index_name);
   }
 }

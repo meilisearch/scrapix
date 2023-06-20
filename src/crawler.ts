@@ -1,25 +1,39 @@
-import { createPuppeteerRouter, PuppeteerCrawler } from "crawlee";
+import { createPuppeteerRouter, PuppeteerCrawler, Router, PuppeteerCrawlingContext } from "crawlee";
 import { minimatch } from "minimatch";
 import DefaultScraper from "./scrapers/default.js";
 import DocsearchScraper from "./scrapers/docsearch.js";
 import CustomScraper from "./scrapers/custom.js";
 import SchemaScraper from "./scrapers/schema.js";
+import { Sender } from "./sender.js";
+import { Config, Scraper } from "./types.js";
+
+
+type DefaultHandler = Parameters<Parameters<Router<PuppeteerCrawlingContext>['addDefaultHandler']>[0]>[0]
 
 // Crawler class
 // This class is responsible for crawling the urls and extract content to send to Meilisearch
 // It uses the createPuppeteerRouter method to create a router that will be used by the PuppeteerCrawler.
 // The constructor take a Sender object as a parameter
 export default class Crawler {
-  constructor(sender, config) {
+  sender: Sender
+  config: Config
+  urls: string[]
+  custom_crawler: string // TODO: remove
+  scraper: Scraper
+  crawler: PuppeteerCrawler
+
+
+
+  constructor(sender: Sender, config: Config) {
     console.info("Crawler::constructor");
     this.sender = sender;
     this.config = config;
     this.urls = config.crawled_urls;
-    this.custom_crawler = config.custom_crawler;
+    this.custom_crawler = config.custom_crawler; // TODO: remove
     // init the custome scraper depending on if config.strategy is docsearch, custom or default
     this.scraper =
-      config.strategy == "docsearch"
-        ? new DocsearchScraper(this.sender, config)
+      config.strategy == "docsearch" // TODO: rename to docssearch
+        ? new DocsearchScraper(this.sender)
         : config.strategy == "custom"
         ? new CustomScraper(this.sender, config)
         : config.strategy == "schema"
@@ -28,6 +42,8 @@ export default class Crawler {
 
     //Create the router
     let router = createPuppeteerRouter();
+
+    // type DefaultHandler = Parameters<typeof router.addDefaultHandler>[0];
     router.addDefaultHandler(this.defaultHandler.bind(this));
 
     // create the crawler
@@ -48,7 +64,8 @@ export default class Crawler {
     await this.crawler.run(this.urls);
   }
 
-  async defaultHandler({ request, enqueueLinks, page, log }) {
+  // Should we use `log`
+  async defaultHandler({ request , enqueueLinks, page }: DefaultHandler ) {
     const title = await page.title();
     console.log(`${title}`, { url: request.loadedUrl });
     const crawled_globs = this.__generate_globs(this.urls);
@@ -62,7 +79,7 @@ export default class Crawler {
       this.config.exclude_indexed_urls || []
     );
 
-    if (!this.__is_paginated_url(request.loadedUrl)) {
+    if (request.loadedUrl && !this.__is_paginated_url(request.loadedUrl)) {
       //check if the url is in the list of urls to scrap
       if (
         this.__match_globs(request.loadedUrl, indexed_globs) &&
@@ -90,7 +107,7 @@ export default class Crawler {
     });
   }
 
-  __generate_globs(urls) {
+  __generate_globs(urls: string[]) {
     return urls.map((url) => {
       if (url.endsWith("/")) {
         return url + "**";
@@ -99,11 +116,11 @@ export default class Crawler {
     });
   }
 
-  __match_globs(url, globs) {
+  __match_globs(url: string, globs: string[]) {
     return globs.some((glob) => minimatch(url, glob));
   }
 
-  __is_file_url(url) {
+  __is_file_url(url: string) {
     const fileExtensions = [
       ".zip",
       ".pdf",
@@ -147,7 +164,7 @@ export default class Crawler {
     return fileExtensions.some((extension) => url.endsWith(extension));
   }
 
-  __is_paginated_url(url) {
+  __is_paginated_url(url: string) {
     const urlObject = new URL(url);
     const pathname = urlObject.pathname;
     return /\/\d+\//.test(pathname);

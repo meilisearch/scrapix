@@ -18,21 +18,19 @@ export default class Crawler {
   sender: Sender
   config: Config
   urls: string[]
-  custom_crawler: string // TODO: remove
+  custom_crawler: string
   scraper: Scraper
   crawler: PuppeteerCrawler
-
-
 
   constructor(sender: Sender, config: Config) {
     console.info("Crawler::constructor");
     this.sender = sender;
     this.config = config;
     this.urls = config.crawled_urls;
-    this.custom_crawler = config.custom_crawler; // TODO: remove
+    this.custom_crawler = config.custom_crawler;
     // init the custome scraper depending on if config.strategy is docsearch, custom or default
     this.scraper =
-      config.strategy == "docsearch" // TODO: rename to docssearch
+      config.strategy == "docsearch"
         ? new DocsearchScraper(this.sender)
         : config.strategy == "custom"
         ? new CustomScraper(this.sender, config)

@@ -40,9 +40,7 @@ export class Sender {
         }
       }
     } catch (e) {
-      // TODO: better console.log
       console.log("try to delete a tmp index if it exists");
-      console.error(e);
     }
 
     if (this.config.primary_key) {
@@ -53,7 +51,6 @@ export class Sender {
       } catch (e) {
         console.log("try to create or update the index with the primary key");
 
-        // TODO: why?
         await this.client.createIndex(this.index_name, {
           primaryKey: this.config.primary_key,
         });
@@ -62,9 +59,6 @@ export class Sender {
   }
 
   //Add a json object to the queue
-
-  
-  // TODO: should be better specified
   async add(data: DocsSearchData | DefaultData) {
     console.log("Sender::add");
     if (this.config.primary_key) {
@@ -118,7 +112,5 @@ export class Sender {
       { indexes: [this.origin_index_name, this.index_name] },
     ]);
     await this.client.index(this.index_name).waitForTask(task.taskUid);
-    // TODO: should we wait for task?
-    // await this.client.deleteIndex(this.index_name);
   }
 }

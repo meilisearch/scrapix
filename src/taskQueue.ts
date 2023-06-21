@@ -3,7 +3,6 @@ import { MeiliSearch } from "meilisearch";
 import { fork } from "child_process";
 import { Config } from "./types";
 
-// TODO: is not used
 const redis_url = process.env.REDIS_URL;
 
 export default class TaskQueue {
@@ -18,7 +17,6 @@ export default class TaskQueue {
     else {
       this.queue = new Queue("crawling");
     }
-    // this.queue.obliterate({ force: true }); // TODO: add route to obliterate queue
     this.queue.process(this.__process.bind(this));
     this.queue.on("added", this.__jobAdded.bind(this));
     this.queue.on("completed", this.__jobCompleted.bind(this));

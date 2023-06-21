@@ -6,7 +6,7 @@ import { Config, SchemaData } from "../types";
 export default class SchemaScaper {
   sender: Sender;
   config: Config;
-  settings_sent: boolean; // TODO: Where is this used?
+  settings_sent: boolean;
 
   constructor(sender: Sender, config: Config) {
     console.info("SchemaScaper::constructor");
@@ -36,9 +36,6 @@ export default class SchemaScaper {
     if (data.length === 0) return;
 
     if (this.config.schema?.only_type) {
-      // TODO: Might be an error, should be `schema.only_type` and not `schema_config.only_type`
-      // Leaving old code in comment in case it is not an error
-      // if (data["@type"] !== this.config.schema_config?.only_type) return;
       if (data["@type"] !== this.config.schema?.only_type) return;
     }
 

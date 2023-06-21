@@ -19,7 +19,6 @@ class Server {
     this.app.post("/crawl", this.__crawl.bind(this));
     this.app.post("/crawl/async", this.__crawl.bind(this));
     this.app.post("/crawl/sync", this.__syncCrawl.bind(this));
-    // TODO: create route to empty taskQueue
 
     this.app.listen(port, () =>
       console.log(`Example app listening on port ${port}!`)

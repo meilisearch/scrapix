@@ -56,7 +56,7 @@ export default class DefaultScraper {
       data.meta = meta;
       data.image_url = this._get_image_url_from_meta(meta);
       data.page_block = page_block;
-      let urls_tags = new URL(url).pathname.split("/"); // TODO: Rename to path_segments
+      let urls_tags = new URL(url).pathname.split("/");
       data.urls_tags = urls_tags.slice(1, urls_tags.length - 1);
 
       let id = await elem.evaluate((el) => el.id);
@@ -182,7 +182,6 @@ export default class DefaultScraper {
   }
 
   // A function that retro-engineer the hljs generated html to extract the code
-  // TODO: Does it work?
   async _extract_code_from_page(page: Page) {
     let code = await page.evaluate(() => {
       let code = "";

@@ -3,15 +3,17 @@ dotenv.config();
 
 import express from "express";
 import TaskQueue from "./taskQueue.js";
-import Sender from "./sender.js";
+import { Sender } from "./sender.js";
 import Crawler from "./crawler.js";
 
 const port = process.env.PORT || 3000;
 
 class Server {
+  taskQueue: TaskQueue;
+  app: express.Application;
+
   constructor() {
     this.taskQueue = new TaskQueue();
-
     this.app = express();
     this.app.use(express.json());
     this.app.post("/crawl", this.__crawl.bind(this));
@@ -23,13 +25,13 @@ class Server {
     );
   }
 
-  async __crawl(req, res) {
+  async __crawl(req: express.Request, res: express.Response) {
     this.taskQueue.add(req.body);
     console.log("Crawling started");
     res.send("Crawling started");
   }
 
-  async __syncCrawl(req, res) {
+  async __syncCrawl(req: express.Request, res: express.Response) {
     const sender = new Sender(req.body);
     await sender.init();
 

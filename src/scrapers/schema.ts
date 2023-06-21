@@ -1,8 +1,14 @@
-import prettier from "prettier";
 import { v4 as uuidv4 } from "uuid";
+import { Page } from "puppeteer";
+import { Sender } from "../sender";
+import { Config, SchemaData } from "../types";
 
 export default class SchemaScaper {
-  constructor(sender, config) {
+  sender: Sender;
+  config: Config;
+  settings_sent: boolean;
+
+  constructor(sender: Sender, config: Config) {
     console.info("SchemaScaper::constructor");
     this.sender = sender;
     this.config = config;
@@ -14,11 +20,11 @@ export default class SchemaScaper {
     }
   }
 
-  async get(url, page) {
+  async get(url: string, page: Page) {
     console.log("__extractContent", url);
     // Get the schema.org data
     const data = await page.evaluate(() => {
-      const schema = document.querySelector(
+      const schema = document.querySelector<HTMLElement>(
         "script[type='application/ld+json']"
       );
       if (schema) {
@@ -30,7 +36,7 @@ export default class SchemaScaper {
     if (data.length === 0) return;
 
     if (this.config.schema?.only_type) {
-      if (data["@type"] !== this.config.schema_config?.only_type) return;
+      if (data["@type"] !== this.config.schema?.only_type) return;
     }
 
     this._clean_schema(data);
@@ -52,7 +58,7 @@ export default class SchemaScaper {
     await this.sender.add(data);
   }
 
-  _clean_schema(data) {
+  _clean_schema(data: SchemaData) {
     if (data["@context"]) {
       delete data["@context"];
     }

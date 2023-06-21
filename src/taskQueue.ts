@@ -1,15 +1,22 @@
-import Queue from "bull";
+import Queue, { Job, DoneCallback } from "bull";
 import { MeiliSearch } from "meilisearch";
-import Sender from "./sender.js";
-import Crawler from "./crawler.js";
 import { fork } from "child_process";
+import { Config } from "./types";
 
 const redis_url = process.env.REDIS_URL;
 
 export default class TaskQueue {
+  queue: Queue.Queue;
+
   constructor() {
     console.info("TaskQueue::constructor");
-    this.queue = new Queue("crawling", redis_url);
+    console.log(redis_url)
+    if (redis_url ) {
+      this.queue = new Queue("crawling", redis_url);
+    }
+    else {
+      this.queue = new Queue("crawling");
+    }
     this.queue.process(this.__process.bind(this));
     this.queue.on("added", this.__jobAdded.bind(this));
     this.queue.on("completed", this.__jobCompleted.bind(this));
@@ -19,13 +26,13 @@ export default class TaskQueue {
     this.queue.on("delayed", this.__jobDelayed.bind(this));
   }
 
-  add(data) {
+  add(data: Config) {
     this.queue.add(data);
   }
 
-  async __process(job, done) {
+  async __process(job: Job, done: DoneCallback) {
     console.log("Job process", job.id);
-    const childProcess = fork("./src/crawler_process.js");
+    const childProcess = fork("./dist/src/crawler_process.js");
     childProcess.send(job.data);
     childProcess.on("message", (message) => {
       console.log(message);
@@ -33,15 +40,15 @@ export default class TaskQueue {
     });
   }
 
-  async __jobAdded(job) {
+  async __jobAdded(job: Job) {
     console.log("Job added", job.id);
   }
 
-  async __jobCompleted(job) {
+  async __jobCompleted(job: Job) {
     console.log("Job completed", job.id);
   }
 
-  async __jobFailed(job) {
+  async __jobFailed(job: Job) {
     console.log("Job failed", job.id);
     let client = new MeiliSearch({
       host: job.data.meilisearch_host,
@@ -61,15 +68,16 @@ export default class TaskQueue {
     }
   }
 
-  async __jobActive(job) {
+  async __jobActive(job: Job) {
+    console.log({ job })
     console.log("Job active", job.id);
   }
 
-  async __jobWaiting(job) {
+  async __jobWaiting(job: Job) {
     console.log("Job waiting", job.id);
   }
 
-  async __jobDelayed(job) {
+  async __jobDelayed(job: Job) {
     console.log("Job delayed", job.id);
   }
 }

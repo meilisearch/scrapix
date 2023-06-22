@@ -16,7 +16,7 @@ export type Config = {
   strategy?: 'docsearch' | 'default' | 'schema'
   headless?: boolean
   urls_to_index?: string[] // Overwrites start_urls if present
-  exclude_indexed_urls?: string[]
+  urls_to_not_index?: string[]
   schema?: SchemaConfig
 }
 

@@ -75,7 +75,7 @@ export default class Crawler {
       this.config.urls_to_index || this.urls
     )
     const excluded_indexed_globs = this.__generate_globs(
-      this.config.exclude_indexed_urls || []
+      this.config.urls_to_not_index || []
     )
 
     if (request.loadedUrl && !this.__is_paginated_url(request.loadedUrl)) {

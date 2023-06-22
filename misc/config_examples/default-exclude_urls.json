@@ -3,7 +3,7 @@
     "https://meilisearch.com/docs",
     "https://www.meilisearch.com/docs"
   ],
-  "exclude_indexed_urls": ["https://blog.meilisearch.com/page"],
+  "urls_to_not_index": ["https://blog.meilisearch.com/page"],
   "meilisearch_url": "{{meilisearch_url}}",
   "meilisearch_api_key": "{{meilisearch_api_key}}",
   "meilisearch_index_uid": "{{meilisearch_index_uid}}"

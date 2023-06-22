@@ -1,8 +1,8 @@
-import { Settings } from "meilisearch";
-import DocsearchScraper from "./scrapers/docsearch";
-import DefaultScraper from "./scrapers/default";
-import CustomScraper from "./scrapers/custom";
-import SchemaScraper from "./scrapers/schema";
+import { Settings } from 'meilisearch'
+import DocsearchScraper from './scrapers/docsearch'
+import DefaultScraper from './scrapers/default'
+import CustomScraper from './scrapers/custom'
+import SchemaScraper from './scrapers/schema'
 
 export type Config = {
   meilisearch_index_name: string
@@ -20,7 +20,6 @@ export type Config = {
   indexed_urls?: string[]
   exclude_indexed_urls?: string[]
   schema?: SchemaConfig
-  
 }
 
 export type SchemaConfig = {
@@ -28,7 +27,13 @@ export type SchemaConfig = {
   only_type: string
 }
 
-export type Scraper = DocsearchScraper | DefaultScraper | CustomScraper | SchemaScraper
+export type Scraper =
+  | DocsearchScraper
+  | DefaultScraper
+  | CustomScraper
+  | SchemaScraper
+
+export type DocumentTypes = DocsSearchData | DefaultData | SchemaData
 
 export type DocsSearchData = {
   url: string
@@ -47,7 +52,6 @@ export type DocsSearchData = {
   hierarchy_radio_lvl3: string | null
   hierarchy_radio_lvl4: string | null
   hierarchy_radio_lvl5: string | null
-  
 }
 
 export type DefaultData = {
@@ -71,9 +75,8 @@ export type DefaultData = {
 export type SchemaData = {
   uid: string
   [key: string]: any
-  
 }
 
 export type Meta = {
-  [name: string]: string;
+  [name: string]: string
 }

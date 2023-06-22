@@ -1,46 +1,46 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+import * as dotenv from 'dotenv'
+dotenv.config()
 
-import express from "express";
-import TaskQueue from "./taskQueue.js";
-import { Sender } from "./sender.js";
-import Crawler from "./crawler.js";
+import express from 'express'
+import TaskQueue from './taskQueue.js'
+import { Sender } from './sender.js'
+import Crawler from './crawler.js'
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000
 
 class Server {
-  taskQueue: TaskQueue;
-  app: express.Application;
+  taskQueue: TaskQueue
+  app: express.Application
 
   constructor() {
-    this.taskQueue = new TaskQueue();
-    this.app = express();
-    this.app.use(express.json());
-    this.app.post("/crawl", this.__crawl.bind(this));
-    this.app.post("/crawl/async", this.__crawl.bind(this));
-    this.app.post("/crawl/sync", this.__syncCrawl.bind(this));
+    this.taskQueue = new TaskQueue()
+    this.app = express()
+    this.app.use(express.json())
+    this.app.post('/crawl', this.__crawl.bind(this))
+    this.app.post('/crawl/async', this.__crawl.bind(this))
+    this.app.post('/crawl/sync', this.__syncCrawl.bind(this))
 
     this.app.listen(port, () =>
       console.log(`Example app listening on port ${port}!`)
-    );
+    )
   }
 
-  async __crawl(req: express.Request, res: express.Response) {
-    this.taskQueue.add(req.body);
-    console.log("Crawling started");
-    res.send("Crawling started");
+  __crawl(req: express.Request, res: express.Response) {
+    this.taskQueue.add(req.body)
+    console.log('Crawling started')
+    res.send('Crawling started')
   }
 
   async __syncCrawl(req: express.Request, res: express.Response) {
-    const sender = new Sender(req.body);
-    await sender.init();
+    const sender = new Sender(req.body)
+    await sender.init()
 
-    const crawler = new Crawler(sender, req.body);
+    const crawler = new Crawler(sender, req.body)
 
-    await crawler.run();
-    await sender.finish();
-    res.send("Crawling finished");
+    await crawler.run()
+    await sender.finish()
+    res.send('Crawling finished')
   }
 }
 
-new Server();
+new Server()

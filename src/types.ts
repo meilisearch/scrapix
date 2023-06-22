@@ -27,9 +27,9 @@ export type SchemaSettings = {
 
 export type Scraper = DocsearchScraper | DefaultScraper | SchemaScraper
 
-export type DocumentTypes = DocsSearchData | DefaultData | SchemaData
+export type DocumentType = DocsSearchDocument | DefaultDocument | SchemaDocument
 
-export type DocsSearchData = {
+export type DocsSearchDocument = {
   url: string
   uid?: string
   anchor: string
@@ -48,7 +48,7 @@ export type DocsSearchData = {
   hierarchy_radio_lvl5: string | null
 }
 
-export type DefaultData = {
+export type DefaultDocument = {
   url: string
   uid?: string
   anchor: string
@@ -66,7 +66,7 @@ export type DefaultData = {
   p: string[]
 }
 
-export type SchemaData = {
+export type SchemaDocument = {
   uid: string
   [key: string]: any
 }

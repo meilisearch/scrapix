@@ -1,10 +1,10 @@
 import { MeiliSearch, Settings } from 'meilisearch'
-import { Config, DocsSearchData, DefaultData, SchemaData } from './types'
+import { Config, DocumentType } from './types'
 
 //Create a class called Sender that will queue the json data and batch it to a Meilisearch instance
 export class Sender {
   config: Config
-  queue: Array<DocsSearchData | DefaultData | SchemaData>
+  queue: DocumentType[]
   initial_index_uid: string
   index_uid: string
   batch_size: number
@@ -59,7 +59,7 @@ export class Sender {
   }
 
   //Add a json object to the queue
-  async add(data: DocsSearchData | DefaultData | SchemaData) {
+  async add(data: DocumentType) {
     console.log('Sender::add')
     if (this.config.primary_key) {
       delete data['uid']

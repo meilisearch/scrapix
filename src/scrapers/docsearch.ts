@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Sender } from '../sender'
 import { Page } from 'puppeteer'
-import { DocsSearchData } from '../types'
+import { DocsSearchDocument } from '../types'
 
 export default class DocsearchScaper {
   sender: Sender
@@ -25,7 +25,7 @@ export default class DocsearchScaper {
 
   async get(url: string, page: Page) {
     //for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
-    let data = {} as DocsSearchData
+    let data = {} as DocsSearchDocument
     let elems = await page.$$(
       'main h1, main h2, main h3, main h4, main h5, main p, main td, main li, main span'
     )
@@ -49,7 +49,7 @@ export default class DocsearchScaper {
         if (data['hierarchy_lvl1']) {
           await this.sender.add(data)
           page_block++
-          data = {} as DocsSearchData
+          data = {} as DocsSearchDocument
         }
         data['hierarchy_lvl1'] = text
         data.anchor = '#' + id
@@ -57,7 +57,9 @@ export default class DocsearchScaper {
         if (data['hierarchy_lvl2']) {
           await this.sender.add(data)
           page_block++
-          data = { hierarchy_lvl1: data['hierarchy_lvl1'] } as DocsSearchData
+          data = {
+            hierarchy_lvl1: data['hierarchy_lvl1'],
+          } as DocsSearchDocument
         }
         data.anchor = '#' + id
         data['hierarchy_lvl2'] = text
@@ -68,7 +70,7 @@ export default class DocsearchScaper {
           data = {
             hierarchy_lvl1: data['hierarchy_lvl1'],
             hierarchy_lvl2: data['hierarchy_lvl2'],
-          } as DocsSearchData
+          } as DocsSearchDocument
         }
         data.anchor = '#' + id
         data['hierarchy_lvl3'] = text
@@ -80,7 +82,7 @@ export default class DocsearchScaper {
             hierarchy_lvl1: data['hierarchy_lvl1'],
             hierarchy_lvl2: data['hierarchy_lvl2'],
             hierarchy_lvl3: data['hierarchy_lvl3'],
-          } as DocsSearchData
+          } as DocsSearchDocument
         }
         data.anchor = '#' + id
         data['hierarchy_lvl4'] = text
@@ -93,7 +95,7 @@ export default class DocsearchScaper {
             hierarchy_lvl2: data['hierarchy_lvl2'],
             hierarchy_lvl3: data['hierarchy_lvl3'],
             hierarchy_lvl4: data['hierarchy_lvl4'],
-          } as DocsSearchData
+          } as DocsSearchDocument
         }
         data.anchor = '#' + id
         data['hierarchy_lvl5'] = text

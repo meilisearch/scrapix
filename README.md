@@ -9,7 +9,7 @@ This endpoint will crawl the website and send the data to Meilisearch.
 data: 
 ```json
 {
-    "crawled_urls": ["https://www.google.com"],
+    "start_urls": ["https://www.google.com"],
     "exclude_crawled_urls": ["https://www.google.com"],
     "indexed_urls": ["https://www.google.com"],
     "exclude_indexed_urls": ["https://www.google.com"],
@@ -88,7 +88,7 @@ For each scrappable page it will scrape the data by trying to create blocks of t
 ### 3. Send the data to Meilisearch
 
 While the worker is scraping the website it will send the data to Meilisearch by batch.
-Before sending the data to Meilisearch, it will create a new index called `{index_name}_tmp`, apply the settings and add the data to it. Then it will use the index swap method to replace the old index by the new one. It will finish properly by deleting the tmp index.
+Before sending the data to Meilisearch, it will create a new index called `{index_uid}_tmp`, apply the settings and add the data to it. Then it will use the index swap method to replace the old index by the new one. It will finish properly by deleting the tmp index.
 
 The setting applied:
 ```json

@@ -1,5 +1,5 @@
 {
-  "crawled_urls": [
+  "start_urls": [
     "https://eu.patagonia.com/fr/fr/shop",
     "https://eu.patagonia.com/fr/fr/product"
   ],

@@ -1,5 +1,5 @@
 {
-  "crawled_urls": ["https://blog.meilisearch.com/"],
+  "start_urls": ["https://blog.meilisearch.com/"],
   "meilisearch_url": "{{meilisearch_url}}",
   "meilisearch_api_key": "{{meilisearch_api_key}}",
   "meilisearch_index_uid": "{{meilisearch_index_uid}}",

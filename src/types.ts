@@ -7,7 +7,7 @@ export type Config = {
   meilisearch_index_uid: string
   meilisearch_url: string
   meilisearch_api_key: string
-  crawled_urls: string[]
+  start_urls: string[]
   queue?: string[]
   primary_key?: string
   batch_size?: number
@@ -15,7 +15,7 @@ export type Config = {
   strategy?: 'docsearch' | 'default' | 'schema'
   headless?: boolean
   exclude_crawled_urls?: string[]
-  indexed_urls?: string[]
+  indexed_urls?: string[] // Overwrites start_urls if present
   exclude_indexed_urls?: string[]
   schema?: SchemaConfig
 }

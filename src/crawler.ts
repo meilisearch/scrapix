@@ -30,7 +30,7 @@ export default class Crawler {
     console.info('Crawler::constructor')
     this.sender = sender
     this.config = config
-    this.urls = config.crawled_urls
+    this.urls = config.start_urls
 
     this.scraper =
       config.strategy == 'docsearch'

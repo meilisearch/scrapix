@@ -1,7 +1,6 @@
 import { Settings } from 'meilisearch'
 import DocsearchScraper from './scrapers/docsearch'
 import DefaultScraper from './scrapers/default'
-import CustomScraper from './scrapers/custom'
 import SchemaScraper from './scrapers/schema'
 
 export type Config = {
@@ -9,12 +8,11 @@ export type Config = {
   meilisearch_host: string
   meilisearch_api_key: string
   crawled_urls: string[]
-  custom_crawler: string
   queue?: string[]
   primary_key?: string
   batch_size?: number
   custom_settings?: Settings
-  strategy?: 'docsearch' | 'default' | 'custom' | 'schema'
+  strategy?: 'docsearch' | 'default' | 'schema'
   headless?: boolean
   exclude_crawled_urls?: string[]
   indexed_urls?: string[]
@@ -27,11 +25,7 @@ export type SchemaConfig = {
   only_type: string
 }
 
-export type Scraper =
-  | DocsearchScraper
-  | DefaultScraper
-  | CustomScraper
-  | SchemaScraper
+export type Scraper = DocsearchScraper | DefaultScraper | SchemaScraper
 
 export type DocumentTypes = DocsSearchData | DefaultData | SchemaData
 

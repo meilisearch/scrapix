@@ -39,33 +39,6 @@ data:
         "only_type": "Product", // Product, Article, etc...
         "convert_dates": true, // default false
     },
-    "custom_crawler": {
-        "get_title":true,
-        "get_meta":true,
-        "get_url":true,
-        "selectors": {
-            "name": {
-                "selector": "h1",
-                "attribute": "text",
-            },
-            "description": {
-                "selector": "p",
-                "attribute": "text"
-            },
-            "images": {
-                "selector": ".carousel > img",
-                "attribute": "src"
-            },
-            "price": {
-                "selector": ".price > span",
-                "attribute": "text"
-            },
-            "variation": {
-                "selector": "select > option",
-                "attribute": "text"
-            },
-        }
-    }
 }
 ```
 

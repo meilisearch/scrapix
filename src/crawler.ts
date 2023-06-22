@@ -7,7 +7,6 @@ import {
 import { minimatch } from 'minimatch'
 import DefaultScraper from './scrapers/default.js'
 import DocsearchScraper from './scrapers/docsearch.js'
-import CustomScraper from './scrapers/custom.js'
 import SchemaScraper from './scrapers/schema.js'
 import { Sender } from './sender.js'
 import { Config, Scraper } from './types.js'
@@ -24,7 +23,6 @@ export default class Crawler {
   sender: Sender
   config: Config
   urls: string[]
-  custom_crawler: string
   scraper: Scraper
   crawler: PuppeteerCrawler
 
@@ -33,13 +31,10 @@ export default class Crawler {
     this.sender = sender
     this.config = config
     this.urls = config.crawled_urls
-    this.custom_crawler = config.custom_crawler
-    // init the custome scraper depending on if config.strategy is docsearch, custom or default
+
     this.scraper =
       config.strategy == 'docsearch'
         ? new DocsearchScraper(this.sender)
-        : config.strategy == 'custom'
-        ? new CustomScraper(this.sender, config)
         : config.strategy == 'schema'
         ? new SchemaScraper(this.sender, config)
         : new DefaultScraper(this.sender, config)

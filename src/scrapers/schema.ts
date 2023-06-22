@@ -14,8 +14,8 @@ export default class SchemaScaper {
     this.config = config
     this.settings_sent = false
 
-    if (this.config.custom_settings) {
-      void this.sender.updateSettings(this.config.custom_settings)
+    if (this.config.meilisearch_settings) {
+      void this.sender.updateSettings(this.config.meilisearch_settings)
       this.settings_sent = true
     }
   }

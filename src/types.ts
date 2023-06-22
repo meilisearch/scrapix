@@ -12,7 +12,7 @@ export type Config = {
   queue?: string[]
   primary_key?: string
   batch_size?: number
-  custom_settings?: Settings
+  meilisearch_settings?: Settings
   strategy?: 'docsearch' | 'default' | 'schema'
   headless?: boolean
   indexed_urls?: string[] // Overwrites start_urls if present

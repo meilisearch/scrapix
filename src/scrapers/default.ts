@@ -7,12 +7,12 @@ import { DefaultData } from '../types'
 
 export default class DefaultScraper {
   sender: Sender
-  settings: Config['custom_settings']
+  settings: Config['meilisearch_settings']
 
   constructor(sender: Sender, config: Config) {
     console.info('DefaultScraper::constructor')
     this.sender = sender
-    this.settings = config.custom_settings || {
+    this.settings = config.meilisearch_settings || {
       searchableAttributes: [
         'h1',
         'h2',

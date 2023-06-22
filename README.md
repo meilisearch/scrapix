@@ -20,7 +20,7 @@ data:
     "headless": true, // true or false
     "batch_size": 100, //null with send documents one by one
     "primary_key": null,
-    "custom_settings": {
+    "meilisearch_settings": {
         "searchableAttributes": [
             "h1",
             "h2",

@@ -5,7 +5,7 @@ import { Config, DocsSearchData, DefaultData, SchemaData } from './types'
 export class Sender {
   config: Config
   queue: Array<DocsSearchData | DefaultData | SchemaData>
-  origin_index_name: string
+  initial_index_uid: string
   index_name: string
   batch_size: number
   client: MeiliSearch
@@ -14,8 +14,8 @@ export class Sender {
     console.info('Sender::constructor')
     this.queue = []
     this.config = config
-    this.origin_index_name = config.meilisearch_index_uid
-    this.index_name = this.origin_index_name
+    this.initial_index_uid = config.meilisearch_index_uid
+    this.index_name = this.initial_index_uid
     this.batch_size = config.batch_size || 100
 
     //Create a Meilisearch client
@@ -28,10 +28,10 @@ export class Sender {
   async init() {
     console.log('Sender::init')
     try {
-      const index = await this.client.getIndex(this.origin_index_name)
+      const index = await this.client.getIndex(this.initial_index_uid)
 
       if (index) {
-        this.index_name = this.origin_index_name + '_tmp'
+        this.index_name = this.initial_index_uid + '_tmp'
 
         const tmp_index = await this.client.getIndex(this.index_name)
         if (tmp_index) {
@@ -85,7 +85,7 @@ export class Sender {
 
   async finish() {
     console.log('Sender::finish')
-    if (this.index_name !== this.origin_index_name) {
+    if (this.index_name !== this.initial_index_uid) {
       await this.__batchSend()
       // If the new index have more than 0 document we swap the index
       const index = await this.client.getIndex(this.index_name)
@@ -109,7 +109,7 @@ export class Sender {
   async __swapIndex() {
     console.log('Sender::__swapIndex')
     const task = await this.client.swapIndexes([
-      { indexes: [this.origin_index_name, this.index_name] },
+      { indexes: [this.initial_index_uid, this.index_name] },
     ])
     await this.client.index(this.index_name).waitForTask(task.taskUid)
   }

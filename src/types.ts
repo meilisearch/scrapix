@@ -5,7 +5,7 @@ import SchemaScraper from './scrapers/schema'
 
 export type Config = {
   meilisearch_index_uid: string
-  meilisearch_host: string
+  meilisearch_url: string
   meilisearch_api_key: string
   crawled_urls: string[]
   queue?: string[]

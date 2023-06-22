@@ -20,7 +20,7 @@ export class Sender {
 
     //Create a Meilisearch client
     this.client = new MeiliSearch({
-      host: config.meilisearch_host,
+      host: config.meilisearch_url,
       apiKey: config.meilisearch_api_key,
     })
   }

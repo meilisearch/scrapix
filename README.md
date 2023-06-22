@@ -13,7 +13,7 @@ data:
     "exclude_crawled_urls": ["https://www.google.com"],
     "indexed_urls": ["https://www.google.com"],
     "exclude_indexed_urls": ["https://www.google.com"],
-    "meilisearch_host": "http://localhost:7700",
+    "meilisearch_url": "http://localhost:7700",
     "meilisearch_api_key": "masterKey",
     "meilisearch_index_uid": "google",
     "stategy": "default", // docsearch, schema*, custom or default

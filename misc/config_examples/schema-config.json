@@ -1,6 +1,6 @@
 {
   "crawled_urls": ["https://blog.meilisearch.com/"],
-  "meilisearch_host": "{{meilisearch_host}}",
+  "meilisearch_url": "{{meilisearch_url}}",
   "meilisearch_api_key": "{{meilisearch_api_key}}",
   "meilisearch_index_uid": "{{meilisearch_index_uid}}",
   "strategy": "schema",

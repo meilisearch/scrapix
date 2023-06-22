@@ -14,7 +14,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://platform.openai.com/docs\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"openai\"\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://platform.openai.com/docs\"\n    ],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"openai\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -40,7 +40,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"exclude_indexed_urls\": [\"https://blog.meilisearch.com/page\"],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\"\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"exclude_indexed_urls\": [\"https://blog.meilisearch.com/page\"],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -66,7 +66,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"batch_size\": 1000\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"batch_size\": 1000\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -92,7 +92,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"docsearch\"\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://meilisearch.com/docs\",\n        \"https://www.meilisearch.com/docs\"\n    ],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"docsearch\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -118,7 +118,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://blog.meilisearch.com/\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"schema\"\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://blog.meilisearch.com/\"\n    ],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"schema\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -144,7 +144,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://blog.meilisearch.com/\"\n    ],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"schema\",\n    \"schema\": {\n        \"only_type\": \"Article\",\n        \"convert_dates\": true\n    }\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://blog.meilisearch.com/\"\n    ],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"schema\",\n    \"schema\": {\n        \"only_type\": \"Article\",\n        \"convert_dates\": true\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -170,7 +170,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://eu.patagonia.com/fr/fr/shop\",\n        \"https://eu.patagonia.com/fr/fr/product\"\n    ],\n    \"indexed_urls\": [\"https://eu.patagonia.com/fr/fr/product\"],\n    \"meilisearch_host\": \"{{meilisearch_host}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"schema\",\n    \"primary_key\": \"sku\"\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://eu.patagonia.com/fr/fr/shop\",\n        \"https://eu.patagonia.com/fr/fr/product\"\n    ],\n    \"indexed_urls\": [\"https://eu.patagonia.com/fr/fr/product\"],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"schema\",\n    \"primary_key\": \"sku\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -217,7 +217,7 @@
 			"type": "string"
 		},
 		{
-			"key": "meilisearch_host",
+			"key": "meilisearch_url",
 			"value": "http://localhost:7700",
 			"type": "string"
 		},

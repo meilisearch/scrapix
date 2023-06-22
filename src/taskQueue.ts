@@ -50,7 +50,7 @@ export default class TaskQueue {
   async __jobFailed(job: Job<Config>) {
     console.log('Job failed', job.id)
     const client = new MeiliSearch({
-      host: job.data.meilisearch_host,
+      host: job.data.meilisearch_url,
       apiKey: job.data.meilisearch_api_key,
     })
 

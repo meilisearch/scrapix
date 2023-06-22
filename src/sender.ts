@@ -14,7 +14,7 @@ export class Sender {
     console.info('Sender::constructor')
     this.queue = []
     this.config = config
-    this.origin_index_name = config.meilisearch_index_name
+    this.origin_index_name = config.meilisearch_index_uid
     this.index_name = this.origin_index_name
     this.batch_size = config.batch_size || 100
 

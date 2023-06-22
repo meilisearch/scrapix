@@ -15,7 +15,7 @@ data:
     "exclude_indexed_urls": ["https://www.google.com"],
     "meilisearch_host": "http://localhost:7700",
     "meilisearch_api_key": "masterKey",
-    "meilisearch_index_name": "google",
+    "meilisearch_index_uid": "google",
     "stategy": "default", // docsearch, schema*, custom or default
     "headless": true, // true or false
     "batch_size": 100, //null with send documents one by one

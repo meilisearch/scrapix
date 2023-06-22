@@ -4,7 +4,7 @@ import DefaultScraper from './scrapers/default'
 import SchemaScraper from './scrapers/schema'
 
 export type Config = {
-  meilisearch_index_name: string
+  meilisearch_index_uid: string
   meilisearch_host: string
   meilisearch_api_key: string
   crawled_urls: string[]

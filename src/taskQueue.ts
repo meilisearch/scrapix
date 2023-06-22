@@ -55,7 +55,7 @@ export default class TaskQueue {
     })
 
     //check if the tmp index exists
-    const tmp_index_name = job.data.meilisearch_index_name + '_tmp'
+    const tmp_index_name = job.data.meilisearch_index_uid + '_tmp'
     try {
       const index = await client.getIndex(tmp_index_name)
       if (index) {

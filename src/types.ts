@@ -15,7 +15,7 @@ export type Config = {
   meilisearch_settings?: Settings
   strategy?: 'docsearch' | 'default' | 'schema'
   headless?: boolean
-  indexed_urls?: string[] // Overwrites start_urls if present
+  urls_to_index?: string[] // Overwrites start_urls if present
   exclude_indexed_urls?: string[]
   schema?: SchemaConfig
 }

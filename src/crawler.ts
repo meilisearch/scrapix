@@ -72,7 +72,7 @@ export default class Crawler {
       this.config.urls_to_exclude || []
     )
     const indexed_globs = this.__generate_globs(
-      this.config.indexed_urls || this.urls
+      this.config.urls_to_index || this.urls
     )
     const excluded_indexed_globs = this.__generate_globs(
       this.config.exclude_indexed_urls || []

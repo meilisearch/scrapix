@@ -1,46 +1,47 @@
+/* eslint-disable */
 // TODO: file should be removed
-import prettier from "prettier";
-import { v4 as uuidv4 } from "uuid";
+import prettier from 'prettier'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class CustomScaper {
   constructor(sender, config) {
-    console.info("CustomScaper::constructor");
-    this.sender = sender;
-    this.config = config;
+    console.info('CustomScaper::constructor')
+    this.sender = sender
+    this.config = config
 
     if (config.custom_settings) {
-      this.sender.updateSettings(config.custom_settings);
+      this.sender.updateSettings(config.custom_settings)
     }
   }
 
   async get(url, page) {
-    let data = {};
+    let data = {}
     if (this.custom_crawler.get_title || false) {
-      data.title = await page.title();
+      data.title = await page.title()
     }
 
-    data.uid = uuidv4();
+    data.uid = uuidv4()
 
     if (this.custom_crawler.get_meta || false) {
       const meta = await page.evaluate(() => {
-        const metas = document.getElementsByTagName("meta");
-        const meta = {};
+        const metas = document.getElementsByTagName('meta')
+        const meta = {}
         for (let i = 0; i < metas.length; i++) {
-          const name = metas[i].getAttribute("name");
-          const content = metas[i].getAttribute("content");
+          const name = metas[i].getAttribute('name')
+          const content = metas[i].getAttribute('content')
           if (name && content) {
-            meta[name] = content;
+            meta[name] = content
           }
         }
-        return meta;
-      });
-      data.meta = meta;
+        return meta
+      })
+      data.meta = meta
     }
 
     if (this.custom_crawler.get_url || false) {
-      data.url = url;
+      data.url = url
     }
 
-    await this.sender.add(data);
+    await this.sender.add(data)
   }
 }

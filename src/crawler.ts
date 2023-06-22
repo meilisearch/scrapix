@@ -69,7 +69,7 @@ export default class Crawler {
     console.log(`${title}`, { url: request.loadedUrl })
     const crawled_globs = this.__generate_globs(this.urls)
     const excluded_crawled_globs = this.__generate_globs(
-      this.config.exclude_crawled_urls || []
+      this.config.urls_to_exclude || []
     )
     const indexed_globs = this.__generate_globs(
       this.config.indexed_urls || this.urls

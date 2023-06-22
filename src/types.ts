@@ -8,13 +8,13 @@ export type Config = {
   meilisearch_url: string
   meilisearch_api_key: string
   start_urls: string[]
+  urls_to_exclude?: string[]
   queue?: string[]
   primary_key?: string
   batch_size?: number
   custom_settings?: Settings
   strategy?: 'docsearch' | 'default' | 'schema'
   headless?: boolean
-  exclude_crawled_urls?: string[]
   indexed_urls?: string[] // Overwrites start_urls if present
   exclude_indexed_urls?: string[]
   schema?: SchemaConfig

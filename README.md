@@ -10,7 +10,7 @@ data:
 ```json
 {
     "start_urls": ["https://www.google.com"],
-    "exclude_crawled_urls": ["https://www.google.com"],
+    "urls_to_exclude": ["https://www.google.com"],
     "indexed_urls": ["https://www.google.com"],
     "exclude_indexed_urls": ["https://www.google.com"],
     "meilisearch_url": "http://localhost:7700",

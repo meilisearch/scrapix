@@ -6,7 +6,7 @@ import {
 } from 'crawlee'
 import { minimatch } from 'minimatch'
 import DefaultScraper from './scrapers/default.js'
-import DocsearchScraper from './scrapers/docsearch.js'
+import DocsearchScraper from './scrapers/docssearch.js'
 import SchemaScraper from './scrapers/schema.js'
 import { Sender } from './sender.js'
 import { Config, Scraper } from './types.js'
@@ -33,7 +33,7 @@ export default class Crawler {
     this.urls = config.start_urls
 
     this.scraper =
-      config.strategy == 'docsearch'
+      config.strategy == 'docssearch'
         ? new DocsearchScraper(this.sender)
         : config.strategy == 'schema'
         ? new SchemaScraper(this.sender, config)

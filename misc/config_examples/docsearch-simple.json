@@ -6,5 +6,5 @@
   "meilisearch_url": "{{meilisearch_url}}",
   "meilisearch_api_key": "{{meilisearch_api_key}}",
   "meilisearch_index_uid": "{{meilisearch_index_uid}}",
-  "strategy": "docsearch"
+  "strategy": "docssearch"
 }

@@ -1,5 +1,5 @@
 import { Settings } from 'meilisearch'
-import DocsearchScraper from './scrapers/docsearch'
+import DocsearchScraper from './scrapers/docssearch'
 import DefaultScraper from './scrapers/default'
 import SchemaScraper from './scrapers/schema'
 
@@ -13,7 +13,7 @@ export type Config = {
   primary_key?: string
   batch_size?: number
   meilisearch_settings?: Settings
-  strategy?: 'docsearch' | 'default' | 'schema'
+  strategy?: 'docssearch' | 'default' | 'schema'
   headless?: boolean
   urls_to_index?: string[] // Overwrites start_urls if present
   urls_to_not_index?: string[]

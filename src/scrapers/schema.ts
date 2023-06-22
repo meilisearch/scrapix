@@ -37,13 +37,13 @@ export default class SchemaScaper {
 
     if (data.length === 0) return
 
-    if (this.config.schema?.only_type) {
-      if (data['@type'] !== this.config.schema?.only_type) return
+    if (this.config.schema_settings?.only_type) {
+      if (data['@type'] !== this.config.schema_settings?.only_type) return
     }
 
     this._clean_schema(data)
 
-    if (this.config.schema?.convert_dates) {
+    if (this.config.schema_settings?.convert_dates) {
       // convert dates to timestamps
       Object.keys(data).forEach((key) => {
         if (typeof data[key] === 'string') {

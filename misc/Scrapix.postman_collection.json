@@ -144,7 +144,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"urls\": [\n        \"https://blog.meilisearch.com/\"\n    ],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"schema\",\n    \"schema\": {\n        \"only_type\": \"Article\",\n        \"convert_dates\": true\n    }\n}",
+					"raw": "{\n    \"urls\": [\n        \"https://blog.meilisearch.com/\"\n    ],\n    \"meilisearch_url\": \"{{meilisearch_url}}\",\n    \"meilisearch_api_key\": \"{{meilisearch_api_key}}\",\n    \"meilisearch_index_uid\": \"{{meilisearch_index_uid}}\",\n    \"strategy\": \"schema\",\n    \"schema_settings\": {\n        \"only_type\": \"Article\",\n        \"convert_dates\": true\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"

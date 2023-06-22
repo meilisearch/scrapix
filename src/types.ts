@@ -17,10 +17,10 @@ export type Config = {
   headless?: boolean
   urls_to_index?: string[] // Overwrites start_urls if present
   urls_to_not_index?: string[]
-  schema?: SchemaConfig
+  schema_settings?: SchemaSettings
 }
 
-export type SchemaConfig = {
+export type SchemaSettings = {
   convert_dates: boolean
   only_type: string
 }

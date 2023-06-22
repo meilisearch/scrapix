@@ -35,7 +35,7 @@ data:
         "filterableAttributes": ["urls_tags"],
         "distinctAttribute": "url",
     },
-    "schema": {
+    "schema_settings": {
         "only_type": "Product", // Product, Article, etc...
         "convert_dates": true, // default false
     },

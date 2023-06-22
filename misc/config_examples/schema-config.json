@@ -4,7 +4,7 @@
   "meilisearch_api_key": "{{meilisearch_api_key}}",
   "meilisearch_index_uid": "{{meilisearch_index_uid}}",
   "strategy": "schema",
-  "schema": {
+  "schema_settings": {
     "only_type": "Article",
     "convert_dates": true
   }

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Page } from 'puppeteer'
 import { Sender } from '../sender'
-import { Config, SchemaData } from '../types'
+import { Config, SchemaDocument } from '../types'
 
 export default class SchemaScaper {
   sender: Sender
@@ -14,8 +14,8 @@ export default class SchemaScaper {
     this.config = config
     this.settings_sent = false
 
-    if (this.config.custom_settings) {
-      void this.sender.updateSettings(this.config.custom_settings)
+    if (this.config.meilisearch_settings) {
+      void this.sender.updateSettings(this.config.meilisearch_settings)
       this.settings_sent = true
     }
   }
@@ -31,19 +31,19 @@ export default class SchemaScaper {
         return JSON.parse(schema.innerText) as Record<string, any>
       }
       return {} // TODO: raise error
-    })) as SchemaData
+    })) as SchemaDocument
 
-    // TODO: use zod here instead of forcing `as SchemaData`?
+    // TODO: use zod here instead of forcing `as SchemaDocument`?
 
     if (data.length === 0) return
 
-    if (this.config.schema?.only_type) {
-      if (data['@type'] !== this.config.schema?.only_type) return
+    if (this.config.schema_settings?.only_type) {
+      if (data['@type'] !== this.config.schema_settings?.only_type) return
     }
 
     this._clean_schema(data)
 
-    if (this.config.schema?.convert_dates) {
+    if (this.config.schema_settings?.convert_dates) {
       // convert dates to timestamps
       Object.keys(data).forEach((key) => {
         if (typeof data[key] === 'string') {
@@ -60,7 +60,7 @@ export default class SchemaScaper {
     await this.sender.add(data)
   }
 
-  _clean_schema(data: SchemaData) {
+  _clean_schema(data: SchemaDocument) {
     if (data['@context']) {
       delete data['@context']
     }

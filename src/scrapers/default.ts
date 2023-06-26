@@ -3,16 +3,16 @@ import { v4 as uuidv4 } from 'uuid'
 import { Sender } from '../sender'
 import { Config, Meta } from '../types'
 import { Page } from 'puppeteer'
-import { DefaultData } from '../types'
+import { DefaultDocument } from '../types'
 
 export default class DefaultScraper {
   sender: Sender
-  settings: Config['custom_settings']
+  settings: Config['meilisearch_settings']
 
   constructor(sender: Sender, config: Config) {
     console.info('DefaultScraper::constructor')
     this.sender = sender
-    this.settings = config.custom_settings || {
+    this.settings = config.meilisearch_settings || {
       searchableAttributes: [
         'h1',
         'h2',
@@ -36,7 +36,7 @@ export default class DefaultScraper {
     const meta = await this._extract_metadata_from_page(page)
 
     //for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
-    let data: DefaultData = {} as DefaultData
+    let data: DefaultDocument = {} as DefaultDocument
     let elems = await page.$$(
       'main h1, main h2, main h3, main h4, main h5, main h6, main p, main td, main li, main span'
     )
@@ -63,7 +63,7 @@ export default class DefaultScraper {
         if (data['h1']) {
           await this.sender.add(data)
           page_block++
-          data = {} as DefaultData
+          data = {} as DefaultDocument
         }
         data['h1'] = text
         data.anchor = '#' + id
@@ -71,7 +71,7 @@ export default class DefaultScraper {
         if (data['h2']) {
           await this.sender.add(data)
           page_block++
-          data = { h1: data['h1'] } as DefaultData
+          data = { h1: data['h1'] } as DefaultDocument
         }
         data.anchor = '#' + id
         data['h2'] = text
@@ -79,7 +79,7 @@ export default class DefaultScraper {
         if (data['h3']) {
           await this.sender.add(data)
           page_block++
-          data = { h1: data['h1'], h2: data['h2'] } as DefaultData
+          data = { h1: data['h1'], h2: data['h2'] } as DefaultDocument
         }
         data.anchor = '#' + id
         data['h3'] = text
@@ -91,7 +91,7 @@ export default class DefaultScraper {
             h1: data['h1'],
             h2: data['h2'],
             h3: data['h3'],
-          } as DefaultData
+          } as DefaultDocument
         }
         data.anchor = '#' + id
         data['h4'] = text
@@ -104,7 +104,7 @@ export default class DefaultScraper {
             h2: data['h2'],
             h3: data['h3'],
             h4: data['h4'],
-          } as DefaultData
+          } as DefaultDocument
         }
         data.anchor = '#' + id
         data['h5'] = text
@@ -118,7 +118,7 @@ export default class DefaultScraper {
             h3: data['h3'],
             h4: data['h4'],
             h5: data['h5'],
-          } as DefaultData
+          } as DefaultDocument
         }
         data.anchor = '#' + id
         data['h6'] = text

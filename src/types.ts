@@ -1,35 +1,35 @@
 import { Settings } from 'meilisearch'
-import DocsearchScraper from './scrapers/docsearch'
+import DocsearchScraper from './scrapers/docssearch'
 import DefaultScraper from './scrapers/default'
 import SchemaScraper from './scrapers/schema'
 
 export type Config = {
-  meilisearch_index_name: string
-  meilisearch_host: string
+  meilisearch_index_uid: string
+  meilisearch_url: string
   meilisearch_api_key: string
-  crawled_urls: string[]
+  start_urls: string[]
+  urls_to_exclude?: string[]
   queue?: string[]
   primary_key?: string
   batch_size?: number
-  custom_settings?: Settings
-  strategy?: 'docsearch' | 'default' | 'schema'
+  meilisearch_settings?: Settings
+  strategy?: 'docssearch' | 'default' | 'schema'
   headless?: boolean
-  exclude_crawled_urls?: string[]
-  indexed_urls?: string[]
-  exclude_indexed_urls?: string[]
-  schema?: SchemaConfig
+  urls_to_index?: string[] // Overwrites start_urls if present
+  urls_to_not_index?: string[]
+  schema_settings?: SchemaSettings
 }
 
-export type SchemaConfig = {
+export type SchemaSettings = {
   convert_dates: boolean
   only_type: string
 }
 
 export type Scraper = DocsearchScraper | DefaultScraper | SchemaScraper
 
-export type DocumentTypes = DocsSearchData | DefaultData | SchemaData
+export type DocumentType = DocsSearchDocument | DefaultDocument | SchemaDocument
 
-export type DocsSearchData = {
+export type DocsSearchDocument = {
   url: string
   uid?: string
   anchor: string
@@ -48,7 +48,7 @@ export type DocsSearchData = {
   hierarchy_radio_lvl5: string | null
 }
 
-export type DefaultData = {
+export type DefaultDocument = {
   url: string
   uid?: string
   anchor: string
@@ -66,7 +66,7 @@ export type DefaultData = {
   p: string[]
 }
 
-export type SchemaData = {
+export type SchemaDocument = {
   uid: string
   [key: string]: any
 }

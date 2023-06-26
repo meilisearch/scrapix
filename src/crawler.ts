@@ -6,7 +6,7 @@ import {
 } from 'crawlee'
 import { minimatch } from 'minimatch'
 import DefaultScraper from './scrapers/default.js'
-import DocsearchScraper from './scrapers/docsearch.js'
+import DocsearchScraper from './scrapers/docssearch.js'
 import SchemaScraper from './scrapers/schema.js'
 import { Sender } from './sender.js'
 import { Config, Scraper } from './types.js'
@@ -30,10 +30,10 @@ export default class Crawler {
     console.info('Crawler::constructor')
     this.sender = sender
     this.config = config
-    this.urls = config.crawled_urls
+    this.urls = config.start_urls
 
     this.scraper =
-      config.strategy == 'docsearch'
+      config.strategy == 'docssearch'
         ? new DocsearchScraper(this.sender)
         : config.strategy == 'schema'
         ? new SchemaScraper(this.sender, config)
@@ -69,13 +69,13 @@ export default class Crawler {
     console.log(`${title}`, { url: request.loadedUrl })
     const crawled_globs = this.__generate_globs(this.urls)
     const excluded_crawled_globs = this.__generate_globs(
-      this.config.exclude_crawled_urls || []
+      this.config.urls_to_exclude || []
     )
     const indexed_globs = this.__generate_globs(
-      this.config.indexed_urls || this.urls
+      this.config.urls_to_index || this.urls
     )
     const excluded_indexed_globs = this.__generate_globs(
-      this.config.exclude_indexed_urls || []
+      this.config.urls_to_not_index || []
     )
 
     if (request.loadedUrl && !this.__is_paginated_url(request.loadedUrl)) {

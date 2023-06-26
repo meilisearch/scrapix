@@ -42,7 +42,7 @@ export default class DocsearchScaper {
       data.url = url
       const urls_tags = new URL(url).pathname.split('/')
       const only_urls_tags = urls_tags.slice(1, urls_tags.length - 1)
-      data.hierarchy_lvl0 = only_urls_tags[0]
+      data.hierarchy_lvl0 = only_urls_tags.join(' / ')
 
       const id = await elem.evaluate((el) => el.id)
       if (tag === 'H1') {

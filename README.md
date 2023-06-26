@@ -17,7 +17,7 @@ data:
     "meilisearch_api_key": "masterKey",
     "meilisearch_index_uid": "google",
     "stategy": "default", // docssearch, schema*, custom or default
-    "headless": true, // true or false
+    "headless": true, // Open browser or not
     "batch_size": 100, //null with send documents one by one
     "primary_key": null,
     "meilisearch_settings": {

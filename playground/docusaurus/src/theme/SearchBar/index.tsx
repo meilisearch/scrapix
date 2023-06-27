@@ -1,7 +1,8 @@
-import React from 'react'
+import React from 'react';
+
 import 'meilisearch-docsearch/css'
 
-const SearchPage: React.FC = () => {
+const SearchPage = () => {
   React.useEffect(() => {
     const docsearch = require('meilisearch-docsearch').default
     const destroy = docsearch({

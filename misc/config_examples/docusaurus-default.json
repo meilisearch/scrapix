@@ -4,6 +4,6 @@
   ],
   "meilisearch_url": "http://localhost:7700",
   "meilisearch_api_key": "masterKey",
-  "meilisearch_index_uid": "scrapix-docusaurus",
-  "strategy": "docssearch"
+  "meilisearch_index_uid": "docusaurus-default",
+  "strategy": "default"
 }

@@ -1,5 +1,5 @@
 {
-  "watch": ["src", "misc/config_examples/local-docusaurus-scrapix.json"],
+  "watch": ["src"],
   "ext": "ts,json",
-  "exec": "yarn start -c misc/config_examples/local-docusaurus-scrapix.json"
+  "exec": "yarn build"
 }

@@ -8,6 +8,7 @@ yarn lint:fix # to fix errors
 # Running in dev mode
 
 ```sh
+# Run the build in watch mode
 yarn dev:build
 ```
 
@@ -16,12 +17,13 @@ Running this mode rebuilds scrapix on every change made in the source files (`./
 # Running the playground
 
 ```sh
-yarn playground
+yarn playground:docsearch
+yarn playground:default
 ```
 
 Running this mode has two effects.
 - If you change the source code of the docusaurus playground, the docusaurus app restarts.
-- If you change the source code of scrapix, scrapix is rebuilded and re-runs a scrapper on the docusaurus app.
+- If you change the source code of scrapix, scrapix is rebuilded and re-runs a scrapper (either the default one or the docsearch one) on the docusaurus app.
 
 
 # Re-scrap a chosen app on change

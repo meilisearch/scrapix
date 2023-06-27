@@ -21,6 +21,7 @@
     "serve": "tsc && node dist/src/server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "playground": "yarn --cwd playground/docusaurus && yarn --cwd playground/docusaurus start",
     "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
   },
   "author": "It's not you it's me",

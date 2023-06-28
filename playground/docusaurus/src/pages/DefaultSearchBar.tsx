@@ -19,7 +19,7 @@ const Hit = ({ hit }) => {
       <Highlight attribute="h3" hit={hit} />
     </div>
     <div className="hit-name">
-      {hit.p.join(' ')}
+      <Highlight attribute="p" hit={hit} />
     </div>
   </div>)
 }

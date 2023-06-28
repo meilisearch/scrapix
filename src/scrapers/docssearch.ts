@@ -47,7 +47,7 @@ export default class DocsearchScaper {
       const id = await elem.evaluate((el) => el.id)
       if (tag === 'H1') {
         if (data['hierarchy_lvl1']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {} as DocsSearchDocument
         }
@@ -55,7 +55,7 @@ export default class DocsearchScaper {
         data.anchor = '#' + id
       } else if (tag === 'H2') {
         if (data['hierarchy_lvl2']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {
             hierarchy_lvl1: data['hierarchy_lvl1'],
@@ -65,7 +65,7 @@ export default class DocsearchScaper {
         data['hierarchy_lvl2'] = text
       } else if (tag === 'H3') {
         if (data['hierarchy_lvl3']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {
             hierarchy_lvl1: data['hierarchy_lvl1'],
@@ -76,7 +76,7 @@ export default class DocsearchScaper {
         data['hierarchy_lvl3'] = text
       } else if (tag === 'H4') {
         if (data['hierarchy_lvl4']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {
             hierarchy_lvl1: data['hierarchy_lvl1'],
@@ -88,7 +88,7 @@ export default class DocsearchScaper {
         data['hierarchy_lvl4'] = text
       } else if (tag === 'H5') {
         if (data['hierarchy_lvl5']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {
             hierarchy_lvl1: data['hierarchy_lvl1'],
@@ -108,7 +108,11 @@ export default class DocsearchScaper {
         if (!data['content']) {
           data['content'] = []
         }
-        if (text !== null && !data['content'].includes(text)) {
+        if (
+          text !== null &&
+          Array.isArray(data['content']) &&
+          !data['content'].includes(text)
+        ) {
           data['content'].push(text)
         }
       }
@@ -121,9 +125,16 @@ export default class DocsearchScaper {
         data.hierarchy_radio_lvl5 = data.hierarchy_lvl5
         data.url = data.url + '#' + data.anchor
         data.anchor = data.anchor.substring(1)
-        await this.sender.add(data)
+        await this._add_data(data)
       }
     }
+  }
+
+  async _add_data(data: DocsSearchDocument) {
+    if (Array.isArray(data['content'])) {
+      data['content'] = data['content'].join('\n')
+    }
+    await this.sender.add(data)
   }
 
   // Remove from a text all multiple spaces, new lines, and leading and trailing spaces, and

@@ -39,7 +39,7 @@ export type DocsSearchDocument = {
   hierarchy_lvl3: string | null
   hierarchy_lvl4: string | null
   hierarchy_lvl5: string | null
-  content: string[]
+  content: string[] | string
   hierarchy_radio_lvl0: string | null
   hierarchy_radio_lvl1: string | null
   hierarchy_radio_lvl2: string | null
@@ -63,7 +63,7 @@ export type DefaultDocument = {
   h4?: string | null
   h5?: string | null
   h6?: string | null
-  p: string[]
+  p: string[] | string
 }
 
 export type SchemaDocument = {

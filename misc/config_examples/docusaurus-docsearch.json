@@ -1,0 +1,9 @@
+{
+  "start_urls": [
+    "http://localhost:3000"
+  ],
+  "meilisearch_url": "http://localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "docusaurus-docsearch",
+  "strategy": "docssearch"
+}

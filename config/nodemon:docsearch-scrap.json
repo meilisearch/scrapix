@@ -1,0 +1,5 @@
+{
+  "watch": ["src", "misc/config_examples/docusaurus-docsearch.json"],
+  "ext": "ts,json",
+  "exec": "yarn start -c misc/config_examples/docusaurus-docsearch.json"
+}

@@ -61,7 +61,7 @@ export default class DefaultScraper {
       const id = await elem.evaluate((el) => el.id)
       if (tag === 'H1') {
         if (data['h1']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {} as DefaultDocument
         }
@@ -69,7 +69,7 @@ export default class DefaultScraper {
         data.anchor = '#' + id
       } else if (tag === 'H2') {
         if (data['h2']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = { h1: data['h1'] } as DefaultDocument
         }
@@ -77,7 +77,7 @@ export default class DefaultScraper {
         data['h2'] = text
       } else if (tag === 'H3') {
         if (data['h3']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = { h1: data['h1'], h2: data['h2'] } as DefaultDocument
         }
@@ -85,7 +85,7 @@ export default class DefaultScraper {
         data['h3'] = text
       } else if (tag === 'H4') {
         if (data['h4']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {
             h1: data['h1'],
@@ -97,7 +97,7 @@ export default class DefaultScraper {
         data['h4'] = text
       } else if (tag === 'H5') {
         if (data['h5']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {
             h1: data['h1'],
@@ -110,7 +110,7 @@ export default class DefaultScraper {
         data['h5'] = text
       } else if (tag === 'H6') {
         if (data['h6']) {
-          await this.sender.add(data)
+          await this._add_data(data)
           page_block++
           data = {
             h1: data['h1'],
@@ -132,14 +132,21 @@ export default class DefaultScraper {
           data['p'] = []
         }
         // TODO: should we leave `null` values in the `p` array?
-        if (text && !data['p'].includes(text)) {
+        if (text && Array.isArray(data['p']) && !data['p'].includes(text)) {
           data['p'].push(text)
         }
       }
       if (i === elems.length - 1) {
-        await this.sender.add(data)
+        await this._add_data(data)
       }
     }
+  }
+
+  async _add_data(data: DefaultDocument) {
+    if (Array.isArray(data['p'])) {
+      data['p'] = data['p'].join('\n')
+    }
+    await this.sender.add(data)
   }
 
   // Remove from a text all multiple spaces, new lines, and leading and trailing spaces, and

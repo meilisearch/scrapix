@@ -99,6 +99,8 @@ export default class Crawler {
         // remove all query params to avoid duplicates
         const urlObject = new URL(req.url)
         urlObject.search = ''
+        // Remove all anchors to avoid duplicates
+        urlObject.hash = ''
         req.url = urlObject.toString()
 
         return req

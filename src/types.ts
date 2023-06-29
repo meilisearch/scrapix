@@ -29,17 +29,16 @@ export type Scraper = DocsearchScraper | DefaultScraper | SchemaScraper
 
 export type DocumentType = DocsSearchDocument | DefaultDocument | SchemaDocument
 
-export type DocsSearchDocument = {
-  url: string
-  uid?: string
-  anchor: string
+export type HierarchyLevel = {
   hierarchy_lvl0: string | null
   hierarchy_lvl1: string | null
   hierarchy_lvl2: string | null
   hierarchy_lvl3: string | null
   hierarchy_lvl4: string | null
   hierarchy_lvl5: string | null
-  content: string[] | string
+}
+
+export type RadioHierarchyLevel = {
   hierarchy_radio_lvl0: string | null
   hierarchy_radio_lvl1: string | null
   hierarchy_radio_lvl2: string | null
@@ -47,6 +46,18 @@ export type DocsSearchDocument = {
   hierarchy_radio_lvl4: string | null
   hierarchy_radio_lvl5: string | null
 }
+
+export type HTag = 'H1' | 'H2' | 'H3' | 'H4' | 'H5'
+
+export type DocsSearchDocument = HierarchyLevel &
+  RadioHierarchyLevel & {
+    url: string
+    uid?: string
+    anchor: string
+    content?: string[] | string
+    level: number
+    type: 'lvl0' | 'lvl1' | 'lvl2' | 'lvl3' | 'lvl4' | 'lvl5' | 'content'
+  }
 
 export type DefaultDocument = {
   url: string

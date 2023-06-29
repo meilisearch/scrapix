@@ -1,0 +1,10 @@
+{
+  "start_urls": ["https://platform.openai.com/docs"],
+  "meilisearch_url": "localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "openai",
+  "strategy": "docssearch",
+  "meilisearch_settings": {
+    "distinctAttribute": "content"
+  }
+}

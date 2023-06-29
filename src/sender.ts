@@ -84,16 +84,17 @@ export class Sender {
   }
 
   async finish() {
-    console.log('Sender::finish')
-    if (this.index_uid !== this.initial_index_uid) {
-      await this.__batchSend()
-      // If the new index have more than 0 document we swap the index
-      const index = await this.client.getIndex(this.index_uid)
-      const stats = await index.getStats()
-      console.log('stats', stats)
-      if (stats.numberOfDocuments > 0) {
-        await this.__swapIndex()
-      }
+    await this.__batchSend()
+    const index = await this.client.getIndex(this.index_uid)
+    const stats = await index.getStats()
+    if (
+      this.index_uid !== this.initial_index_uid &&
+      stats.numberOfDocuments > 0
+    ) {
+      await this.__swapIndex()
+    } else if (this.index_uid !== this.initial_index_uid) {
+      const task = await this.client.deleteIndex(this.index_uid)
+      await this.client.index(this.index_uid).waitForTask(task.taskUid)
     }
   }
 
@@ -108,9 +109,10 @@ export class Sender {
 
   async __swapIndex() {
     console.log('Sender::__swapIndex')
-    const task = await this.client.swapIndexes([
+    await this.client.swapIndexes([
       { indexes: [this.initial_index_uid, this.index_uid] },
     ])
+    const task = await this.client.deleteIndex(this.index_uid)
     await this.client.index(this.index_uid).waitForTask(task.taskUid)
   }
 }

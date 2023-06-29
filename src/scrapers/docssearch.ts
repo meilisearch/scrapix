@@ -1,24 +1,68 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Sender } from '../sender'
 import { Page } from 'puppeteer'
-import { DocsSearchDocument } from '../types'
+import {
+  DocsSearchDocument,
+  HTag,
+  HierarchyLevel,
+  RadioHierarchyLevel,
+} from '../types'
+
+const RADIO_HIERARCHY_LEVELS: Record<HTag, keyof RadioHierarchyLevel> = {
+  H1: 'hierarchy_radio_lvl1',
+  H2: 'hierarchy_radio_lvl2',
+  H3: 'hierarchy_radio_lvl3',
+  H4: 'hierarchy_radio_lvl4',
+  H5: 'hierarchy_radio_lvl5',
+}
+
+const HIERARCHY_LEVELS: Record<HTag, keyof HierarchyLevel> = {
+  H1: 'hierarchy_lvl1',
+  H2: 'hierarchy_lvl2',
+  H3: 'hierarchy_lvl3',
+  H4: 'hierarchy_lvl4',
+  H5: 'hierarchy_lvl5',
+}
+
+const TAG_LEVELS: Record<HTag, number> = {
+  H1: 100,
+  H2: 90,
+  H3: 80,
+  H4: 70,
+  H5: 60,
+}
 
 export default class DocsearchScaper {
   sender: Sender
-  counter: number //TODO: temporary counter to see how many documents are being added
 
   constructor(sender: Sender) {
     console.info('DocsearchScaper::constructor')
     this.sender = sender
-    this.counter = 0
     void this.sender.updateSettings({
+      distinctAttribute: 'url',
+      rankingRules: [
+        'words',
+        'typo',
+        'attribute',
+        'proximity',
+        'exactness',
+        'page_rank:desc',
+        'level:desc',
+        'position:asc',
+      ],
       searchableAttributes: [
-        'hierarchy_lvl0',
+        'hierarchy_radio_lvl1',
+        'hierarchy_radio_lvl2',
+        'hierarchy_radio_lvl3',
+        'hierarchy_radio_lvl4',
+        'hierarchy_radio_lvl5',
         'hierarchy_lvl1',
         'hierarchy_lvl2',
         'hierarchy_lvl3',
         'hierarchy_lvl4',
         'hierarchy_lvl5',
+        'hierarchy_radio_lvl0',
+        'hierarchy_lvl0',
         'content',
       ],
     })
@@ -32,7 +76,9 @@ export default class DocsearchScaper {
     return tag.startsWith('H')
   }
 
-  _remove_lower_hierarchies(
+  // Remove all hierarchies that are lower than the current level.
+  // Considering hierarchy_level_5 is lower than hierarchy_level_4.
+  _remove_lower_lvl_hierarchies(
     pageMap: DocsSearchDocument,
     currentLevel: string
   ): DocsSearchDocument {
@@ -48,8 +94,56 @@ export default class DocsearchScaper {
     return pageMap
   }
 
+  _empty_radio_lvl_hierarchies(
+    document: DocsSearchDocument
+  ): DocsSearchDocument {
+    return {
+      ...document,
+      hierarchy_radio_lvl0: null,
+      hierarchy_radio_lvl1: null,
+      hierarchy_radio_lvl2: null,
+      hierarchy_radio_lvl3: null,
+      hierarchy_radio_lvl4: null,
+      hierarchy_radio_lvl5: null,
+    }
+  }
+
+  _fill_lvl_fields(
+    document: DocsSearchDocument,
+    tag: HTag,
+    text: string
+  ): DocsSearchDocument {
+    return {
+      ...document,
+      [HIERARCHY_LEVELS[tag]]: text,
+      [RADIO_HIERARCHY_LEVELS[tag]]: text,
+    }
+  }
+
+  _update_document(
+    document: DocsSearchDocument,
+    tag: HTag,
+    text: string,
+    anchor?: string
+  ): DocsSearchDocument {
+    document = {
+      ...document,
+      level: TAG_LEVELS[tag],
+    }
+    document = this._empty_radio_lvl_hierarchies(document)
+    document = this._remove_lower_lvl_hierarchies(
+      document,
+      HIERARCHY_LEVELS[tag]
+    )
+    document = this._fill_lvl_fields(document, tag, text)
+    document['anchor'] = anchor ? `#${anchor}` : ''
+    return document
+  }
+
   async get(url: string, page: Page) {
     //for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
+    // needs to be able to provide the `main` or `article` tag
+    // TODO: create a configuration to provide the main tag in which the content is
     let elems = await page.$$(
       'main h1, main h2, main h3, main h4, main h5, main p, main td, main li, main span'
     )
@@ -57,6 +151,8 @@ export default class DocsearchScaper {
       elems = await page.$$('h1, h2, h3, h4, h5, p, td, li, span')
     }
     let document = {} as DocsSearchDocument
+    document = this._empty_radio_lvl_hierarchies(document)
+
     for (let i = 0; i < elems.length; i++) {
       const elem = elems[i]
       const tag = await elem.evaluate((el) => el.tagName)
@@ -65,44 +161,46 @@ export default class DocsearchScaper {
 
       const urls_tags = new URL(url).pathname.split('/')
       const only_urls_tags = urls_tags.slice(1, urls_tags.length - 1)
-      document['hierarchy_lvl0'] = only_urls_tags.join(' / ')
+      document['hierarchy_lvl0'] = only_urls_tags.join(' > ')
       document['url'] = url
 
+      // Every time a H tag is found, the previous content is indexed and then emptied
       if (
         this._is_h_tag(tag) &&
         this._amount_of_hierarchies(document) > 1 &&
         document['content'] &&
         document['content'].length > 0
       ) {
-        await this._send_data({ ...document })
+        await this._send_data({ ...document, type: 'content' })
         document['content'] = []
       }
 
-      const id = await elem.evaluate((el) => el.id)
+      const anchor = await elem.evaluate((el) => el.id)
       if (tag === 'H1') {
-        document['hierarchy_lvl1'] = text
-        document['anchor'] = '#' + id
-        await this._send_data({ ...document })
+        document = Object.assign(
+          {},
+          this._update_document(document, tag, text, anchor)
+        )
       } else if (tag === 'H2') {
-        document['hierarchy_lvl2'] = text
-        document['anchor'] = '#' + id
-        document = this._remove_lower_hierarchies(document, 'hierarchy_lvl2')
-        await this._send_data({ ...document })
+        document = Object.assign(
+          {},
+          this._update_document(document, tag, text, anchor)
+        )
       } else if (tag === 'H3') {
-        document['hierarchy_lvl3'] = text
-        document['anchor'] = '#' + id
-        document = this._remove_lower_hierarchies(document, 'hierarchy_lvl3')
-        await this._send_data({ ...document })
+        document = Object.assign(
+          {},
+          this._update_document(document, tag, text, anchor)
+        )
       } else if (tag === 'H4') {
-        document['hierarchy_lvl4'] = text
-        document['anchor'] = '#' + id
-        document = this._remove_lower_hierarchies(document, 'hierarchy_lvl4')
-        await this._send_data({ ...document })
+        document = Object.assign(
+          {},
+          this._update_document(document, tag, text, anchor)
+        )
       } else if (tag === 'H5') {
-        document['hierarchy_lvl5'] = text
-        document['anchor'] = '#' + id
-        document = this._remove_lower_hierarchies(document, 'hierarchy_lvl5')
-        await this._send_data({ ...document })
+        document = Object.assign(
+          {},
+          this._update_document(document, tag, text, anchor)
+        )
       } else if (
         (tag === 'P' || tag === 'TD' || tag === 'LI' || tag === 'SPAN') &&
         this._amount_of_hierarchies(document) > 1
@@ -119,24 +217,14 @@ export default class DocsearchScaper {
         }
       }
     }
-    await this._send_data(document)
+    // Send remaining data
+    await this._send_data({ ...document })
   }
 
   async _send_data(data: DocsSearchDocument) {
     try {
-      this.counter++
-      console.log(this.counter)
-
-      data.hierarchy_radio_lvl0 = null
-      data.hierarchy_radio_lvl1 = data.hierarchy_lvl1
-      data.hierarchy_radio_lvl2 = data.hierarchy_lvl2
-      data.hierarchy_radio_lvl3 = data.hierarchy_lvl3
-      data.hierarchy_radio_lvl4 = data.hierarchy_lvl4
-      data.hierarchy_radio_lvl5 = data.hierarchy_lvl5
       data.uid = uuidv4()
-      data.url = data.url + '#' + data.anchor
-      data.anchor = data.anchor.substring(1)
-      // console.log('ADD_DATA', data.uid)
+      data.url = data.url + data.anchor
       if (Array.isArray(data['content'])) {
         data['content'] = data['content'].join('\n')
       } else {
@@ -144,7 +232,6 @@ export default class DocsearchScaper {
       }
       await this.sender.add(data)
     } catch (e) {
-      console.log(data)
       console.log('error', e)
     }
   }

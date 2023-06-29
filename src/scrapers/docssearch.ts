@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { Sender } from '../sender'
+import { Sender } from '../sender.js'
 import { Page } from 'puppeteer'
 import { DocsSearchDocument } from '../types'
 

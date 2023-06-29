@@ -1,7 +1,7 @@
 import { Settings } from 'meilisearch'
-import DocsearchScraper from './scrapers/docssearch'
-import DefaultScraper from './scrapers/default'
-import SchemaScraper from './scrapers/schema'
+import DocsearchScraper from './scrapers/docssearch.js'
+import DefaultScraper from './scrapers/default.js'
+import SchemaScraper from './scrapers/schema.js'
 
 export type Config = {
   meilisearch_index_uid: string
@@ -18,6 +18,7 @@ export type Config = {
   urls_to_index?: string[] // Overwrites start_urls if present
   urls_to_not_index?: string[]
   schema_settings?: SchemaSettings
+  user_agents?: string[]
 }
 
 export type SchemaSettings = {

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Page } from 'puppeteer'
-import { Sender } from '../sender'
-import { Config, SchemaDocument } from '../types'
+import { Sender } from '../sender.js'
+import { Config, SchemaDocument } from '../types.js'
 
 export default class SchemaScaper {
   sender: Sender

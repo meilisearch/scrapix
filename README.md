@@ -109,8 +109,56 @@ The setting applied:
 }
 ```
 
-## Todo
-- [ ] Add the possibility to take a list of char to strip from the text
-- [ ] Add a list of url to ignore
-- [ ] Add the possibility to configure your Meilisearch (stopwords, synonyms, etc...)
-- [ ] Create scraper for specific uses cases websites (like ecommerce, blog, etc...)
+## Configuration file
+
+`start_urls` _mandatory_
+
+This array contains the list of URLs that will be used to start scraping your website.
+The scraper will recursively follow any links (<a> tags) from those pages. It will not follow links that are on another domain.
+
+`urls_to_exclude`
+List of the URL's to ignore
+
+`urls_to_not_index`
+List of the URLS to index
+
+`urls_to_not_index`
+List of the URLS that should not be indexes
+
+`meilisearch_url` _mandatory_
+The URL to your Meilisearch instance
+
+`meilisearch_api_key`
+The API key to your Meilisearch instance. It has to have at least write and read access on the specified index.
+
+`meilisearch_index_uid` _mandatory_
+Name of the index on which the content is indexed.
+
+`stategy`
+default: `default`
+Scraping strategy:
+    - `default` Scraps the content of webpages, it suits most use cases. It indexes the content in this format (show example)
+    - `docssearch` Scraps the content of webpages, it suits most use cases. The difference with the default strategy is that it indexes the content in a format compatible with docs-search bar
+    - `schema` Scraps the [`schema`](https://schema.org/) information of your web app.
+
+`headless`
+default: `true`
+Wether or not the javascript should be loaded before scraping starts.
+
+`primary_key`
+The key name in your documents containing their unique identifier.
+
+`meilisearch_settings`
+Your custom Meilisearch settings
+
+`schema_settings`
+If you strategy is `schema`:
+    `only_type`: Which types of schema should be parsed
+    `convert_dates`: If dates should be converted to timestamp. This is usefull to be able to order by date.
+
+`user_agents`
+An array of user agents that are append at the end of the current user agents.
+In this case, if your `user_agents` value is `['My Thing (vx.x.x)']` the final `user_agent` becomes
+```
+Meilisearch JS (vx.x.x); Meilisearch Crawler (vx.x.x); My Thing (vx.x.x)
+```

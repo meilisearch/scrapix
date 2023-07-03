@@ -1,9 +1,8 @@
 import prettier from 'prettier'
 import { v4 as uuidv4 } from 'uuid'
-import { Sender } from '../sender'
-import { Config, Meta } from '../types'
+import { Sender } from '../sender.js'
+import { Config, Meta, DefaultDocument } from '../types'
 import { Page } from 'puppeteer'
-import { DefaultDocument } from '../types'
 
 export default class DefaultScraper {
   sender: Sender

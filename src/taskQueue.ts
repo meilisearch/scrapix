@@ -1,5 +1,5 @@
 import Queue, { Job, DoneCallback } from 'bull'
-import { MeiliSearch } from 'meilisearch'
+import { initMeilisearchClient } from './meilisearch_client.js'
 import { fork } from 'child_process'
 import { Config } from './types'
 
@@ -49,9 +49,11 @@ export default class TaskQueue {
 
   async __jobFailed(job: Job<Config>) {
     console.log('Job failed', job.id)
-    const client = new MeiliSearch({
+    //Create a Meilisearch client
+    const client = initMeilisearchClient({
       host: job.data.meilisearch_url,
       apiKey: job.data.meilisearch_api_key,
+      clientAgents: job.data.user_agents,
     })
 
     //check if the tmp index exists

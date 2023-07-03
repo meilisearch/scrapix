@@ -1,5 +1,6 @@
 import { MeiliSearch, Settings } from 'meilisearch'
 import { Config, DocumentType } from './types'
+import { initMeilisearchClient } from './meilisearch_client.js'
 
 //Create a class called Sender that will queue the json data and batch it to a Meilisearch instance
 export class Sender {
@@ -19,9 +20,10 @@ export class Sender {
     this.batch_size = config.batch_size || 100
 
     //Create a Meilisearch client
-    this.client = new MeiliSearch({
+    this.client = initMeilisearchClient({
       host: config.meilisearch_url,
       apiKey: config.meilisearch_api_key,
+      clientAgents: config.user_agents,
     })
   }
 

@@ -6,7 +6,7 @@ import TaskQueue from './taskQueue.js'
 import { Sender } from './sender.js'
 import Crawler from './crawler.js'
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 8080
 
 class Server {
   taskQueue: TaskQueue
@@ -16,8 +16,8 @@ class Server {
     this.taskQueue = new TaskQueue()
     this.app = express()
     this.app.use(express.json())
-    this.app.post('/crawl', this.__crawl.bind(this))
-    this.app.post('/crawl/async', this.__crawl.bind(this))
+    this.app.post('/crawl', this.__asyncCrawl.bind(this))
+    this.app.post('/crawl/async', this.__asyncCrawl.bind(this))
     this.app.post('/crawl/sync', this.__syncCrawl.bind(this))
 
     this.app.listen(port, () =>
@@ -25,7 +25,7 @@ class Server {
     )
   }
 
-  __crawl(req: express.Request, res: express.Response) {
+  __asyncCrawl(req: express.Request, res: express.Response) {
     this.taskQueue.add(req.body)
     console.log('Crawling started')
     res.send('Crawling started')

@@ -40,6 +40,11 @@ jobs:
         run: yarn start -c misc/config_examples/docusaurus-default.json
       - name: Run docsearch strategy scraper
         run: yarn start -c misc/config_examples/docusaurus-docsearch.json
+      - name: Run scrapix server
+        run: yarn serve &
+      - name: Call scrapix server
+        run: sh .github/scripts/scrapix_server_call_check.sh
+        
   lint_tests:
     runs-on: ubuntu-latest
     name: lint tests

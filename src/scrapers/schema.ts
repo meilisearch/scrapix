@@ -55,14 +55,14 @@ export default class SchemaScaper {
       })
     }
 
-    if (data["@graph"]) {
-      for (const graph of data["@graph"]) {
-        graph.uid = uuidv4();
-        await this.sender.add(graph);
-      };
+    if (data['@graph']) {
+      for (const graph of data['@graph']) {
+        graph.uid = uuidv4()
+        await this.sender.add(graph)
+      }
     } else {
-      data.uid = uuidv4();
-      await this.sender.add(data);
+      data.uid = uuidv4()
+      await this.sender.add(data)
     }
   }
 

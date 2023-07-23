@@ -44,7 +44,7 @@ export class Sender {
 
       await this.client.createIndex(this.index_uid, {
         primaryKey: this.config.primary_key || 'uid',
-      });
+      })
     } catch (e) {
       console.log('try to delete a tmp index if it exists')
     }
@@ -53,7 +53,7 @@ export class Sender {
   //Add a json object to the queue
   async add(data: DocumentType) {
     console.log('Sender::add')
-    if (this.config.primary_key && this.config.primary_key !== "uid") {
+    if (this.config.primary_key && this.config.primary_key !== 'uid') {
       delete data['uid']
     }
 

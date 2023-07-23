@@ -3,16 +3,13 @@ import { initMeilisearchClient } from './meilisearch_client.js'
 import { fork } from 'child_process'
 import { Config } from './types'
 
-const redis_url = process.env.REDIS_URL
-
 export default class TaskQueue {
   queue: Queue.Queue
 
   constructor() {
     console.info('TaskQueue::constructor')
-    console.log(redis_url)
-    if (redis_url) {
-      this.queue = new Queue('crawling', redis_url)
+    if (process.env.REDIS_URL) {
+      this.queue = new Queue('crawling', process.env.REDIS_URL!)
     } else {
       this.queue = new Queue('crawling')
     }

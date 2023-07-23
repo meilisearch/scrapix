@@ -5,15 +5,15 @@ import { initMeilisearchClient } from './meilisearch_client.js'
 //Create a class called Sender that will queue the json data and batch it to a Meilisearch instance
 export class Sender {
   config: Config
-  queue: DocumentType[]
+  queue: DocumentType[] = []
   initial_index_uid: string
   index_uid: string
   batch_size: number
   client: MeiliSearch
+  nb_documents_sent: number = 0
 
   constructor(config: Config) {
     console.info('Sender::constructor')
-    this.queue = []
     this.config = config
     this.initial_index_uid = config.meilisearch_index_uid
     this.index_uid = this.initial_index_uid
@@ -62,6 +62,8 @@ export class Sender {
 
   //Add a json object to the queue
   async add(data: DocumentType) {
+    this.nb_documents_sent++
+
     console.log('Sender::add')
     if (this.config.primary_key) {
       delete data['uid']

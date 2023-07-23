@@ -4,6 +4,7 @@
   "type": "module",
   "description": "This is an example of a Crawlee project.",
   "dependencies": {
+    "axios": "^1.4.0",
     "bull": "^4.10.4",
     "crawlee": "^3.0.0",
     "dotenv": "^16.0.3",

@@ -1,12 +1,12 @@
-# Scrapix 
+# Scrapix
 This project is an API that will allow you to scrap any website and send the data to Meilisearch.
 
-This server have only one endpoint. 
+This server have only one endpoint.
 
 ## Endpoint
 ### POST /crawl
 This endpoint will crawl the website and send the data to Meilisearch.
-data: 
+data:
 ```json
 {
     "start_urls": ["https://www.google.com"],
@@ -38,14 +38,14 @@ data:
     "schema_settings": {
         "only_type": "Product", // Product, Article, etc...
         "convert_dates": true, // default false
-    },
+    }
 }
 ```
 
 ## Process
 ### 1. Add it to the queue
 While the server receive a crawling request it will add it to the queue. When the data is added to the queue it will return a response to the user.
-The queue is handle by redis ([Bull](https://github.com/OptimalBits/bull)). 
+The queue is handle by redis ([Bull](https://github.com/OptimalBits/bull)).
 The queue will dispatch the job to the worker.
 
 ### 2. Scrape the website
@@ -161,4 +161,31 @@ An array of user agents that are append at the end of the current user agents.
 In this case, if your `user_agents` value is `['My Thing (vx.x.x)']` the final `user_agent` becomes
 ```
 Meilisearch JS (vx.x.x); Meilisearch Crawler (vx.x.x); My Thing (vx.x.x)
+```
+
+## Webhooks
+
+To be able to receive updates on the state of the crawler, you need to create a webhook. To do so, you absolutely need to have a public URL that can be reached by the crawler. This URL will be called by the crawler to send you updates.
+
+To enable webhooks, you need add the following env vars.
+```txt
+WEBHOOK_URL=https://mywebsite.com/webhook
+WEBHOOK_TOKEN=mytoken
+WEBHOOK_INTERVAL=1000
+```
+
+- The `WEBHOOK_URL` is the URL that will be called by the crawler. The calls will be made with the `POST` method.
+- The `WEBHOOK_TOKEN` is a token string that will be used to sign the request. It will be used if present in the `Authorization` header of the request in the format `Authorization: Bearer ${token}`.
+- The `WEBHOOK_INTERVAL` is a way to change the frequency you want to receive updated from the scraper. The value is in milliseconds. The default value is 5000ms.
+
+Here is the Webhook payload:
+```json
+{
+  "date": "2022-01-01T12:34:56.000Z",
+  "meilisearch_url": "https://myproject.meilisearch.com",
+  "meilisearch_index_uid": "myindex",
+  "status": "active", // "added", "completed", "failed", "active", "wait", "delayed"
+  "nb_page_crawled": 20,
+  "nb_page_indexed": 15,
+}
 ```

@@ -9,7 +9,7 @@ export default class TaskQueue {
   constructor() {
     console.info('TaskQueue::constructor')
     if (process.env.REDIS_URL) {
-      this.queue = new Queue('crawling', process.env.REDIS_URL!)
+      this.queue = new Queue('crawling', process.env.REDIS_URL)
     } else {
       this.queue = new Queue('crawling')
     }

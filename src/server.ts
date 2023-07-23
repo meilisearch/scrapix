@@ -30,12 +30,8 @@ class Server {
   }
 
   __check_env() {
-    const {
-      REDIS_URL,
-      WEBHOOK_URL,
-      WEBHOOK_TOKEN,
-      WEBHOOK_INTERVAL
-    } = process.env;
+    const { REDIS_URL, WEBHOOK_URL, WEBHOOK_TOKEN, WEBHOOK_INTERVAL } =
+      process.env
 
     console.log('REDIS_URL: ', REDIS_URL)
     console.log('WEBHOOK_URL: ', WEBHOOK_URL)
@@ -68,8 +64,8 @@ class Server {
     res.send('Crawling finished')
   }
 
-  async __log_webhook(req: express.Request, res: express.Response) {
-    console.log("webhook received: ", req.body)
+  __log_webhook(req: express.Request, res: express.Response) {
+    console.log('webhook received: ', req.body)
     res.send('ok')
   }
 }

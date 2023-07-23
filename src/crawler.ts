@@ -26,8 +26,8 @@ export default class Crawler {
   urls: string[]
   scraper: Scraper
   crawler: PuppeteerCrawler
-  nb_page_crawled: number = 0
-  nb_page_indexed: number = 0
+  nb_page_crawled = 0
+  nb_page_indexed = 0
 
   constructor(sender: Sender, config: Config) {
     console.info('Crawler::constructor')
@@ -65,7 +65,7 @@ export default class Crawler {
   async run() {
     let interval = 5000
     if (process.env.WEBHOOK_INTERVAL) {
-      interval = parseInt(process.env.WEBHOOK_INTERVAL!)
+      interval = parseInt(process.env.WEBHOOK_INTERVAL)
     }
 
     const intervalId = setInterval(async () => {
@@ -74,13 +74,13 @@ export default class Crawler {
         nb_page_indexed: this.nb_page_indexed,
         nb_documents_sent: this.sender.nb_documents_sent,
       })
-    }, interval);
+    }, interval)
 
     await this.crawler.run(this.urls)
 
-    clearInterval(intervalId);
+    clearInterval(intervalId)
 
-    Webhook.get().active(this.config, {
+    await Webhook.get().active(this.config, {
       nb_page_crawled: this.nb_page_crawled,
       nb_page_indexed: this.nb_page_indexed,
       nb_documents_sent: this.sender.nb_documents_sent,

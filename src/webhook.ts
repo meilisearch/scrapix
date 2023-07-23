@@ -1,26 +1,28 @@
-import axios, { AxiosResponse } from 'axios';
-import { Config } from './types';
+import axios, { AxiosResponse } from 'axios'
+import { Config } from './types'
 
 // This webhook sender is a singleton
 export class Webhook {
-  private static instance: Webhook;
+  private static instance: Webhook
 
-  configured: boolean = false
+  configured = false
 
   constructor() {
     console.info('Webhook::constructor')
     if (process.env.WEBHOOK_URL) {
       this.configured = true
     } else {
-      console.warn('Webhook not configured; if you want to use a webhook, set the WEBHOOK_URL environment variable')
+      console.warn(
+        'Webhook not configured; if you want to use a webhook, set the WEBHOOK_URL environment variable'
+      )
     }
   }
 
   public static get(): Webhook {
     if (!Webhook.instance) {
-      Webhook.instance = new Webhook();
+      Webhook.instance = new Webhook()
     }
-    return Webhook.instance;
+    return Webhook.instance
   }
 
   async started(config: Config) {
@@ -49,6 +51,7 @@ export class Webhook {
   }
 
   async __callWebhook(config: Config, data: any) {
+    if (!process.env.WEBHOOK_URL) return
     try {
       data.meilisearch_url = config.meilisearch_url
       data.meilisearch_index_uid = config.meilisearch_index_uid
@@ -56,17 +59,21 @@ export class Webhook {
       const date = new Date()
       data.date = date.toISOString()
 
-      let headers: Record<string, string> = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       }
 
       if (process.env.WEBHOOK_TOKEN) {
-        headers['Authorization'] = `Bearer ${process.env.WEBHOOK_TOKEN!}`
+        headers['Authorization'] = `Bearer ${process.env.WEBHOOK_TOKEN}`
       }
 
-      const response: AxiosResponse = await axios.post(process.env.WEBHOOK_URL!, data, {
-        headers: headers
-      })
+      const response: AxiosResponse = await axios.post(
+        process.env.WEBHOOK_URL,
+        data,
+        {
+          headers: headers,
+        }
+      )
       if (response.status == 401 || response.status == 403) {
         this.configured = false
       }

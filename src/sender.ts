@@ -10,7 +10,7 @@ export class Sender {
   index_uid: string
   batch_size: number
   client: MeiliSearch
-  nb_documents_sent: number = 0
+  nb_documents_sent = 0
 
   constructor(config: Config) {
     console.info('Sender::constructor')

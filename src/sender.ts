@@ -41,29 +41,19 @@ export class Sender {
           await this.client.waitForTask(task.taskUid)
         }
       }
+
+      await this.client.createIndex(this.index_uid, {
+        primaryKey: this.config.primary_key || 'uid',
+      })
     } catch (e) {
       console.log('try to delete a tmp index if it exists')
-    }
-
-    if (this.config.primary_key) {
-      try {
-        await this.client
-          .index(this.index_uid)
-          .update({ primaryKey: this.config.primary_key })
-      } catch (e) {
-        console.log('try to create or update the index with the primary key')
-
-        await this.client.createIndex(this.index_uid, {
-          primaryKey: this.config.primary_key,
-        })
-      }
     }
   }
 
   //Add a json object to the queue
   async add(data: DocumentType) {
     console.log('Sender::add')
-    if (this.config.primary_key) {
+    if (this.config.primary_key && this.config.primary_key !== 'uid') {
       delete data['uid']
     }
 

@@ -161,7 +161,7 @@ export default class DocsearchScaper {
 
       const urls_tags = new URL(url).pathname.split('/')
       const only_urls_tags = urls_tags.slice(1, urls_tags.length - 1)
-      document['hierarchy_lvl0'] = only_urls_tags.join(' > ')
+      document['hierarchy_lvl0'] = only_urls_tags.join(' > ') || ''
       document['url'] = url
 
       // Every time a H tag is found, the previous content is indexed and then emptied

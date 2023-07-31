@@ -1,8 +1,8 @@
 {
-  "name": "doc-crawler-test",
+  "name": "scrapix",
   "version": "0.0.1",
-  "type": "module",
   "description": "This is an example of a Crawlee project.",
+  "main": "dist/src/index.js",
   "dependencies": {
     "bull": "^4.10.4",
     "crawlee": "^3.0.0",
@@ -18,7 +18,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "tsc && node dist/src/index.js",
+    "start": "tsc && node dist/src/bin/index.js",
     "serve": "tsc && node dist/src/server.js",
     "dev:build": "nodemon --config ./config/nodemon:build.json",
     "dev:ds:scrap": "nodemon --config ./config/nodemon:docsearch-scrap.json",

@@ -1,5 +1,5 @@
 import { Config, MeiliSearch } from 'meilisearch'
-import { PACKAGE_VERSION } from './package_version.js'
+import { PACKAGE_VERSION } from './package_version'
 
 export function initMeilisearchClient({
   host,

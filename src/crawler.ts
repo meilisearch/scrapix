@@ -19,7 +19,7 @@ type DefaultHandler = Parameters<
 // This class is responsible for crawling the urls and extract content to send to Meilisearch
 // It uses the createPuppeteerRouter method to create a router that will be used by the PuppeteerCrawler.
 // The constructor take a Sender object as a parameter
-export default class Crawler {
+export class Crawler {
   sender: Sender
   config: Config
   urls: string[]

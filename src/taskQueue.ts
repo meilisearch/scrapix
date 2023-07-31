@@ -5,7 +5,7 @@ import { Config } from './types'
 
 const redis_url = process.env.REDIS_URL
 
-export default class TaskQueue {
+export class TaskQueue {
   queue: Queue.Queue
 
   constructor() {

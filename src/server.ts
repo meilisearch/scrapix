@@ -2,9 +2,9 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
-import { TaskQueue } from './taskQueue.js'
-import { Sender } from './sender.js'
-import { Crawler } from './crawler.js'
+import { TaskQueue } from './taskQueue'
+import { Sender } from './sender'
+import { Crawler } from './crawler'
 
 const port = process.env.PORT || 8080
 

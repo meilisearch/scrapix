@@ -1,6 +1,6 @@
-import { Sender } from './sender.js'
-import { Crawler } from './crawler.js'
-import { Config } from './types.js'
+import { Sender } from './sender'
+import { Crawler } from './crawler'
+import { Config } from './types'
 
 async function startCrawling(config: Config) {
   const sender = new Sender(config)

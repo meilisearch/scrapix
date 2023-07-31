@@ -5,11 +5,11 @@ import {
   PuppeteerCrawlingContext,
 } from 'crawlee'
 import { minimatch } from 'minimatch'
-import DefaultScraper from './scrapers/default.js'
-import DocsearchScraper from './scrapers/docssearch.js'
-import SchemaScraper from './scrapers/schema.js'
-import { Sender } from './sender.js'
-import { Config, Scraper } from './types.js'
+import DefaultScraper from './scrapers/default'
+import DocsearchScraper from './scrapers/docssearch'
+import SchemaScraper from './scrapers/schema'
+import { Sender } from './sender'
+import { Config, Scraper } from './types'
 
 type DefaultHandler = Parameters<
   Parameters<Router<PuppeteerCrawlingContext>['addDefaultHandler']>[0]

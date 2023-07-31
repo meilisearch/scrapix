@@ -4,9 +4,9 @@ dotenv.config()
 import fs from 'fs'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { Sender } from '../sender.js'
-import { Crawler } from '../crawler.js'
-import { Config } from '../types.js'
+import { Sender } from '../sender'
+import { Crawler } from '../crawler'
+import { Config } from '../types'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 ;(async () => {

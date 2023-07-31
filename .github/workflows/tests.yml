@@ -17,21 +17,21 @@ jobs:
       meilisearch:
         image: getmeili/meilisearch:latest
         env:
-          MEILI_MASTER_KEY: 'masterKey'
-          MEILI_NO_ANALYTICS: 'true'
+          MEILI_MASTER_KEY: "masterKey"
+          MEILI_NO_ANALYTICS: "true"
         ports:
-          - '7700:7700'
+          - "7700:7700"
     strategy:
       fail-fast: false
       matrix:
-        node: ['16', '18', '20']          
+        node: ["16", "18", "20"]
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
+          cache: "yarn"
       - name: Install dependencies
         run: yarn
       - name: Run playground
@@ -42,9 +42,11 @@ jobs:
         run: yarn start -c misc/config_examples/docusaurus-docsearch.json
       - name: Run scrapix server
         run: yarn serve &
+      - name: Wait
+        run: sleep 5
       - name: Call scrapix server
         run: sh .github/scripts/scrapix_server_call_check.sh
-        
+
   lint_tests:
     runs-on: ubuntu-latest
     name: lint tests
@@ -54,7 +56,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
       - name: Install dependencies
         run: yarn
       - name: Run JS/TS linter
@@ -68,7 +70,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
       - name: Install dependencies
         run: yarn
       - name: Build project

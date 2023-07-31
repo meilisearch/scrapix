@@ -1,5 +1,4 @@
 import { Config, MeiliSearch } from 'meilisearch'
-import { PACKAGE_VERSION } from './package_version.js'
 
 export function initMeilisearchClient({
   host,
@@ -10,7 +9,7 @@ export function initMeilisearchClient({
     host,
     apiKey,
     clientAgents: [
-      `Meilisearch Crawler (v${PACKAGE_VERSION})`,
+      `Meilisearch Crawler (v${process.env.npm_package_version})`,
       ...clientAgents,
     ],
   })

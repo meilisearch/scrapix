@@ -90,6 +90,8 @@ export class Sender {
       const task = await this.client.deleteIndex(this.index_uid)
       await this.client.index(this.index_uid).waitForTask(task.taskUid)
     }
+
+    return this.nb_documents_sent
   }
 
   async __batchSend() {

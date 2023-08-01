@@ -22,6 +22,7 @@ class Server {
     this.app.post('/crawl', this.__asyncCrawl.bind(this))
     this.app.post('/crawl/async', this.__asyncCrawl.bind(this))
     this.app.post('/crawl/sync', this.__syncCrawl.bind(this))
+    this.app.post('/crawl/start', this.__startCrawl.bind(this))
     this.app.post('/webhook', this.__log_webhook.bind(this))
 
     this.app.listen(port, () =>
@@ -37,11 +38,6 @@ class Server {
     console.log('WEBHOOK_URL: ', WEBHOOK_URL)
     console.log('WEBHOOK_TOKEN: ', WEBHOOK_TOKEN)
     console.log('WEBHOOK_INTERVAL: ', WEBHOOK_INTERVAL)
-
-    if (!REDIS_URL) {
-      console.error('REDIS_URL is not defined')
-      process.exit(1)
-    }
   }
 
   __asyncCrawl(req: express.Request, res: express.Response) {
@@ -59,9 +55,26 @@ class Server {
     const crawler = new Crawler(sender, req.body)
 
     await crawler.run()
-    await sender.finish()
-    await Webhook.get().completed(req.body)
+    const nbDocuments = await sender.finish()
+
+    await Webhook.get().completed(req.body, nbDocuments)
     res.send('Crawling finished')
+  }
+
+  async __startCrawl(req: express.Request, res: express.Response) {
+    await Webhook.get().started(req.body)
+    console.log('Crawling started')
+    res.send('Crawling started')
+
+    const sender = new Sender(req.body)
+    await sender.init()
+
+    const crawler = new Crawler(sender, req.body)
+
+    await crawler.run()
+    const nbDocuments = await sender.finish()
+
+    await Webhook.get().completed(req.body, nbDocuments)
   }
 
   __log_webhook(req: express.Request, res: express.Response) {

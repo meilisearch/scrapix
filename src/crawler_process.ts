@@ -11,8 +11,8 @@ async function startCrawling(config: Config) {
   const crawler = new Crawler(sender, config)
 
   await crawler.run()
-  await sender.finish()
-  await Webhook.get().completed(config)
+  const nbDocuments = await sender.finish()
+  await Webhook.get().completed(config, nbDocuments)
 }
 
 // Listen for messages from the parent thread

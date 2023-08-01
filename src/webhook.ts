@@ -30,7 +30,7 @@ export class Webhook {
     await this.__callWebhook(config, { status: 'started' })
   }
 
-  async active(config: Config, data: any) {
+  async active(config: Config, data: Record<string, any>) {
     if (!this.configured) return
     await this.__callWebhook(config, { status: 'active', ...data })
   }
@@ -40,9 +40,12 @@ export class Webhook {
     await this.__callWebhook(config, { status: 'paused' })
   }
 
-  async completed(config: Config) {
+  async completed(config: Config, nbDocumentsSent: number) {
     if (!this.configured) return
-    await this.__callWebhook(config, { status: 'completed' })
+    await this.__callWebhook(config, {
+      status: 'completed',
+      nb_documents_sent: nbDocumentsSent,
+    })
   }
 
   async failed(config: Config, error: Error) {
@@ -55,6 +58,10 @@ export class Webhook {
     try {
       data.meilisearch_url = config.meilisearch_url
       data.meilisearch_index_uid = config.meilisearch_index_uid
+
+      if (config.webhook_payload) {
+        data.webhook_payload = config.webhook_payload
+      }
 
       const date = new Date()
       data.date = date.toISOString()

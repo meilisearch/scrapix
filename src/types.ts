@@ -19,6 +19,7 @@ export type Config = {
   urls_to_not_index?: string[]
   schema_settings?: SchemaSettings
   user_agents?: string[]
+  webhook_payload?: Record<string, any>
 }
 
 export type SchemaSettings = {

@@ -10,6 +10,7 @@ import DocsearchScraper from './scrapers/docssearch'
 import SchemaScraper from './scrapers/schema'
 import { Sender } from './sender'
 import { Config, Scraper } from './types'
+import { Webhook } from './webhook.js'
 
 type DefaultHandler = Parameters<
   Parameters<Router<PuppeteerCrawlingContext>['addDefaultHandler']>[0]
@@ -25,6 +26,8 @@ export class Crawler {
   urls: string[]
   scraper: Scraper
   crawler: PuppeteerCrawler
+  nb_page_crawled = 0
+  nb_page_indexed = 0
 
   constructor(sender: Sender, config: Config) {
     console.info('Crawler::constructor')
@@ -60,11 +63,33 @@ export class Crawler {
   }
 
   async run() {
+    let interval = 5000
+    if (process.env.WEBHOOK_INTERVAL) {
+      interval = parseInt(process.env.WEBHOOK_INTERVAL)
+    }
+
+    const intervalId = setInterval(async () => {
+      await Webhook.get().active(this.config, {
+        nb_page_crawled: this.nb_page_crawled,
+        nb_page_indexed: this.nb_page_indexed,
+        nb_documents_sent: this.sender.nb_documents_sent,
+      })
+    }, interval)
+
     await this.crawler.run(this.urls)
+
+    clearInterval(intervalId)
+
+    await Webhook.get().active(this.config, {
+      nb_page_crawled: this.nb_page_crawled,
+      nb_page_indexed: this.nb_page_indexed,
+      nb_documents_sent: this.sender.nb_documents_sent,
+    })
   }
 
   // Should we use `log`
   async defaultHandler({ request, enqueueLinks, page }: DefaultHandler) {
+    this.nb_page_crawled++
     const title = await page.title()
     console.log(`${title}`, { url: request.loadedUrl })
     const crawled_globs = this.__generate_globs(this.urls)
@@ -84,6 +109,7 @@ export class Crawler {
         this.__match_globs(request.loadedUrl, indexed_globs) &&
         !this.__match_globs(request.loadedUrl, excluded_indexed_globs)
       ) {
+        this.nb_page_indexed++
         await this.scraper.get(request.loadedUrl, page)
       }
     }

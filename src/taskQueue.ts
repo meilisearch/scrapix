@@ -1,9 +1,9 @@
 import Queue, { Job, DoneCallback } from 'bull'
-import { initMeilisearchClient } from './meilisearch_client.js'
+import { initMeilisearchClient } from './meilisearch_client'
 import { fork } from 'child_process'
 import { Config } from './types'
 
-export default class TaskQueue {
+export class TaskQueue {
   queue: Queue.Queue
 
   constructor() {

@@ -20,6 +20,7 @@ export type Config = {
   schema_settings?: SchemaSettings
   user_agents?: string[]
   webhook_payload?: Record<string, any>
+  webhook_url?: string
 }
 
 export type SchemaSettings = {

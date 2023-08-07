@@ -4,23 +4,25 @@ import { Config } from './types'
 // This webhook sender is a singleton
 export class Webhook {
   private static instance: Webhook
+  private webhook_url: string | undefined
 
   configured = false
 
-  constructor() {
+  constructor(config: Config) {
     console.info('Webhook::constructor')
-    if (process.env.WEBHOOK_URL) {
+    if (config.webhook_url || process.env.WEBHOOK_URL) {
       this.configured = true
+      this.webhook_url = config.webhook_url || process.env.WEBHOOK_URL
     } else {
       console.warn(
-        'Webhook not configured; if you want to use a webhook, set the WEBHOOK_URL environment variable'
+        'Webhook not configured; if you want to use a webhook, set the WEBHOOK_URL environment variable or provide the webhook_url option in the config'
       )
     }
   }
 
-  public static get(): Webhook {
+  public static get(config: Config): Webhook {
     if (!Webhook.instance) {
-      Webhook.instance = new Webhook()
+      Webhook.instance = new Webhook(config)
     }
     return Webhook.instance
   }
@@ -54,7 +56,7 @@ export class Webhook {
   }
 
   async __callWebhook(config: Config, data: any) {
-    if (!process.env.WEBHOOK_URL) return
+    if (!this.webhook_url) return
     try {
       data.meilisearch_url = config.meilisearch_url
       data.meilisearch_index_uid = config.meilisearch_index_uid
@@ -74,13 +76,9 @@ export class Webhook {
         headers['Authorization'] = `Bearer ${process.env.WEBHOOK_TOKEN}`
       }
 
-      const response: AxiosResponse = await axios.post(
-        process.env.WEBHOOK_URL,
-        data,
-        {
-          headers: headers,
-        }
-      )
+      const response: AxiosResponse = await axios.post(this.webhook_url, data, {
+        headers: headers,
+      })
       if (response.status == 401 || response.status == 403) {
         this.configured = false
       }

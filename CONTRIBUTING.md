@@ -22,9 +22,9 @@ yarn playground:default
 ```
 
 Running this mode has two effects.
+
 - If you change the source code of the docusaurus playground, the docusaurus app restarts.
 - If you change the source code of scrapix, scrapix is rebuilded and re-runs a scrapper (either the default one or the docsearch one) on the docusaurus app.
-
 
 # Re-scrap a chosen app on change
 
@@ -35,3 +35,12 @@ npx nodemon --watch src --watch "[PATH_TO_YOUR_CONFIG_FILE]" --ext ts,json --exe
 ```
 
 This will scrap an app based on the provided "PATH_TO_YOUR_CONFIG_FILE" on every change in the `./src` folder and on your provided config file.
+
+## Publish
+
+To publish scrapix to npm. Increase its version and then:
+
+```sh
+yarn build
+npm publish .
+```

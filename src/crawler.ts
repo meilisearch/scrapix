@@ -3,6 +3,7 @@ import {
   PuppeteerCrawler,
   Router,
   PuppeteerCrawlingContext,
+  PuppeteerCrawlerOptions,
 } from 'crawlee'
 import { minimatch } from 'minimatch'
 import DefaultScraper from './scrapers/default'
@@ -11,6 +12,7 @@ import SchemaScraper from './scrapers/schema'
 import { Sender } from './sender'
 import { Config, Scraper } from './types'
 import { Webhook } from './webhook.js'
+import { PuppeteerNode } from 'puppeteer-core'
 
 type DefaultHandler = Parameters<
   Parameters<Router<PuppeteerCrawlingContext>['addDefaultHandler']>[0]
@@ -29,7 +31,12 @@ export class Crawler {
   nb_page_crawled = 0
   nb_page_indexed = 0
 
-  constructor(sender: Sender, config: Config) {
+  constructor(
+    sender: Sender,
+    config: Config,
+    launchOptions: Record<string, any> = {},
+    launcher?: PuppeteerNode
+  ) {
     console.info('Crawler::constructor')
     this.sender = sender
     this.config = config
@@ -48,18 +55,23 @@ export class Crawler {
     // type DefaultHandler = Parameters<typeof router.addDefaultHandler>[0];
     router.addDefaultHandler(this.defaultHandler.bind(this))
 
-    // create the crawler
-    this.crawler = new PuppeteerCrawler({
-      // proxyConfiguration: new ProxyConfiguration({ proxyUrls: ['...'] }),
+    const puppeteerCrawlerOptions: PuppeteerCrawlerOptions = {
       requestHandler: router,
       launchContext: {
         launchOptions: {
           headless: config.headless || true,
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
           ignoreDefaultArgs: ['--disable-extensions'],
+          ...launchOptions,
         },
       },
-    })
+    }
+
+    if (puppeteerCrawlerOptions.launchContext && launcher) {
+      puppeteerCrawlerOptions.launchContext.launcher = launcher
+    }
+    // create the crawler
+    this.crawler = new PuppeteerCrawler(puppeteerCrawlerOptions)
   }
 
   async run() {
@@ -76,15 +88,19 @@ export class Crawler {
       })
     }, interval)
 
-    await this.crawler.run(this.urls)
+    try {
+      await this.crawler.run(this.urls)
 
-    clearInterval(intervalId)
-
-    await Webhook.get().active(this.config, {
-      nb_page_crawled: this.nb_page_crawled,
-      nb_page_indexed: this.nb_page_indexed,
-      nb_documents_sent: this.sender.nb_documents_sent,
-    })
+      await Webhook.get().active(this.config, {
+        nb_page_crawled: this.nb_page_crawled,
+        nb_page_indexed: this.nb_page_indexed,
+        nb_documents_sent: this.sender.nb_documents_sent,
+      })
+    } catch (err) {
+      await Webhook.get().failed(this.config, err as Error)
+    } finally {
+      clearInterval(intervalId)
+    }
   }
 
   // Should we use `log`

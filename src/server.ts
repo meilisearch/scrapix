@@ -5,7 +5,6 @@ import express from 'express'
 import { TaskQueue } from './taskQueue'
 import { Sender } from './sender'
 import { Crawler } from './crawler'
-import { Webhook } from './webhook.js'
 
 const port = process.env.PORT || 8080
 
@@ -26,7 +25,7 @@ class Server {
     this.app.post('/webhook', this.__log_webhook.bind(this))
 
     this.app.listen(port, () =>
-      console.log(`Example app listening on port ${port}!`)
+      console.log(`Crawler app listening on port ${port}!`)
     )
   }
 
@@ -47,22 +46,18 @@ class Server {
   }
 
   async __syncCrawl(req: express.Request, res: express.Response) {
-    await Webhook.get().started(req.body)
-
     const sender = new Sender(req.body)
     await sender.init()
 
     const crawler = new Crawler(sender, req.body)
 
     await crawler.run()
-    const nbDocuments = await sender.finish()
+    await sender.finish()
 
-    await Webhook.get().completed(req.body, nbDocuments)
     res.send('Crawling finished')
   }
 
   async __startCrawl(req: express.Request, res: express.Response) {
-    await Webhook.get().started(req.body)
     console.log('Crawling started')
     res.send('Crawling started')
 
@@ -72,9 +67,7 @@ class Server {
     const crawler = new Crawler(sender, req.body)
 
     await crawler.run()
-    const nbDocuments = await sender.finish()
-
-    await Webhook.get().completed(req.body, nbDocuments)
+    await sender.finish()
   }
 
   __log_webhook(req: express.Request, res: express.Response) {

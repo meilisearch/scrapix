@@ -175,6 +175,9 @@ Meilisearch JS (vx.x.x); Meilisearch Crawler (vx.x.x); My Thing (vx.x.x)
 `webhook_payload`
 In the case [webhooks](#webhooks) are enabled, the webhook_payload option gives the possibility to provide information that will be added in the webhook payload.
 
+`webhook_url`
+The URL on which the webhook calls are made.
+
 ## Webhooks
 
 To be able to receive updates on the state of the crawler, you need to create a webhook. To do so, you absolutely need to have a public URL that can be reached by the crawler. This URL will be called by the crawler to send you updates.

@@ -1,7 +1,7 @@
 import { MeiliSearch, Settings } from 'meilisearch'
 import { Config, DocumentType } from './types'
 import { initMeilisearchClient } from './meilisearch_client'
-import { Webhook } from './webhook.js'
+import { Webhook } from './webhook'
 
 //Create a class called Sender that will queue the json data and batch it to a Meilisearch instance
 export class Sender {
@@ -31,7 +31,7 @@ export class Sender {
   async init() {
     console.log('Sender::init')
     try {
-      await Webhook.get().started(this.config)
+      await Webhook.get(this.config).started(this.config)
       const index = await this.client.getIndex(this.initial_index_uid)
 
       if (index) {
@@ -93,7 +93,10 @@ export class Sender {
       await this.client.index(this.index_uid).waitForTask(task.taskUid)
     }
 
-    await Webhook.get().completed(this.config, this.nb_documents_sent)
+    await Webhook.get(this.config).completed(
+      this.config,
+      this.nb_documents_sent
+    )
   }
 
   async __batchSend() {

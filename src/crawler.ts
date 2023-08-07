@@ -81,7 +81,7 @@ export class Crawler {
     }
 
     const intervalId = setInterval(async () => {
-      await Webhook.get().active(this.config, {
+      await Webhook.get(this.config).active(this.config, {
         nb_page_crawled: this.nb_page_crawled,
         nb_page_indexed: this.nb_page_indexed,
         nb_documents_sent: this.sender.nb_documents_sent,
@@ -91,13 +91,13 @@ export class Crawler {
     try {
       await this.crawler.run(this.urls)
 
-      await Webhook.get().active(this.config, {
+      await Webhook.get(this.config).active(this.config, {
         nb_page_crawled: this.nb_page_crawled,
         nb_page_indexed: this.nb_page_indexed,
         nb_documents_sent: this.sender.nb_documents_sent,
       })
     } catch (err) {
-      await Webhook.get().failed(this.config, err as Error)
+      await Webhook.get(this.config).failed(this.config, err as Error)
     } finally {
       clearInterval(intervalId)
     }

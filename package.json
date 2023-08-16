@@ -1,6 +1,6 @@
 {
   "name": "@meilisearch/scrapix",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Automatic scraper and indexer to Meilisearch of any website.",
   "main": "dist/src/index.js",
   "dependencies": {
@@ -50,5 +50,9 @@
     "eslint-plugin-prettier": "^4.2.1",
     "nodemon": "^2.0.22",
     "typescript": "^5.1.3"
-  }
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
 }

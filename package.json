@@ -1,6 +1,6 @@
 {
   "name": "@meilisearch/scrapix",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Automatic scraper and indexer to Meilisearch of any website.",
   "main": "dist/src/index.js",
   "dependencies": {

@@ -54,7 +54,6 @@ export class Sender {
 
   //Add a json object to the queue
   async add(data: DocumentType) {
-    console.log('Sender::add')
     this.nb_documents_sent++
 
     if (this.config.primary_key && this.config.primary_key !== 'uid') {
@@ -98,6 +97,7 @@ export class Sender {
       this.config,
       this.nb_documents_sent
     )
+    console.log('Sender::Finish')
   }
 
   __batchSend() {

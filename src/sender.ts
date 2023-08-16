@@ -18,7 +18,7 @@ export class Sender {
     this.config = config
     this.initial_index_uid = config.meilisearch_index_uid
     this.index_uid = this.initial_index_uid
-    this.batch_size = config.batch_size || 100
+    this.batch_size = config.batch_size || 1000
 
     //Create a Meilisearch client
     this.client = initMeilisearchClient({
@@ -54,9 +54,9 @@ export class Sender {
 
   //Add a json object to the queue
   async add(data: DocumentType) {
+    console.log('Sender::add')
     this.nb_documents_sent++
 
-    console.log('Sender::add')
     if (this.config.primary_key && this.config.primary_key !== 'uid') {
       delete data['uid']
     }
@@ -64,7 +64,8 @@ export class Sender {
     if (this.batch_size) {
       this.queue.push(data)
       if (this.queue.length >= this.batch_size) {
-        await this.__batchSend()
+        this.__batchSend()
+        this.queue = []
       }
     } else {
       await this.client.index(this.index_uid).addDocuments([data])
@@ -80,7 +81,7 @@ export class Sender {
   }
 
   async finish() {
-    await this.__batchSend()
+    await this.__batchSendSync()
     const index = await this.client.getIndex(this.index_uid)
     const stats = await index.getStats()
     if (
@@ -99,12 +100,22 @@ export class Sender {
     )
   }
 
-  async __batchSend() {
+  __batchSend() {
+    console.log(`Sender::__batchSend - size: ${this.queue.length}`)
+    this.client
+      .index(this.index_uid)
+      .addDocuments(this.queue)
+      .catch((e) => {
+        console.log(e)
+        console.log('Error while sending data to MeiliSearch')
+      })
+  }
+
+  async __batchSendSync() {
     console.log(`Sender::__batchSend - size: ${this.queue.length}`)
     const task = await this.client
       .index(this.index_uid)
       .addDocuments(this.queue)
-    this.queue = []
     await this.client.waitForTask(task.taskUid)
   }
 

@@ -22,7 +22,7 @@ data:
   "meilisearch_index_uid": "google",
   "stategy": "default", // docssearch, schema*, custom or default
   "headless": true, // Open browser or not
-  "batch_size": 100, //null with send documents one by one
+  "batch_size": 1000, //null with send documents one by one
   "primary_key": null,
   "meilisearch_settings": {
     "searchableAttributes": [

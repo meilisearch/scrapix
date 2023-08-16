@@ -218,7 +218,9 @@ export default class DocsearchScaper {
       }
     }
     // Send remaining data
-    await this._send_data({ ...document })
+    if (document.content && document.content?.length > 0) {
+      await this._send_data({ ...document })
+    }
   }
 
   async _send_data(data: DocsSearchDocument) {

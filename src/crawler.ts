@@ -4,7 +4,9 @@ import {
   Router,
   PuppeteerCrawlingContext,
   PuppeteerCrawlerOptions,
+  RequestQueue,
 } from 'crawlee'
+
 import { minimatch } from 'minimatch'
 import DefaultScraper from './scrapers/default'
 import DocsearchScraper from './scrapers/docssearch'
@@ -27,9 +29,10 @@ export class Crawler {
   config: Config
   urls: string[]
   scraper: Scraper
-  crawler: PuppeteerCrawler
   nb_page_crawled = 0
   nb_page_indexed = 0
+  launchOptions: Record<string, any> = {}
+  launcher?: PuppeteerNode
 
   constructor(
     sender: Sender,
@@ -37,17 +40,24 @@ export class Crawler {
     launchOptions: Record<string, any> = {},
     launcher?: PuppeteerNode
   ) {
-    console.info('Crawler::constructor')
     this.sender = sender
     this.config = config
     this.urls = config.start_urls
+    this.launchOptions = launchOptions
+    this.launcher = launcher
 
     this.scraper =
-      config.strategy == 'docssearch'
+      this.config.strategy == 'docssearch'
         ? new DocsearchScraper(this.sender)
-        : config.strategy == 'schema'
-        ? new SchemaScraper(this.sender, config)
-        : new DefaultScraper(this.sender, config)
+        : this.config.strategy == 'schema'
+        ? new SchemaScraper(this.sender, this.config)
+        : new DefaultScraper(this.sender, this.config)
+  }
+
+  async run() {
+    const requestQueue = await RequestQueue.open(JSON.stringify(this.urls))
+    // Enqueue the initial requests
+    await requestQueue.addRequests(this.urls.map((url) => ({ url })))
 
     //Create the router
     const router = createPuppeteerRouter()
@@ -56,25 +66,24 @@ export class Crawler {
     router.addDefaultHandler(this.defaultHandler.bind(this))
 
     const puppeteerCrawlerOptions: PuppeteerCrawlerOptions = {
+      requestQueue,
       requestHandler: router,
       launchContext: {
         launchOptions: {
-          headless: config.headless || true,
+          headless: this.config.headless || true,
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
           ignoreDefaultArgs: ['--disable-extensions'],
-          ...launchOptions,
+          ...this.launchOptions,
         },
       },
     }
 
-    if (puppeteerCrawlerOptions.launchContext && launcher) {
-      puppeteerCrawlerOptions.launchContext.launcher = launcher
+    if (puppeteerCrawlerOptions.launchContext && this.launcher) {
+      puppeteerCrawlerOptions.launchContext.launcher = this.launcher
     }
     // create the crawler
-    this.crawler = new PuppeteerCrawler(puppeteerCrawlerOptions)
-  }
+    const crawler = new PuppeteerCrawler(puppeteerCrawlerOptions)
 
-  async run() {
     let interval = 5000
     if (process.env.WEBHOOK_INTERVAL) {
       interval = parseInt(process.env.WEBHOOK_INTERVAL)
@@ -89,7 +98,7 @@ export class Crawler {
     }, interval)
 
     try {
-      await this.crawler.run(this.urls)
+      await crawler.run()
 
       await Webhook.get(this.config).active(this.config, {
         nb_page_crawled: this.nb_page_crawled,
@@ -101,6 +110,7 @@ export class Crawler {
     } finally {
       clearInterval(intervalId)
     }
+    await requestQueue.drop()
   }
 
   // Should we use `log`

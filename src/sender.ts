@@ -35,7 +35,7 @@ export class Sender {
       const index = await this.client.getIndex(this.initial_index_uid)
 
       if (index) {
-        this.index_uid = this.initial_index_uid + '_tmp'
+        this.index_uid = this.initial_index_uid + '_crawler_tmp'
 
         const tmp_index = await this.client.getIndex(this.index_uid)
         if (tmp_index) {

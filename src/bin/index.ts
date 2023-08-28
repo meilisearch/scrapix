@@ -8,24 +8,68 @@ import { Sender } from '../sender'
 import { Crawler } from '../crawler'
 import { Config } from '../types'
 
+function getConfig({
+  configPath,
+  config,
+}: {
+  configPath?: string
+  config?: string
+}): Config {
+  console.log({ configPath, config })
+  if (configPath) {
+    return JSON.parse(
+      fs.readFileSync(configPath, { encoding: 'utf-8' })
+    ) as Config
+  } else if (config) {
+    console.log('bkwejqwjkqeh')
+    return JSON.parse(config) as Config
+  }
+
+  throw new Error('Please provide either --config or --configPath')
+}
+
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 ;(async () => {
   // Parse command line arguments and get a configuration file path
-  const argv = await yargs(hideBin(process.argv)).option('config', {
-    alias: 'c',
-    describe: 'Path to configuration file',
-    demandOption: true,
-    type: 'string',
-  }).argv
+  const argv = await yargs(hideBin(process.argv))
+    .option('config', {
+      alias: 'c',
+      describe: 'configuration',
+      type: 'string',
+    })
+    .option('configPath', {
+      alias: 'p',
+      describe: 'Path to configuration file',
+      type: 'string',
+    })
+    .option('browserPath', {
+      alias: 'b',
+      describe: 'Path to browser binary',
+      type: 'string',
+    })
+    .check((argv) => {
+      console.log(argv)
+      console.log(argv.config)
+      console.log(!!argv.config)
+      if (argv.config && argv.configPath) {
+        throw new Error(
+          'You can only use either --config or --configPath, not both.'
+        )
+      } else if (!argv.config && !argv.configPath) {
+        throw new Error('You must provide one of --config or --configPath.')
+      }
+      return true
+    }).argv
 
-  const config: Config = JSON.parse(
-    fs.readFileSync(argv.config, { encoding: 'utf-8' })
-  ) as Config
+  const config = getConfig(argv)
+  const launchOptions = argv.browserPath
+    ? { executablePath: argv.browserPath }
+    : {}
 
   const sender = new Sender(config)
   await sender.init()
 
-  const crawler = new Crawler(sender, config)
+  const crawler = new Crawler(sender, config, launchOptions)
 
   await crawler.run()
   await sender.finish()

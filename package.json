@@ -19,9 +19,10 @@
     "yargs": "^17.7.2"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "tsc && node dist/src/bin/index.js",
-    "serve": "tsc && node dist/src/server.js",
+    "build": "yarn tsc",
+    "start": "yarn tsc && node dist/src/bin/index.js",
+    "start:prod": "node dist/src/bin/index.js",
+    "serve": "yarn tsc && node dist/src/server.js",
     "dev:build": "nodemon --config ./config/nodemon:build.json",
     "dev:ds:scrap": "nodemon --config ./config/nodemon:docsearch-scrap.json",
     "dev:default:scrap": "nodemon --config ./config/nodemon:default-scrap.json",

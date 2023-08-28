@@ -4,6 +4,19 @@ This project is an API that will allow you to scrap any website and send the dat
 
 This server have only one endpoint.
 
+## Bin usage
+
+Scrapix provides a CLI to start the crawling process.
+
+```
+Usage: yarn start [options]
+
+Options:
+  -c, --config         JSON string with the scrapix configuration
+  -p, --config-path    Path to the scrapix configuration JSON file 
+  -b, --browser-path   Path to the browser binary
+```  
+
 ## Endpoint
 
 ### POST /crawl

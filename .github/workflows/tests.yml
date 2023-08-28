@@ -37,9 +37,9 @@ jobs:
       - name: Run playground
         run: yarn playground:start &
       - name: Run default strategy scraper
-        run: yarn start -c misc/config_examples/docusaurus-default.json
+        run: yarn start -p misc/config_examples/docusaurus-default.json
       - name: Run docsearch strategy scraper
-        run: yarn start -c misc/config_examples/docusaurus-docsearch.json
+        run: yarn start -p misc/config_examples/docusaurus-docsearch.json
       - name: Run scrapix server
         run: yarn serve &
       - name: Wait

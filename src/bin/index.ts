@@ -15,13 +15,11 @@ function getConfig({
   configPath?: string
   config?: string
 }): Config {
-  console.log({ configPath, config })
   if (configPath) {
     return JSON.parse(
       fs.readFileSync(configPath, { encoding: 'utf-8' })
     ) as Config
   } else if (config) {
-    console.log('bkwejqwjkqeh')
     return JSON.parse(config) as Config
   }
 
@@ -48,9 +46,6 @@ function getConfig({
       type: 'string',
     })
     .check((argv) => {
-      console.log(argv)
-      console.log(argv.config)
-      console.log(!!argv.config)
       if (argv.config && argv.configPath) {
         throw new Error(
           'You can only use either --config or --configPath, not both.'

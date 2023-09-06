@@ -13,9 +13,9 @@ Usage: yarn start [options]
 
 Options:
   -c, --config         JSON string with the scrapix configuration
-  -p, --config-path    Path to the scrapix configuration JSON file 
+  -p, --config-path    Path to the scrapix configuration JSON file
   -b, --browser-path   Path to the browser binary
-```  
+```
 
 ## Endpoint
 
@@ -221,3 +221,18 @@ Here is the Webhook payload:
 ```
 
 It is possible to add additional information in the webhook payload through the `webhook_payload` configuration
+
+## Docker
+
+### Usage
+
+```
+docker run --rm --env-file .env  getmeili/scrapix
+docker run -rm --env CRAWLER_CONFIG=$CRAWLER_CONFIG getmeili/scrapix
+```
+
+⚠️ Avoid any whitespace inside your CRAWLER_CONFIG.
+
+## Publish
+
+The CI handles the publishing.

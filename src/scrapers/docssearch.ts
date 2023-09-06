@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import crypto from 'crypto'
 import { Sender } from '../sender'
 import { Page } from 'puppeteer'
 import {
@@ -34,6 +35,7 @@ const TAG_LEVELS: Record<HTag, number> = {
 
 export default class DocsearchScaper {
   sender: Sender
+  contentCache: Set<string>
 
   constructor(sender: Sender) {
     console.info('DocsearchScaper::constructor')
@@ -66,6 +68,7 @@ export default class DocsearchScaper {
         'content',
       ],
     })
+    this.contentCache = new Set<string>()
   }
 
   _amount_of_hierarchies(pageMap: DocsSearchDocument) {
@@ -147,6 +150,22 @@ export default class DocsearchScaper {
     let elems = await page.$$(
       'main h1, main h2, main h3, main h4, main h5, main p, main td, main li, main span'
     )
+
+    // Should be added in default strategy as well
+    const innerText = await Promise.all(
+      elems.map((el) => el.evaluate((el) => el.textContent))
+    )
+
+    const hash = crypto.createHash('sha256')
+    hash.update(innerText.join(''))
+    const contentHash = hash.digest('hex')
+
+    if (this.contentCache.has(contentHash)) {
+      console.log('ALREADY EXISTS', url)
+      return
+    }
+    this.contentCache.add(contentHash)
+
     if (elems.length === 0) {
       elems = await page.$$('h1, h2, h3, h4, h5, p, td, li, span')
     }

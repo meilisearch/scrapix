@@ -33,7 +33,7 @@ data:
   "meilisearch_url": "http://localhost:7700",
   "meilisearch_api_key": "masterKey",
   "meilisearch_index_uid": "google",
-  "stategy": "default", // docssearch, schema*, custom or default
+  "strategy": "default", // docssearch, schema*, custom or default
   "headless": true, // Open browser or not
   "batch_size": 1000, //null with send documents one by one
   "primary_key": null,

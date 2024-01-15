@@ -69,15 +69,15 @@ export default class DocsearchScaper {
         'hierarchy_lvl0',
         'content',
       ],
-    };
+    }
 
     // Merge user-defined settings with predefined settings
     this.settings = {
       ...defaultSettings,
       ...(config?.meilisearch_settings || {}),
-    };
+    }
 
-    void this.sender.updateSettings(this.settings);
+    void this.sender.updateSettings(this.settings)
   }
 
   _amount_of_hierarchies(pageMap: DocsSearchDocument) {

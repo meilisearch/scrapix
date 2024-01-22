@@ -116,7 +116,7 @@ export class Sender {
     const task = await this.client
       .index(this.index_uid)
       .addDocuments(this.queue)
-    await this.client.waitForTask(task.taskUid)
+    await this.client.waitForTask(task.taskUid, { timeOutMs: 15000 })
   }
 
   async __swapIndex() {

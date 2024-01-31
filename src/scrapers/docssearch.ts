@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Sender } from '../sender'
+import { Config } from '../types'
 import { Page } from 'puppeteer'
 import {
   DocsSearchDocument,
@@ -34,11 +35,14 @@ const TAG_LEVELS: Record<HTag, number> = {
 
 export default class DocsearchScaper {
   sender: Sender
+  settings: Config['meilisearch_settings']
 
-  constructor(sender: Sender) {
+  constructor(sender: Sender, config?: Config) {
     console.info('DocsearchScaper::constructor')
     this.sender = sender
-    void this.sender.updateSettings({
+
+    // Predefined settings
+    const defaultSettings = {
       distinctAttribute: 'url',
       rankingRules: [
         'words',
@@ -65,7 +69,15 @@ export default class DocsearchScaper {
         'hierarchy_lvl0',
         'content',
       ],
-    })
+    }
+
+    // Merge user-defined settings with predefined settings
+    this.settings = {
+      ...defaultSettings,
+      ...(config?.meilisearch_settings || {}),
+    }
+
+    void this.sender.updateSettings(this.settings)
   }
 
   _amount_of_hierarchies(pageMap: DocsSearchDocument) {

@@ -48,7 +48,7 @@ export class Crawler {
 
     this.scraper =
       this.config.strategy == 'docssearch'
-        ? new DocsearchScraper(this.sender)
+        ? new DocsearchScraper(this.sender, this.config)
         : this.config.strategy == 'schema'
         ? new SchemaScraper(this.sender, this.config)
         : new DefaultScraper(this.sender, this.config)

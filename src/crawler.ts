@@ -5,6 +5,7 @@ import {
   PuppeteerCrawlingContext,
   PuppeteerCrawlerOptions,
   RequestQueue,
+  PuppeteerHook,
 } from 'crawlee'
 
 import { minimatch } from 'minimatch'
@@ -50,8 +51,8 @@ export class Crawler {
       this.config.strategy == 'docssearch'
         ? new DocsearchScraper(this.sender, this.config)
         : this.config.strategy == 'schema'
-        ? new SchemaScraper(this.sender, this.config)
-        : new DefaultScraper(this.sender, this.config)
+          ? new SchemaScraper(this.sender, this.config)
+          : new DefaultScraper(this.sender, this.config)
   }
 
   async run() {
@@ -62,12 +63,27 @@ export class Crawler {
     //Create the router
     const router = createPuppeteerRouter()
 
+
     // type DefaultHandler = Parameters<typeof router.addDefaultHandler>[0];
     router.addDefaultHandler(this.defaultHandler.bind(this))
+
+    const preNavigationHooks: PuppeteerHook[] = this.config.additional_request_headers ? [
+      async (crawlingContext) => {
+        crawlingContext.addInterceptRequestHandler(async (request) => {
+          request.continue({
+            headers: {
+              ...request.headers(),
+              ...this.config.additional_request_headers,
+            }
+          });
+        })
+      },
+    ] : []
 
     const puppeteerCrawlerOptions: PuppeteerCrawlerOptions = {
       requestQueue,
       requestHandler: router,
+      preNavigationHooks: preNavigationHooks,
       launchContext: {
         launchOptions: {
           headless: this.config.headless || true,

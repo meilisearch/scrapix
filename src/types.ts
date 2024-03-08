@@ -9,6 +9,7 @@ export type Config = {
   meilisearch_api_key: string
   start_urls: string[]
   urls_to_exclude?: string[]
+  additional_request_headers?: Record<string, string>
   queue?: string[]
   primary_key?: string
   batch_size?: number

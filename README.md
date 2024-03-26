@@ -191,6 +191,19 @@ In the case [webhooks](#webhooks) are enabled, the webhook_payload option gives 
 `webhook_url`
 The URL on which the webhook calls are made.
 
+`additional_request_headers`
+An object containing headers to be added to every request the crawler makes.
+This can be useful to add authentication headers to crawl protected sites.
+
+E.g. authenticate crawler with basic auth:
+```
+{
+  "additional_request_headers": {
+    "Authorization": "Basic dXNlcjpwYXNzd29yZA=="
+  }
+}
+```
+
 ## Webhooks
 
 To be able to receive updates on the state of the crawler, you need to create a webhook. To do so, you absolutely need to have a public URL that can be reached by the crawler. This URL will be called by the crawler to send you updates.

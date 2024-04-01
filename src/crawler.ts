@@ -5,6 +5,7 @@ import {
   PuppeteerCrawlingContext,
   PuppeteerCrawlerOptions,
   RequestQueue,
+  PuppeteerHook,
 } from 'crawlee'
 
 import { minimatch } from 'minimatch'
@@ -65,9 +66,28 @@ export class Crawler {
     // type DefaultHandler = Parameters<typeof router.addDefaultHandler>[0];
     router.addDefaultHandler(this.defaultHandler.bind(this))
 
+    const preNavigationHooks: PuppeteerHook[] = this.config
+      .additional_request_headers
+      ? [
+          async (crawlingContext) => {
+            await crawlingContext.addInterceptRequestHandler(
+              async (request) => {
+                return await request.continue({
+                  headers: {
+                    ...request.headers(),
+                    ...this.config.additional_request_headers,
+                  },
+                })
+              }
+            )
+          },
+        ]
+      : []
+
     const puppeteerCrawlerOptions: PuppeteerCrawlerOptions = {
       requestQueue,
       requestHandler: router,
+      preNavigationHooks: preNavigationHooks,
       launchContext: {
         launchOptions: {
           headless: this.config.headless || true,

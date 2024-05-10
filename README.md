@@ -1,4 +1,4 @@
-c# Scrapix
+# Scrapix
 This project is an API that will allow you to scrape any website and send the data to Meilisearch.
 
 This server has only one endpoint.

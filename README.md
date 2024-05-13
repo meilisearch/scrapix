@@ -1,8 +1,8 @@
 # Scrapix
 
-This project is an API that will allow you to scrap any website and send the data to Meilisearch.
+This project is an API that will allow you to scrape any website and send the data to Meilisearch.
 
-This server have only one endpoint.
+This server has only one endpoint.
 
 ## Bin usage
 
@@ -34,8 +34,8 @@ data:
   "meilisearch_api_key": "masterKey",
   "meilisearch_index_uid": "google",
   "strategy": "default", // docssearch, schema*, custom or default
-  "headless": true, // Open browser or not
-  "batch_size": 1000, //null with send documents one by one
+  "headless": true, // Use headless browser for rendering javascript websites
+  "batch_size": 1000, // pass null to send documents 1 at a time or specify a batch size
   "primary_key": null,
   "meilisearch_settings": {
     "searchableAttributes": [
@@ -63,16 +63,16 @@ data:
 
 ### 1. Add it to the queue
 
-While the server receive a crawling request it will add it to the queue. When the data is added to the queue it will return a response to the user.
-The queue is handle by redis ([Bull](https://github.com/OptimalBits/bull)).
+While the server receives a crawling request it will add it to the queue. When the data is added to the queue, it will return a response to the user.
+The queue is handled by redis ([Bull](https://github.com/OptimalBits/bull)).
 The queue will dispatch the job to the worker.
 
 ### 2. Scrape the website
 
 #### 2.1. Default strategy
 
-The worker will crawl the website by keeping only the page that have the same domain as urls given in parameters. It will not try to scrap the external links or files. It will also not try to scrape when pages are paginated pages (like `/page/1`).
-For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contains:
+The worker will crawl only pages with the same domain names as those specified in the `start_urls` config option. It will not try to scrape the external links or files. It will also not try to scrape paginated pages (like `/page/1`).
+For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contain:
 
 - h1: The title of the block
 - h2: The sub title of the block
@@ -88,8 +88,8 @@ For each scrappable page it will scrape the data by trying to create blocks of t
 
 #### 2.2. Docsearch strategy
 
-The worker will crawl the website by keeping only the page that have the same domain as urls given in parameters. It will not try to scrap the external links or files. It will also not try to scrape when pages are paginated pages (like `/page/1`).
-For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contains:
+The worker will crawl only pages with the same domain names as those specified in the `start_urls` config option. It will not try to scrape the external links or files. It will also not try to scrape when pages are paginated pages (like `/page/1`).
+For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contain:
 
 - uid: a generated and incremental uid for the block
 - hierarchy_lvl0: the url pathname split by / (array of string). The last element has been removed because it's the page name.
@@ -144,23 +144,20 @@ The scraper will recursively follow any links (<a> tags) from those pages. It wi
 List of the URL's to ignore
 
 `urls_to_not_index`
-List of the URLS to index
-
-`urls_to_not_index`
-List of the URLS that should not be indexes
+List of the URLS that should not be indexed
 
 `meilisearch_url` _mandatory_
 The URL to your Meilisearch instance
 
 `meilisearch_api_key`
-The API key to your Meilisearch instance. It has to have at least write and read access on the specified index.
+The API key to your Meilisearch instance. This key must have read and write permissions for the specified index.
 
 `meilisearch_index_uid` _mandatory_
 Name of the index on which the content is indexed.
 
 `stategy`
 default: `default`
-Scraping strategy: - `default` Scraps the content of webpages, it suits most use cases. It indexes the content in this format (show example) - `docssearch` Scraps the content of webpages, it suits most use cases. The difference with the default strategy is that it indexes the content in a format compatible with docs-search bar - `schema` Scraps the [`schema`](https://schema.org/) information of your web app.
+Scraping strategy: - `default` Scrapes the content of webpages, it is suitable for most use cases. It indexes the content in this format (show example) - `docssearch` Scrapes the content of webpages, it suits most use cases. The difference with the default strategy is that it indexes the content in a format compatible with docs-search bar - `schema` Scraps the [`schema`](https://schema.org/) information of your web app.
 
 `headless`
 default: `true`
@@ -173,7 +170,7 @@ The key name in your documents containing their unique identifier.
 Your custom Meilisearch settings
 
 `schema_settings`
-If you strategy is `schema`:
+If your strategy is `schema`:
 `only_type`: Which types of schema should be parsed
 `convert_dates`: If dates should be converted to timestamp. This is usefull to be able to order by date.
 
@@ -186,7 +183,7 @@ Meilisearch JS (vx.x.x); Meilisearch Crawler (vx.x.x); My Thing (vx.x.x)
 ```
 
 `webhook_payload`
-In the case [webhooks](#webhooks) are enabled, the webhook_payload option gives the possibility to provide information that will be added in the webhook payload.
+In the case that [webhooks](#webhooks) are enabled, the webhook_payload option gives the possibility to provide information that will be added in the webhook payload.
 
 `webhook_url`
 The URL on which the webhook calls are made.
@@ -206,7 +203,7 @@ E.g. authenticate crawler with basic auth:
 
 ## Webhooks
 
-To be able to receive updates on the state of the crawler, you need to create a webhook. To do so, you absolutely need to have a public URL that can be reached by the crawler. This URL will be called by the crawler to send you updates.
+To be able to receive updates on the state of the crawler, you need to create a webhook. To do so, you must have a public URL that is reachable by the crawler. This URL will be called by the crawler to send you updates.
 
 To enable webhooks, you need add the following env vars.
 
@@ -217,7 +214,7 @@ WEBHOOK_INTERVAL=1000
 ```
 
 - The `WEBHOOK_URL` is the URL that will be called by the crawler. The calls will be made with the `POST` method.
-- The `WEBHOOK_TOKEN` is a token string that will be used to sign the request. It will be used if present in the `Authorization` header of the request in the format `Authorization: Bearer ${token}`.
+- The `WEBHOOK_TOKEN` is a token string that will be used to authenticate the request. It will be used if present in the `Authorization` header of the request in the format `Authorization: Bearer ${token}`.
 - The `WEBHOOK_INTERVAL` is a way to change the frequency you want to receive updated from the scraper. The value is in milliseconds. The default value is 5000ms.
 
 Here is the Webhook payload:

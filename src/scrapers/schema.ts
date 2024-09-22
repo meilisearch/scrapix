@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { v4 as uuidv4 } from 'uuid'
-import { Page } from 'puppeteer'
 import { Sender } from '../sender'
 import { Config, SchemaDocument } from '../types'
+import { CheerioAPI } from 'cheerio'
 
-export default class SchemaScaper {
+export default class SchemaScraper {
   sender: Sender
   config: Config
   settings_sent: boolean
 
   constructor(sender: Sender, config: Config) {
-    console.info('SchemaScaper::constructor')
+    console.info('SchemaScraper::constructor')
     this.sender = sender
     this.config = config
     this.settings_sent = false
@@ -20,22 +21,22 @@ export default class SchemaScaper {
     }
   }
 
-  async get(url: string, page: Page) {
+  async get(url: string, $: CheerioAPI) {
     console.log('__extractContent', url)
     // Get the schema.org data
-    const data = (await page.evaluate((): Record<string, any> => {
-      const schema = document.querySelector<HTMLElement>(
-        "script[type='application/ld+json']"
-      )
-      if (schema) {
-        return JSON.parse(schema.innerText) as Record<string, any>
+    const schemaScript = $('script[type="application/ld+json"]')
+    let data: SchemaDocument = { uid: '' }
+
+    if (schemaScript.length > 0) {
+      try {
+        data = JSON.parse(schemaScript.html() || '{}') as SchemaDocument
+      } catch (error) {
+        console.error('Error parsing JSON-LD:', error)
+        return
       }
-      return {} // TODO: raise error
-    })) as SchemaDocument
+    }
 
-    // TODO: use zod here instead of forcing `as SchemaDocument`?
-
-    if (data.length === 0) return
+    if (Object.keys(data).length === 0) return
 
     if (this.config.schema_settings?.only_type) {
       if (data['@type'] !== this.config.schema_settings?.only_type) return

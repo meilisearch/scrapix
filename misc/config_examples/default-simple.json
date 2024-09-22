@@ -1,5 +1,5 @@
 {
-  "start_urls": ["https://platform.openai.com/docs"],
+  "start_urls": ["https://www.meilisearch.com/docs"],
   "meilisearch_url": "localhost:7700",
   "meilisearch_api_key": "masterKey",
   "meilisearch_index_uid": "openai"

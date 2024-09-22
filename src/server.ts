@@ -5,6 +5,7 @@ import express from 'express'
 import { TaskQueue } from './taskQueue'
 import { Sender } from './sender'
 import { Crawler } from './crawler'
+import { Config } from './types'
 
 const port = process.env.PORT || 8080
 
@@ -30,13 +31,11 @@ class Server {
   }
 
   __check_env() {
-    const { REDIS_URL, WEBHOOK_URL, WEBHOOK_TOKEN, WEBHOOK_INTERVAL } =
-      process.env
-
+    const { REDIS_URL } = process.env
     console.log('REDIS_URL: ', REDIS_URL)
-    console.log('WEBHOOK_URL: ', WEBHOOK_URL)
-    console.log('WEBHOOK_TOKEN: ', WEBHOOK_TOKEN)
-    console.log('WEBHOOK_INTERVAL: ', WEBHOOK_INTERVAL)
+    if (!REDIS_URL) {
+      console.warn('REDIS_URL is not set. Some features may not work properly.')
+    }
   }
 
   __asyncCrawl(req: express.Request, res: express.Response) {
@@ -46,10 +45,16 @@ class Server {
   }
 
   async __syncCrawl(req: express.Request, res: express.Response) {
-    const sender = new Sender(req.body)
+    const config: Config = req.body
+    const sender = new Sender(config)
     await sender.init()
 
-    const crawler = new Crawler(sender, req.body)
+    const crawler = new Crawler(
+      sender,
+      config,
+      config.launch_options,
+      config.launcher
+    )
 
     await crawler.run()
     await sender.finish()
@@ -61,10 +66,16 @@ class Server {
     console.log('Crawling started')
     res.send('Crawling started')
 
-    const sender = new Sender(req.body)
+    const config: Config = req.body
+    const sender = new Sender(config)
     await sender.init()
 
-    const crawler = new Crawler(sender, req.body)
+    const crawler = new Crawler(
+      sender,
+      config,
+      config.launch_options,
+      config.launcher
+    )
 
     await crawler.run()
     await sender.finish()

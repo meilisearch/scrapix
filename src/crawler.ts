@@ -13,9 +13,10 @@ import DefaultScraper from './scrapers/default'
 import DocsearchScraper from './scrapers/docssearch'
 import SchemaScraper from './scrapers/schema'
 import { Sender } from './sender'
-import { Config, Scraper } from './types'
+import { Config, Scraper, CrawlerType } from './types'
 import { Webhook } from './webhook.js'
 import { PuppeteerNode } from 'puppeteer-core'
+import { CheerioAPI, load } from 'cheerio'
 
 type DefaultHandler = Parameters<
   Parameters<Router<PuppeteerCrawlingContext>['addDefaultHandler']>[0]
@@ -34,6 +35,7 @@ export class Crawler {
   nb_page_indexed = 0
   launchOptions: Record<string, any> = {}
   launcher?: PuppeteerNode
+  crawlerType: CrawlerType
 
   constructor(
     sender: Sender,
@@ -46,6 +48,7 @@ export class Crawler {
     this.urls = config.start_urls
     this.launchOptions = launchOptions
     this.launcher = launcher
+    this.crawlerType = 'puppeteer'
 
     this.scraper =
       this.config.strategy == 'docssearch'
@@ -95,13 +98,10 @@ export class Crawler {
           ignoreDefaultArgs: ['--disable-extensions'],
           ...this.launchOptions,
         },
+        launcher: this.launcher,
       },
     }
 
-    if (puppeteerCrawlerOptions.launchContext && this.launcher) {
-      puppeteerCrawlerOptions.launchContext.launcher = this.launcher
-    }
-    // create the crawler
     const crawler = new PuppeteerCrawler(puppeteerCrawlerOptions)
 
     let interval = 5000
@@ -138,6 +138,9 @@ export class Crawler {
     this.nb_page_crawled++
     const title = await page.title()
     console.log(`${title}`, { url: request.loadedUrl })
+
+    const content = await page.content()
+
     const crawled_globs = this.__generate_globs(this.urls)
     const excluded_crawled_globs = this.__generate_globs(
       this.config.urls_to_exclude || []
@@ -156,7 +159,8 @@ export class Crawler {
         !this.__match_globs(request.loadedUrl, excluded_indexed_globs)
       ) {
         this.nb_page_indexed++
-        await this.scraper.get(request.loadedUrl, page)
+        const $: CheerioAPI = load(content)
+        await this.scraper.get(request.loadedUrl, $)
       }
     }
 
@@ -180,20 +184,20 @@ export class Crawler {
     })
   }
 
-  __generate_globs(urls: string[]) {
-    return urls.map((url) => {
+  __generate_globs(urls: string[]): string[] {
+    return urls.flatMap((url) => {
       if (url.endsWith('/')) {
-        return url + '**'
+        return [url, url + '**']
       }
-      return url + '/**'
+      return [url, url + '/**']
     })
   }
 
-  __match_globs(url: string, globs: string[]) {
+  __match_globs(url: string, globs: string[]): boolean {
     return globs.some((glob) => minimatch(url, glob))
   }
 
-  __is_file_url(url: string) {
+  __is_file_url(url: string): boolean {
     const fileExtensions = [
       '.zip',
       '.pdf',

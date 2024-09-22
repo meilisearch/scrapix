@@ -1,7 +1,11 @@
 import { Settings } from 'meilisearch'
-import DocsearchScraper from './scrapers/docssearch'
+import { PuppeteerNode } from 'puppeteer-core'
 import DefaultScraper from './scrapers/default'
+import DocsearchScraper from './scrapers/docssearch'
 import SchemaScraper from './scrapers/schema'
+import { CheerioAPI } from 'cheerio'
+
+export type CrawlerType = 'cheerio' | 'puppeteer' | 'playwright'
 
 export type Config = {
   meilisearch_index_uid: string
@@ -22,6 +26,8 @@ export type Config = {
   user_agents?: string[]
   webhook_payload?: Record<string, any>
   webhook_url?: string
+  launch_options?: Record<string, any>
+  launcher?: PuppeteerNode
 }
 
 export type SchemaSettings = {
@@ -29,7 +35,11 @@ export type SchemaSettings = {
   only_type: string
 }
 
-export type Scraper = DocsearchScraper | DefaultScraper | SchemaScraper
+export type ScraperType = 'default' | 'docssearch' | 'schema'
+
+export type Scraper = {
+  get: (url: string, $: CheerioAPI) => Promise<void>
+}
 
 export type DocumentType = DocsSearchDocument | DefaultDocument | SchemaDocument
 

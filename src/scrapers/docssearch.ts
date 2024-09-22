@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { v4 as uuidv4 } from 'uuid'
 import { Sender } from '../sender'
 import { Config } from '../types'
-import { Page } from 'puppeteer'
+import { CheerioAPI } from 'cheerio'
 import {
   DocsSearchDocument,
   HTag,
@@ -33,12 +34,12 @@ const TAG_LEVELS: Record<HTag, number> = {
   H5: 60,
 }
 
-export default class DocsearchScaper {
+export default class DocsearchScraper {
   sender: Sender
   settings: Config['meilisearch_settings']
 
   constructor(sender: Sender, config?: Config) {
-    console.info('DocsearchScaper::constructor')
+    console.info('DocsearchScraper::constructor')
     this.sender = sender
 
     // Predefined settings
@@ -152,23 +153,19 @@ export default class DocsearchScaper {
     return document
   }
 
-  async get(url: string, page: Page) {
-    //for each page create dataset of consecutive h1, h2, h3, p. at each header after a paragraph, create a new dataset
-    // needs to be able to provide the `main` or `article` tag
-    // TODO: create a configuration to provide the main tag in which the content is
-    let elems = await page.$$(
+  async get(url: string, $: CheerioAPI) {
+    let elems = $(
       'main h1, main h2, main h3, main h4, main h5, main p, main td, main li, main span'
     )
     if (elems.length === 0) {
-      elems = await page.$$('h1, h2, h3, h4, h5, p, td, li, span')
+      elems = $('h1, h2, h3, h4, h5, p, td, li, span')
     }
     let document = {} as DocsSearchDocument
     document = this._empty_radio_lvl_hierarchies(document)
 
-    for (let i = 0; i < elems.length; i++) {
-      const elem = elems[i]
-      const tag = await elem.evaluate((el) => el.tagName)
-      let text = (await elem.evaluate((el) => el.textContent)) || ''
+    for (const elem of elems.toArray()) {
+      const tag = elem.tagName.toUpperCase()
+      let text = $(elem).text()
       text = this._clean_text(text)
 
       const urls_tags = new URL(url).pathname.split('/')
@@ -176,7 +173,6 @@ export default class DocsearchScaper {
       document['hierarchy_lvl0'] = only_urls_tags.join(' > ') || ''
       document['url'] = url
 
-      // Every time a H tag is found, the previous content is indexed and then emptied
       if (
         this._is_h_tag(tag) &&
         this._amount_of_hierarchies(document) > 1 &&
@@ -187,31 +183,31 @@ export default class DocsearchScaper {
         document['content'] = []
       }
 
-      const anchor = await elem.evaluate((el) => el.id)
+      const anchor = $(elem).attr('id') || ''
       if (tag === 'H1') {
         document = Object.assign(
           {},
-          this._update_document(document, tag, text, anchor)
+          this._update_document(document, tag as HTag, text, anchor)
         )
       } else if (tag === 'H2') {
         document = Object.assign(
           {},
-          this._update_document(document, tag, text, anchor)
+          this._update_document(document, tag as HTag, text, anchor)
         )
       } else if (tag === 'H3') {
         document = Object.assign(
           {},
-          this._update_document(document, tag, text, anchor)
+          this._update_document(document, tag as HTag, text, anchor)
         )
       } else if (tag === 'H4') {
         document = Object.assign(
           {},
-          this._update_document(document, tag, text, anchor)
+          this._update_document(document, tag as HTag, text, anchor)
         )
       } else if (tag === 'H5') {
         document = Object.assign(
           {},
-          this._update_document(document, tag, text, anchor)
+          this._update_document(document, tag as HTag, text, anchor)
         )
       } else if (
         (tag === 'P' || tag === 'TD' || tag === 'LI' || tag === 'SPAN') &&
@@ -229,6 +225,7 @@ export default class DocsearchScaper {
         }
       }
     }
+
     // Send remaining data
     if (document.content && document.content?.length > 0) {
       await this._send_data({ ...document })

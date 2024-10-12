@@ -55,7 +55,7 @@ class Server {
     const sender = new Sender(config);
     await sender.init();
 
-    const crawler = Crawler.create(
+    const crawler = await Crawler.create(
       config.crawler_type || "puppeteer",
       sender,
       config,
@@ -63,7 +63,7 @@ class Server {
       config.launcher
     );
 
-    await crawler.run();
+    await Crawler.run(crawler);
     await sender.finish();
 
     log.info("Synchronous crawl completed", { config });
@@ -78,7 +78,7 @@ class Server {
     const sender = new Sender(config);
     await sender.init();
 
-    const crawler = Crawler.create(
+    const crawler = await Crawler.create(
       config.crawler_type || "puppeteer",
       sender,
       config,
@@ -86,7 +86,7 @@ class Server {
       config.launcher
     );
 
-    await crawler.run();
+    await Crawler.run(crawler);
     await sender.finish();
     log.info("Crawl process completed", { config });
   }

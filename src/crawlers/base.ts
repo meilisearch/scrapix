@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { RequestQueue } from "crawlee";
+import { RequestQueue, Router } from "crawlee";
 import { minimatch } from "minimatch";
 import DefaultScraper from "../scrapers/default";
 import DocsearchScraper from "../scrapers/docssearch";
 import SchemaScraper from "../scrapers/schema";
 import { Sender } from "../sender";
 import { Config, Scraper, CrawlerType } from "../types";
-import { Webhook } from "../webhook.js";
+import { Log } from "crawlee";
+
+const log = new Log({ prefix: "BaseCrawler" });
 
 export abstract class BaseCrawler {
   sender: Sender;
@@ -31,24 +33,59 @@ export abstract class BaseCrawler {
           : new DefaultScraper(this.sender, this.config);
   }
 
-  abstract run(): Promise<void>;
+  abstract createRouter(): Router<any>;
+  abstract getCrawlerOptions(
+    requestQueue: RequestQueue,
+    router: Router<any>
+  ): any;
+  abstract createCrawlerInstance(options: any): any;
 
-  protected async setupRequestQueue(): Promise<RequestQueue> {
-    const requestQueue = await RequestQueue.open(JSON.stringify(this.urls));
-    await requestQueue.addRequests(this.urls.map((url) => ({ url })));
-    return requestQueue;
+  // Add this new method
+  async defaultHandler(context: any): Promise<void> {
+    await this.handlePage(context);
   }
 
-  protected handleWebhook(interval: number): NodeJS.Timeout {
-    const intervalId = setInterval(async () => {
-      await Webhook.get(this.config).active(this.config, {
-        nb_page_crawled: this.nb_page_crawled,
-        nb_page_indexed: this.nb_page_indexed,
-        nb_documents_sent: this.sender.nb_documents_sent,
-      });
-    }, interval);
+  // New method to handle the common logic
+  protected async handlePage(context: any): Promise<void> {
+    const { request, enqueueLinks } = context;
+    this.nb_page_crawled++;
+    log.debug("Processing page", { url: request.loadedUrl });
 
-    return intervalId;
+    const crawled_globs = this.__generate_globs(this.urls);
+    const excluded_crawled_globs = this.__generate_globs(
+      this.config.urls_to_exclude || []
+    );
+    const indexed_globs = this.__generate_globs(
+      this.config.urls_to_index || this.urls
+    );
+    const excluded_indexed_globs = this.__generate_globs(
+      this.config.urls_to_not_index || []
+    );
+
+    if (request.loadedUrl && !this.__is_paginated_url(request.loadedUrl)) {
+      if (
+        this.__match_globs(request.loadedUrl, indexed_globs) &&
+        !this.__match_globs(request.loadedUrl, excluded_indexed_globs)
+      ) {
+        this.nb_page_indexed++;
+        await this.scraper.get(request.loadedUrl, context.$ || context.page);
+      }
+    }
+
+    await enqueueLinks({
+      globs: crawled_globs,
+      exclude: excluded_crawled_globs,
+      transformRequestFunction: (req: any) => {
+        if (this.__is_file_url(req.url)) {
+          return false;
+        }
+        const urlObject = new URL(req.url);
+        urlObject.search = "";
+        urlObject.hash = "";
+        req.url = urlObject.toString();
+        return req;
+      },
+    });
   }
 
   protected __generate_globs(urls: string[]): string[] {

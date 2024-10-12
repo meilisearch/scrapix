@@ -5,7 +5,7 @@ import fs from 'fs'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { Sender } from '../sender'
-import { Crawler } from '../crawler'
+import { Crawler } from '../crawlers'
 import { Config } from '../types'
 
 function getConfig({
@@ -64,7 +64,13 @@ function getConfig({
   const sender = new Sender(config)
   await sender.init()
 
-  const crawler = new Crawler(sender, config, launchOptions)
+  const crawler = Crawler.create(
+    config.crawler_type || 'puppeteer',
+    sender,
+    config,
+    config.launch_options || launchOptions,
+    config.launcher
+  )
 
   await crawler.run()
   await sender.finish()

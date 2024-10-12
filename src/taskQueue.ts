@@ -1,81 +1,86 @@
-import Queue, { Job, DoneCallback } from 'bull'
-import { initMeilisearchClient } from './meilisearch_client'
-import { fork } from 'child_process'
-import { Config } from './types'
+import Queue, { Job, DoneCallback } from "bull";
+import { initMeilisearchClient } from "./utils/meilisearch_client";
+import { fork } from "child_process";
+import { Config } from "./types";
+import { Log } from "@crawlee/core";
+
+const log = new Log({ prefix: "CrawlTaskQueue" });
 
 export class TaskQueue {
-  queue: Queue.Queue
+  queue: Queue.Queue;
 
   constructor() {
-    console.info('TaskQueue::constructor')
+    log.info("Initializing CrawlTaskQueue", {
+      redisUrl: process.env.REDIS_URL,
+    });
     if (process.env.REDIS_URL) {
-      this.queue = new Queue('crawling', process.env.REDIS_URL)
+      this.queue = new Queue("crawling", process.env.REDIS_URL);
     } else {
-      this.queue = new Queue('crawling')
+      this.queue = new Queue("crawling");
     }
-    void this.queue.process(this.__process.bind(this))
-    this.queue.on('added', this.__jobAdded.bind(this))
-    this.queue.on('completed', this.__jobCompleted.bind(this))
-    this.queue.on('failed', this.__jobFailed.bind(this))
-    this.queue.on('active', this.__jobActive.bind(this))
-    this.queue.on('wait', this.__jobWaiting.bind(this))
-    this.queue.on('delayed', this.__jobDelayed.bind(this))
+    void this.queue.process(this.__process.bind(this));
+    this.queue.on("added", this.__jobAdded.bind(this));
+    this.queue.on("completed", this.__jobCompleted.bind(this));
+    this.queue.on("failed", this.__jobFailed.bind(this));
+    this.queue.on("active", this.__jobActive.bind(this));
+    this.queue.on("wait", this.__jobWaiting.bind(this));
+    this.queue.on("delayed", this.__jobDelayed.bind(this));
   }
 
   add(data: Config) {
-    void this.queue.add(data)
+    log.debug("Adding task to queue", { config: data });
+    void this.queue.add(data);
   }
 
   __process(job: Job, done: DoneCallback) {
-    console.log('Job process', job.id)
-    const childProcess = fork('./dist/src/crawler_process.js')
-    childProcess.send(job.data)
-    childProcess.on('message', (message) => {
-      console.log(message)
-      done()
-    })
+    log.info("Processing job", { jobId: job.id });
+    const childProcess = fork("./dist/src/crawler_process.js");
+    childProcess.send(job.data);
+    childProcess.on("message", (message) => {
+      console.log(message);
+      done();
+    });
   }
 
   __jobAdded(job: Job) {
-    console.log('Job added', job.id)
+    log.debug("Job added to queue", { jobId: job.id });
   }
 
   __jobCompleted(job: Job) {
-    console.log('Job completed', job.id)
+    log.info("Job completed", { jobId: job.id });
   }
 
   async __jobFailed(job: Job<Config>) {
-    console.log('Job failed', job.id)
+    log.error("Job failed", { jobId: job.id });
     //Create a Meilisearch client
     const client = initMeilisearchClient({
       host: job.data.meilisearch_url,
       apiKey: job.data.meilisearch_api_key,
       clientAgents: job.data.user_agents,
-    })
+    });
 
     //check if the tmp index exists
-    const tmp_index_uid = job.data.meilisearch_index_uid + '_crawler_tmp'
+    const tmp_index_uid = job.data.meilisearch_index_uid + "_crawler_tmp";
     try {
-      const index = await client.getIndex(tmp_index_uid)
+      const index = await client.getIndex(tmp_index_uid);
       if (index) {
-        const task = await client.deleteIndex(tmp_index_uid)
-        await client.waitForTask(task.taskUid)
+        const task = await client.deleteIndex(tmp_index_uid);
+        await client.waitForTask(task.taskUid);
       }
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
   }
 
   __jobActive(job: Job) {
-    console.log({ job })
-    console.log('Job active', job.id)
+    log.debug("Job became active", { jobId: job.id });
   }
 
   __jobWaiting(job: Job) {
-    console.log('Job waiting', job.id)
+    log.debug("Job is waiting", { jobId: job.id });
   }
 
   __jobDelayed(job: Job) {
-    console.log('Job delayed', job.id)
+    log.debug("Job is delayed", { jobId: job.id });
   }
 }

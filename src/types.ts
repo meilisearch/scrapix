@@ -1,8 +1,5 @@
 import { Settings } from 'meilisearch'
 import { PuppeteerNode } from 'puppeteer-core'
-import DefaultScraper from './scrapers/default'
-import DocsearchScraper from './scrapers/docssearch'
-import SchemaScraper from './scrapers/schema'
 import { CheerioAPI } from 'cheerio'
 
 export type CrawlerType = 'cheerio' | 'puppeteer' | 'playwright'
@@ -26,6 +23,7 @@ export type Config = {
   user_agents?: string[]
   webhook_payload?: Record<string, any>
   webhook_url?: string
+  crawler_type: CrawlerType
   launch_options?: Record<string, any>
   launcher?: PuppeteerNode
 }

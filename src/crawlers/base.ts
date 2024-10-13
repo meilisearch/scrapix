@@ -7,6 +7,7 @@ import SchemaScraper from "../scrapers/schema";
 import { Sender } from "../sender";
 import { Config, Scraper, CrawlerType } from "../types";
 import { Log } from "crawlee";
+import * as cheerio from "cheerio";
 
 const log = new Log({ prefix: "BaseCrawler" });
 
@@ -68,7 +69,20 @@ export abstract class BaseCrawler {
         !this.__match_globs(request.loadedUrl, excluded_indexed_globs)
       ) {
         this.nb_page_indexed++;
-        await this.scraper.get(request.loadedUrl, context.$ || context.page);
+        // Convert Puppeteer page to Cheerio instance
+        let $: cheerio.CheerioAPI;
+        if (this.crawlerType === "puppeteer") {
+          const pageContent = await context.page.content(); // Get HTML content from Puppeteer page
+          $ = cheerio.load(pageContent); // Load HTML into Cheerio
+        } else {
+          $ = context.$; // Use Cheerio context if not Puppeteer
+        }
+
+        if ($) {
+          await this.scraper.get(request.loadedUrl, $);
+        } else {
+          log.warning("Cheerio context is undefined, skipping scraper.get");
+        }
       }
     }
 

@@ -91,7 +91,7 @@ export class Webhook {
       const response: AxiosResponse = await axios.post(this.webhook_url, data, {
         headers: headers,
       });
-      log.info("Webhook notification sent successfully", {
+      log.debug("Webhook notification sent successfully", {
         status: response.status,
         webhookStatus: data.status,
       });

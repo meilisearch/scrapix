@@ -52,7 +52,7 @@ export class Sender {
       });
       log.info("Sender initialization completed", { indexUid: this.index_uid });
     } catch (e) {
-      log.error("Error during Sender initialization", { error: e });
+      log.warning("Error during Sender initialization", { error: e });
     }
   }
 
@@ -60,7 +60,7 @@ export class Sender {
   async add(data: DocumentType) {
     this.nb_documents_sent++;
     if (!data.uid) {
-      console.log("Warning: Document without uid:", data);
+      log.warning("Document without uid", { data });
     }
 
     if (this.config.primary_key && this.config.primary_key !== "uid") {
@@ -88,7 +88,7 @@ export class Sender {
   }
 
   async finish() {
-    log.info("Starting Sender finish process");
+    log.debug("Starting Sender finish process");
     await this.__batchSendSync();
     const index = await this.client.getIndex(this.index_uid);
     const stats = await index.getStats();
@@ -109,7 +109,6 @@ export class Sender {
     log.info("Sender finish process completed", {
       documentsSent: this.nb_documents_sent,
     });
-    console.log("Sender::Finish");
   }
 
   __batchSend() {
@@ -118,8 +117,7 @@ export class Sender {
       .index(this.index_uid)
       .addDocuments(this.queue)
       .catch((e) => {
-        console.log(e);
-        console.log("Error while sending data to MeiliSearch");
+        log.error("Error while sending data to MeiliSearch", { error: e });
       });
   }
 
@@ -134,8 +132,7 @@ export class Sender {
   }
 
   async __swapIndex() {
-    log.info("Swapping Meilisearch indexes");
-    console.log("Sender::__swapIndex");
+    log.debug("Swapping Meilisearch indexes");
     await this.client.swapIndexes([
       { indexes: [this.initial_index_uid, this.index_uid] },
     ]);

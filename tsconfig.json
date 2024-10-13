@@ -4,7 +4,7 @@
     "module": "CommonJS",
     "target": "ES2022",
     "lib": ["ES2019", "DOM"],
-    "outDir": "./dist/src",
+    "outDir": "./dist/",
     "allowJs": true,
     "strict": true,
     "noImplicitAny": true,
@@ -17,6 +17,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules"]
 }

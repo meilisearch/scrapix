@@ -33,11 +33,11 @@ export class TaskQueue {
   }
 
   __process(job: Job, done: DoneCallback) {
-    log.info("Processing job", { jobId: job.id });
+    log.debug("Processing job", { jobId: job.id });
     const childProcess = fork("./dist/src/crawler_process.js");
     childProcess.send(job.data);
     childProcess.on("message", (message) => {
-      console.log(message);
+      log.info("Crawler process message", { message });
       done();
     });
   }
@@ -47,7 +47,7 @@ export class TaskQueue {
   }
 
   __jobCompleted(job: Job) {
-    log.info("Job completed", { jobId: job.id });
+    log.debug("Job completed", { jobId: job.id });
   }
 
   async __jobFailed(job: Job<Config>) {
@@ -68,7 +68,7 @@ export class TaskQueue {
         await client.waitForTask(task.taskUid);
       }
     } catch (e) {
-      console.error(e);
+      log.error("Error while deleting tmp index", { error: e });
     }
   }
 

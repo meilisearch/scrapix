@@ -1,0 +1,11 @@
+{
+  "start_urls": ["https://www.lacoste.com/fr/lacoste"],
+  "meilisearch_url": "localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "lacoste",
+  "strategy": "schema",
+  "schema_settings": {
+    "only_type": "Product"
+  },
+  "crawler_type": "cheerio"
+}

@@ -33,7 +33,7 @@ data:
   "meilisearch_url": "http://localhost:7700",
   "meilisearch_api_key": "masterKey",
   "meilisearch_index_uid": "google",
-  "strategy": "default", // docssearch, schema*, custom or default
+  "strategy": "default", // docssearch, schema*, custom, markdown or default
   "headless": true, // Use headless browser for rendering javascript websites
   "batch_size": 1000, // pass null to send documents 1 at a time or specify a batch size
   "primary_key": null,
@@ -51,6 +51,12 @@ data:
     ],
     "filterableAttributes": ["urls_tags"],
     "distinctAttribute": "url"
+  },
+  "selectors": { // Only for custom
+    "main_content": "main",
+    "headings": "h1, h2, h3",
+    "paragraphs": "p",
+    "custom_field": ".custom-class",
   },
   "schema_settings": {
     "only_type": "Product", // Product, Article, etc...

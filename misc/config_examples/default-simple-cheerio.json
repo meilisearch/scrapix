@@ -2,5 +2,6 @@
   "start_urls": ["https://www.meilisearch.com/docs"],
   "meilisearch_url": "localhost:7700",
   "meilisearch_api_key": "masterKey",
-  "meilisearch_index_uid": "default-simple"
+  "meilisearch_index_uid": "default-siple-cheerio",
+  "crawler_type": "cheerio"
 }

@@ -1,0 +1,11 @@
+{
+  "start_urls": [
+    "https://meilisearch.com/docs",
+    "https://www.meilisearch.com/docs"
+  ],
+  "meilisearch_url": "localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "markdown-cheerio",
+  "crawler_type": "cheerio",
+  "strategy": "markdown"
+}

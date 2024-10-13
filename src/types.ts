@@ -15,7 +15,7 @@ export type Config = {
   primary_key?: string;
   batch_size?: number;
   meilisearch_settings?: Settings;
-  strategy?: "docssearch" | "default" | "schema" | "markdown";
+  strategy?: "docssearch" | "default" | "schema" | "markdown" | "custom";
   headless?: boolean;
   urls_to_index?: string[]; // Overwrites start_urls if present
   urls_to_not_index?: string[];
@@ -26,6 +26,7 @@ export type Config = {
   crawler_type: CrawlerType;
   launch_options?: Record<string, any>;
   launcher?: PuppeteerNode;
+  selectors?: Record<string, string>;
 };
 
 export type SchemaSettings = {
@@ -101,7 +102,7 @@ export type Meta = {
   [name: string]: string;
 };
 
-export interface MarkdownDocument {
+export type MarkdownDocument = {
   uid: string;
   url: string;
   title: string;
@@ -109,4 +110,9 @@ export interface MarkdownDocument {
   content: string;
   urls_tags: string[];
   meta?: Meta;
-}
+};
+
+export type CustomDocument = {
+  uid: string;
+  [key: string]: any;
+};

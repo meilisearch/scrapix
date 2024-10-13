@@ -52,6 +52,12 @@ data:
     "filterableAttributes": ["urls_tags"],
     "distinctAttribute": "url"
   },
+  "selectors": { // Only for custom
+    "main_content": "main",
+    "headings": "h1, h2, h3",
+    "paragraphs": "p",
+    "custom_field": ".custom-class",
+  },
   "schema_settings": {
     "only_type": "Product", // Product, Article, etc...
     "convert_dates": true // default false

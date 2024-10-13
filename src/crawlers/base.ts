@@ -5,6 +5,7 @@ import DefaultScraper from "../scrapers/default";
 import DocsearchScraper from "../scrapers/docssearch";
 import SchemaScraper from "../scrapers/schema";
 import MarkdownScraper from "../scrapers/markdown";
+import CustomScraper from "../scrapers/custom";
 import { Sender } from "../sender";
 import { Config, Scraper, CrawlerType } from "../types";
 import { Log } from "crawlee";
@@ -34,7 +35,9 @@ export abstract class BaseCrawler {
           ? new SchemaScraper(this.sender, this.config)
           : this.config.strategy === "markdown"
             ? new MarkdownScraper(this.sender, this.config)
-            : new DefaultScraper(this.sender, this.config);
+            : this.config.strategy === "custom"
+              ? new CustomScraper(this.sender, this.config)
+              : new DefaultScraper(this.sender, this.config);
   }
 
   abstract createRouter(): Router<any>;

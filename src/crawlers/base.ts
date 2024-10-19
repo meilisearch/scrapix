@@ -26,7 +26,7 @@ export abstract class BaseCrawler {
     this.sender = sender;
     this.config = config;
     this.urls = config.start_urls;
-    this.crawlerType = config.crawler_type || "puppeteer";
+    this.crawlerType = config.crawler_type || "cheerio";
 
     this.scraper =
       this.config.strategy === "docssearch"
@@ -80,6 +80,9 @@ export abstract class BaseCrawler {
         if (this.crawlerType === "puppeteer") {
           const pageContent = await context.page.content(); // Get HTML content from Puppeteer page
           $ = cheerio.load(pageContent); // Load HTML into Cheerio
+          // } else if (this.crawlerType === "playwright") {
+          //   const pageContent = await context.page.content(); // Get HTML content from Playwright page
+          //   $ = cheerio.load(pageContent); // Load HTML into Cheerio
         } else {
           $ = context.$; // Use Cheerio context if not Puppeteer
         }

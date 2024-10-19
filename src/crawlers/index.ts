@@ -1,5 +1,6 @@
 import { Log, RequestQueue } from "crawlee";
 import { PuppeteerCrawler } from "./puppeteer";
+// import { PlaywrightCrawler } from "./playwright";
 import { CheerioCrawler } from "./cheerio";
 import { Sender } from "../sender";
 import { Config, CrawlerType } from "../types";
@@ -23,6 +24,8 @@ export class Crawler {
         return new PuppeteerCrawler(sender, config, launchOptions, launcher);
       case "cheerio":
         return new CheerioCrawler(sender, config);
+      // case "playwright":
+      //   return new PlaywrightCrawler(sender, config, launchOptions);
       default:
         throw new Error(`Unsupported crawler type: ${crawlerType}`);
     }

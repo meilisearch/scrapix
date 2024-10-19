@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
 import { MeiliSearch } from "meilisearch";
+import minimist from "minimist";
+import { minimatch } from "minimatch";
 
 interface TestResult {
   name: string;
@@ -17,13 +19,19 @@ interface TestConfig {
   content: Record<string, any>;
 }
 
-function getTestConfigs(): TestConfig[] {
+function getTestConfigs(pattern?: string): TestConfig[] {
   const configDir = path.join(__dirname, "../../misc/config_tests");
-  const configFiles = fs
+  let configFiles = fs
     .readdirSync(configDir)
     .filter((file) => !file.startsWith("-") && file.endsWith(".json"));
 
-  return configFiles.map((file) => {
+  if (pattern) {
+    configFiles = configFiles.filter((file) =>
+      minimatch(file, pattern, { nocase: true })
+    );
+  }
+
+  const configs = configFiles.map((file) => {
     const content = JSON.parse(
       fs.readFileSync(path.join(configDir, file), "utf-8")
     );
@@ -33,6 +41,8 @@ function getTestConfigs(): TestConfig[] {
       content,
     };
   });
+
+  return configs;
 }
 
 function runCrawlerWithMetrics(
@@ -89,9 +99,16 @@ async function verifyMeilisearchContent(configContent: Record<string, any>) {
   return stats;
 }
 
-async function runAllTests() {
+async function runAllTests(pattern?: string) {
   const startTime = performance.now();
-  const testConfigs = getTestConfigs();
+  const testConfigs = getTestConfigs(pattern);
+
+  if (testConfigs.length === 0) {
+    console.log(
+      `No test configurations found${pattern ? ` matching pattern: ${pattern}` : ""}`
+    );
+    return;
+  }
 
   const results = {
     timestamp: new Date().toISOString(),
@@ -174,4 +191,8 @@ async function runAllTests() {
   }
 }
 
-runAllTests().catch(console.error);
+// Main execution
+const argv = minimist(process.argv.slice(2));
+const pattern = argv.pattern || argv.p;
+
+runAllTests(pattern).catch(console.error);

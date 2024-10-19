@@ -34,8 +34,6 @@ export type SchemaSettings = {
   only_type: string;
 };
 
-export type ScraperType = "default" | "docssearch" | "schema";
-
 export type Scraper = {
   get: (url: string, $: CheerioAPI) => Promise<void>;
 };

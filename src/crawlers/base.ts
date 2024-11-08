@@ -74,20 +74,26 @@ export abstract class BaseCrawler {
         this.__match_globs(request.loadedUrl, indexed_globs) &&
         !this.__match_globs(request.loadedUrl, excluded_indexed_globs)
       ) {
-        this.nb_page_indexed++;
         // Convert Puppeteer page to Cheerio instance
         let $: cheerio.CheerioAPI;
+        // TODO: Add Playwright support
         if (this.crawlerType === "puppeteer") {
-          const pageContent = await context.page.content(); // Get HTML content from Puppeteer page
-          $ = cheerio.load(pageContent); // Load HTML into Cheerio
-          // } else if (this.crawlerType === "playwright") {
-          //   const pageContent = await context.page.content(); // Get HTML content from Playwright page
-          //   $ = cheerio.load(pageContent); // Load HTML into Cheerio
+          const pageContent = await context.page.content();
+          $ = cheerio.load(pageContent);
         } else {
-          $ = context.$; // Use Cheerio context if not Puppeteer
+          $ = context.$;
         }
 
         if ($) {
+          // Check for 404 before incrementing counter and scraping
+          if (this.__is404Page($)) {
+            log.debug("404 page detected, skipping", {
+              url: request.loadedUrl,
+            });
+            return;
+          }
+
+          this.nb_page_indexed++;
           await this.scraper.get(request.loadedUrl, $);
         } else {
           log.warning("Cheerio context is undefined, skipping scraper.get");
@@ -191,5 +197,55 @@ export abstract class BaseCrawler {
     const urlObject = new URL(url);
     const pathname = urlObject.pathname;
     return /\/\d+\//.test(pathname);
+  }
+
+  protected __is404Page($: cheerio.CheerioAPI): boolean {
+    // Use custom selectors if provided, otherwise use defaults
+    const customSelectors = this.config.not_found_selectors;
+
+    if (customSelectors && customSelectors.length > 0) {
+      return customSelectors.some((selector) => $(selector).length > 0);
+    }
+
+    // Default selectors if no custom ones provided
+    const defaultSelectors = [
+      // Basic text content selectors
+      'h1:contains("404")',
+      'h1:contains("Page Not Found")',
+      'title:contains("404")',
+
+      // Multiple elements check
+      'div:contains("404"), span:contains("404")',
+
+      // Class-based selectors
+      ".error-404",
+      ".not-found",
+      "#error-page",
+
+      // Attribute selectors
+      '[data-error="404"]',
+      '[data-page-type="404"]',
+    ];
+
+    // Common error texts to check in body
+    const commonErrorTexts = [
+      "page not found",
+      "page doesn't exist",
+      "page could not be found",
+      "404 error",
+    ];
+
+    // Check default selectors
+    const hasErrorSelector = defaultSelectors.some(
+      (selector) => $(selector).length > 0
+    );
+
+    // Check text content
+    const bodyText = $("body").text().toLowerCase();
+    const hasErrorText = commonErrorTexts.some((text) =>
+      bodyText.includes(text)
+    );
+
+    return hasErrorSelector || hasErrorText;
   }
 }

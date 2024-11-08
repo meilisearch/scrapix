@@ -29,6 +29,7 @@ export interface Config {
   selectors?: Record<string, string>;
   max_concurrency?: number | null;
   max_requests_per_minute?: number | null;
+  not_found_selectors?: string[];
 }
 
 export type SchemaSettings = {

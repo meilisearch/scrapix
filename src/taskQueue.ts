@@ -13,18 +13,41 @@ export class TaskQueue {
     log.info("Initializing CrawlTaskQueue", {
       redisUrl: process.env.REDIS_URL,
     });
-    if (process.env.REDIS_URL) {
-      this.queue = new Queue("crawling", process.env.REDIS_URL);
-    } else {
-      this.queue = new Queue("crawling");
+
+    const queueName = "crawling";
+
+    try {
+      // Initialize queue with Redis URL if available
+      this.queue = process.env.REDIS_URL
+        ? new Queue(queueName, process.env.REDIS_URL)
+        : new Queue(queueName);
+
+      if (process.env.REDIS_URL) {
+        // Set up queue event handlers
+        void this.queue.process(this.__process.bind(this));
+
+        const eventHandlers = {
+          added: this.__jobAdded,
+          completed: this.__jobCompleted,
+          failed: this.__jobFailed,
+          active: this.__jobActive,
+          wait: this.__jobWaiting,
+          delayed: this.__jobDelayed,
+        };
+
+        // Bind all event handlers
+        Object.entries(eventHandlers).forEach(([event, handler]) => {
+          this.queue.on(event, handler.bind(this));
+        });
+      }
+    } catch (error) {
+      // Fallback to local queue if Redis connection fails
+      this.queue = new Queue(queueName);
+      log.error("Error while initializing CrawlTaskQueue", {
+        error,
+        message: (error as Error).message,
+      });
     }
-    void this.queue.process(this.__process.bind(this));
-    this.queue.on("added", this.__jobAdded.bind(this));
-    this.queue.on("completed", this.__jobCompleted.bind(this));
-    this.queue.on("failed", this.__jobFailed.bind(this));
-    this.queue.on("active", this.__jobActive.bind(this));
-    this.queue.on("wait", this.__jobWaiting.bind(this));
-    this.queue.on("delayed", this.__jobDelayed.bind(this));
   }
 
   add(data: Config) {

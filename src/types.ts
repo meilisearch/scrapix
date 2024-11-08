@@ -4,7 +4,7 @@ import { CheerioAPI } from "cheerio";
 
 export type CrawlerType = "cheerio" | "puppeteer" | "playwright";
 
-export type Config = {
+export interface Config {
   meilisearch_index_uid: string;
   meilisearch_url: string;
   meilisearch_api_key: string;
@@ -27,7 +27,9 @@ export type Config = {
   launch_options?: Record<string, any>;
   launcher?: PuppeteerNode;
   selectors?: Record<string, string>;
-};
+  max_concurrency?: number | null;
+  max_requests_per_minute?: number | null;
+}
 
 export type SchemaSettings = {
   convert_dates: boolean;

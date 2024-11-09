@@ -67,6 +67,11 @@ class Server {
     res.send("Crawling finished");
   }
 
+  /**
+   * Logs the webhook request and sends a response
+   *
+   * This is an internal endpoint and does not need to be documented.
+   */
   __log_webhook(req: express.Request, res: express.Response) {
     log.info("Webhook received", { body: req.body });
     res.send("Webhook acknowledged");

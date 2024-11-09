@@ -65,7 +65,7 @@ export class PuppeteerCrawler extends BaseCrawler {
       }),
       launchContext: {
         launchOptions: {
-          headless: this.config.headless || true,
+          headless: true,
           args: ["--no-sandbox", "--disable-setuid-sandbox"],
           ignoreDefaultArgs: ["--disable-extensions"],
           ...this.launchOptions,

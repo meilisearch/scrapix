@@ -65,7 +65,7 @@ function getConfig({
   await sender.init();
 
   const crawler = await Crawler.create(
-    config.crawler_type || "puppeteer",
+    config.crawler_type || "cheerio",
     sender,
     config,
     config.launch_options || launchOptions,

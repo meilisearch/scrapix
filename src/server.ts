@@ -57,9 +57,7 @@ class Server {
     const crawler = await Crawler.create(
       config.crawler_type || "cheerio",
       sender,
-      config,
-      config.launch_options,
-      config.launcher
+      config
     );
 
     await Crawler.run(crawler);

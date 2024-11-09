@@ -68,8 +68,7 @@ function getConfig({
     config.crawler_type || "cheerio",
     sender,
     config,
-    config.launch_options || launchOptions,
-    config.launcher
+    config.launch_options || launchOptions
   );
 
   await Crawler.run(crawler);

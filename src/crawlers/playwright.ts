@@ -62,7 +62,6 @@ export class PlaywrightCrawler extends BaseCrawler {
       }),
       launchContext: {
         launchOptions: {
-          headless: this.config.headless || true,
           ...this.launchOptions,
         },
       },

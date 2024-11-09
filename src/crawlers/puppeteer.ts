@@ -7,24 +7,20 @@ import {
   Router,
   RequestQueue,
 } from "crawlee";
-import { PuppeteerNode } from "puppeteer-core";
 import { BaseCrawler } from "./base";
 import { Sender } from "../sender";
 import { Config } from "../types";
 
 export class PuppeteerCrawler extends BaseCrawler {
   launchOptions: Record<string, any> = {};
-  launcher?: PuppeteerNode;
 
   constructor(
     sender: Sender,
     config: Config,
-    launchOptions: Record<string, any> = {},
-    launcher?: PuppeteerNode
+    launchOptions: Record<string, any> = {}
   ) {
     super(sender, config);
     this.launchOptions = launchOptions;
-    this.launcher = launcher;
   }
 
   createRouter(): Router<PuppeteerCrawlingContext> {
@@ -70,7 +66,6 @@ export class PuppeteerCrawler extends BaseCrawler {
           ignoreDefaultArgs: ["--disable-extensions"],
           ...this.launchOptions,
         },
-        launcher: this.launcher,
       },
     };
   }

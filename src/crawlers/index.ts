@@ -4,7 +4,6 @@ import { PuppeteerCrawler } from "./puppeteer";
 import { CheerioCrawler } from "./cheerio";
 import { Sender } from "../sender";
 import { Config, CrawlerType } from "../types";
-import { PuppeteerNode } from "puppeteer-core";
 import { Webhook } from "../webhook";
 import { BaseCrawler } from "./base";
 
@@ -15,13 +14,12 @@ export class Crawler {
     crawlerType: CrawlerType,
     sender: Sender,
     config: Config,
-    launchOptions: Record<string, any> = {},
-    launcher?: PuppeteerNode
+    launchOptions: Record<string, any> = {}
   ): BaseCrawler {
     log.info(`Creating ${crawlerType} crawler`, { config });
     switch (crawlerType) {
       case "puppeteer":
-        return new PuppeteerCrawler(sender, config, launchOptions, launcher);
+        return new PuppeteerCrawler(sender, config, launchOptions);
       case "cheerio":
         return new CheerioCrawler(sender, config);
       // case "playwright":

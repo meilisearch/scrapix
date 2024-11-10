@@ -1,29 +1,30 @@
 import { Log, RequestQueue } from "crawlee";
 import { PuppeteerCrawler } from "./puppeteer";
-// import { PlaywrightCrawler } from "./playwright";
 import { CheerioCrawler } from "./cheerio";
 import { Sender } from "../sender";
 import { Config, CrawlerType } from "../types";
 import { Webhook } from "../webhook";
 import { BaseCrawler } from "./base";
+import { extractUrlsFromSitemap } from "../utils/sitemap";
 
 const log = new Log({ prefix: "Crawler" });
 
 export class Crawler {
+  private static config: Config;
+
   static create(
     crawlerType: CrawlerType,
     sender: Sender,
     config: Config,
     launchOptions: Record<string, any> = {}
   ): BaseCrawler {
+    this.config = config;
     log.info(`Creating ${crawlerType} crawler`, { config });
     switch (crawlerType) {
       case "puppeteer":
         return new PuppeteerCrawler(sender, config, launchOptions);
       case "cheerio":
         return new CheerioCrawler(sender, config);
-      // case "playwright":
-      //   return new PlaywrightCrawler(sender, config, launchOptions);
       default:
         throw new Error(`Unsupported crawler type: ${crawlerType}`);
     }
@@ -70,7 +71,34 @@ export class Crawler {
     urls: string[]
   ): Promise<RequestQueue> {
     const requestQueue = await RequestQueue.open(JSON.stringify(urls));
-    await requestQueue.addRequests(urls.map((url) => ({ url })));
+
+    if (this.config?.use_sitemap !== false) {
+      try {
+        log.info("Extracting URLs from sitemaps");
+        const sitemapUrls = await extractUrlsFromSitemap(
+          this.config?.sitemap_urls || urls
+        );
+
+        if (sitemapUrls.length > 0) {
+          log.info(`Found ${sitemapUrls.length} URLs in sitemaps`);
+          await requestQueue.addRequests(sitemapUrls.map((url) => ({ url })));
+        } else {
+          log.info("No URLs found in sitemaps, falling back to start URLs");
+          await requestQueue.addRequests(urls.map((url) => ({ url })));
+        }
+      } catch (error) {
+        log.warning(
+          "Failed to extract URLs from sitemaps, falling back to start URLs",
+          {
+            error: (error as Error).message,
+          }
+        );
+        await requestQueue.addRequests(urls.map((url) => ({ url })));
+      }
+    } else {
+      await requestQueue.addRequests(urls.map((url) => ({ url })));
+    }
+
     return requestQueue;
   }
 

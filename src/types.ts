@@ -27,6 +27,7 @@ export interface Config {
    * Array of URLs where crawling will begin. These URLs are:
    * 1. Added to the initial crawling queue
    * 2. Used to generate URL patterns that determine which additional URLs to crawl
+   * 3. Used as base URLs for sitemap discovery if use_sitemap is true
    *
    * Example: If start_urls = ["https://example.com"], only URLs beginning with
    * "https://example.com" will be crawled
@@ -199,6 +200,42 @@ export interface Config {
    * @default []
    */
   urls_to_not_index?: string[];
+
+  /** Whether to use sitemap for URL discovery
+   *
+   * When enabled (default), the crawler will:
+   * 1. Try to find sitemaps at common locations (/sitemap.xml, /sitemap_index.xml, etc.)
+   * 2. Parse robots.txt for Sitemap directives
+   * 3. Extract URLs from all discovered sitemaps
+   * 4. Add found URLs to the crawling queue
+   *
+   * If no sitemaps are found or if disabled, the crawler will use start_urls directly.
+   *
+   * @default true
+   */
+  use_sitemap?: boolean;
+
+  /** Optional custom sitemap URLs
+   *
+   * Allows specifying exact sitemap locations instead of auto-discovery.
+   * The crawler will:
+   * 1. Skip the default sitemap discovery process
+   * 2. Directly fetch and parse the provided sitemap URLs
+   * 3. Extract and queue all URLs found in these sitemaps
+   *
+   * Example:
+   * ```ts
+   * sitemap_urls: [
+   *   "https://example.com/custom-sitemap.xml",
+   *   "https://example.com/blog-sitemap.xml"
+   * ]
+   * ```
+   *
+   * If provided URLs are invalid or unreachable, the crawler will fall back to using start_urls.
+   *
+   * @default undefined
+   */
+  sitemap_urls?: string[];
 
   /** Performance Configuration */
 

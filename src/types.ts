@@ -381,6 +381,16 @@ export interface Config {
    * @default []
    */
   not_found_selectors?: string[];
+
+  /** Whether to keep existing Meilisearch index settings
+   *
+   * When true and the primary index already exists, the crawler will keep
+   * the existing index settings instead of applying new ones.
+   * When false or the index doesn't exist, new settings will be applied.
+   *
+   * @default true
+   */
+  keep_settings?: boolean;
 }
 
 export type SchemaSettings = {

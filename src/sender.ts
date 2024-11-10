@@ -38,6 +38,15 @@ export class Sender {
       const index = await this.client.getIndex(this.initial_index_uid);
 
       if (index) {
+        let existingSettings = null;
+        if (this.config.keep_settings !== false) {
+          try {
+            existingSettings = await index.getSettings();
+          } catch (e) {
+            log.warning("Failed to retrieve existing settings", { error: e });
+          }
+        }
+
         this.index_uid = this.initial_index_uid + "_crawler_tmp";
 
         const tmp_index = await this.client.getIndex(this.index_uid);
@@ -45,11 +54,26 @@ export class Sender {
           const task = await this.client.deleteIndex(this.index_uid);
           await this.client.waitForTask(task.taskUid);
         }
+
+        await this.client.createIndex(this.index_uid, {
+          primaryKey: this.config.primary_key || "uid",
+        });
+
+        if (existingSettings && this.config.keep_settings !== false) {
+          log.info("Applying kept settings to temporary index", {
+            indexUid: this.index_uid,
+          });
+          const task = await this.client
+            .index(this.index_uid)
+            .updateSettings(existingSettings);
+          await this.client.waitForTask(task.taskUid);
+        }
+      } else {
+        await this.client.createIndex(this.index_uid, {
+          primaryKey: this.config.primary_key || "uid",
+        });
       }
 
-      await this.client.createIndex(this.index_uid, {
-        primaryKey: this.config.primary_key || "uid",
-      });
       log.info("Sender initialization completed", { indexUid: this.index_uid });
     } catch (e) {
       log.warning("Error during Sender initialization", { error: e });
@@ -80,11 +104,18 @@ export class Sender {
   }
 
   async updateSettings(settings: Settings) {
-    log.debug("Updating Meilisearch index settings");
-    const task = await this.client
-      .index(this.index_uid)
-      .updateSettings(settings);
-    await this.client.waitForTask(task.taskUid);
+    if (
+      this.config.keep_settings === false ||
+      this.index_uid === this.initial_index_uid
+    ) {
+      log.debug("Updating Meilisearch index settings");
+      const task = await this.client
+        .index(this.index_uid)
+        .updateSettings(settings);
+      await this.client.waitForTask(task.taskUid);
+    } else {
+      log.debug("Skipping settings update due to keep_settings=true");
+    }
   }
 
   async finish() {

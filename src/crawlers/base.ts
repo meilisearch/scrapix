@@ -10,6 +10,7 @@ import { Sender } from "../sender";
 import { Config, Scraper, CrawlerType } from "../types";
 import { Log } from "crawlee";
 import * as cheerio from "cheerio";
+import PDFScraper from "../scrapers/pdf";
 
 const log = new Log({ prefix: "BaseCrawler" });
 
@@ -37,7 +38,9 @@ export abstract class BaseCrawler {
             ? new MarkdownScraper(this.sender, this.config)
             : this.config.strategy === "custom"
               ? new CustomScraper(this.sender, this.config)
-              : new DefaultScraper(this.sender, this.config);
+              : this.config.strategy === "pdf"
+                ? new PDFScraper(this.sender, this.config)
+                : new DefaultScraper(this.sender, this.config);
   }
 
   abstract createRouter(): Router<any>;
@@ -82,6 +85,16 @@ export abstract class BaseCrawler {
           $ = cheerio.load(pageContent);
         } else {
           $ = context.$;
+        }
+
+        if (this.config.strategy == "pdf") {
+          // Check if URL is a PDF
+          if (request.loadedUrl.toLowerCase().endsWith(".pdf")) {
+            this.nb_page_indexed++;
+            const emptyCheerio = cheerio.load("");
+            await this.scraper.get(request.loadedUrl, emptyCheerio);
+          }
+          return;
         }
 
         if ($) {
@@ -152,7 +165,6 @@ export abstract class BaseCrawler {
       ".apk",
       ".ipa",
       ".zip",
-      ".pdf",
       ".doc",
       ".docx",
       ".xls",

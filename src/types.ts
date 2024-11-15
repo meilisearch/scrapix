@@ -7,7 +7,8 @@ export type Strategy =
   | "default"
   | "schema"
   | "markdown"
-  | "custom";
+  | "custom"
+  | "pdf";
 
 export interface Config {
   /** Required Meilisearch Configuration */
@@ -91,6 +92,9 @@ export interface Config {
    *
    * `custom`: Provides full control over content extraction through user-defined selectors.
    *   Allows precise targeting of specific page elements and custom data structures.
+   *
+   * `pdf`: Extracts PDF content and metadata. Particularly useful for:
+   *   - PDF documents
    *
    * @default "default"
    */
@@ -211,7 +215,7 @@ export interface Config {
    *
    * If no sitemaps are found or if disabled, the crawler will use start_urls directly.
    *
-   * @default true
+   * @default false
    */
   use_sitemap?: boolean;
 
@@ -428,6 +432,14 @@ export interface Config {
    * @default true
    */
   keep_settings?: boolean;
+
+  /** PDF Strategy Configuration */
+  pdf_settings?: {
+    /** Split PDF into separate documents per page */
+    split_per_page?: boolean;
+    /** Extract PDF metadata */
+    extract_metadata?: boolean;
+  };
 }
 
 export type SchemaSettings = {

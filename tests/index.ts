@@ -5,7 +5,7 @@ import { exec } from "child_process";
 import { MeiliSearch } from "meilisearch";
 import minimist from "minimist";
 import { minimatch } from "minimatch";
-
+import log from "@apify/log";
 interface TestResult {
   name: string;
   documentCount: number;
@@ -60,10 +60,12 @@ function runCrawlerWithMetrics(
 
     crawlerProcess.stdout?.on("data", (data) => {
       latestOutput = data.toString().trim().split("\n").pop() || "";
+      log.warning(`last output: ${latestOutput}`);
     });
 
     crawlerProcess.stderr?.on("data", (data) => {
       latestOutput = data.toString().trim().split("\n").pop() || "";
+      log.warning(`last output: ${latestOutput}`);
     });
 
     crawlerProcess.on("close", async (code) => {
@@ -79,7 +81,9 @@ function runCrawlerWithMetrics(
           exitCode: code ?? 0,
         });
       } catch (error) {
+        log.warning(`last output: ${latestOutput}`);
         reject(error);
+        // reject(`Process exited with code ${code}: ${error} - ${latestOutput}`);
       }
     });
   });
@@ -151,7 +155,7 @@ async function runAllTests(pattern?: string) {
       results.configs.push(result);
     } catch (error) {
       clearInterval(spinner);
-      updateLine(`✘ ${config.name} (failed)`);
+      updateLine(`✘ ${config.name} (failed) - ${error}`);
       process.stdout.write("\n"); // Move to the next line after failure
 
       results.configs.push({
@@ -191,8 +195,140 @@ async function runAllTests(pattern?: string) {
   }
 }
 
-// Main execution
+// Add new interface for Docker management
+interface DockerMeilisearch {
+  start: () => Promise<void>;
+  stop: () => Promise<void>;
+}
+
+// Add function to manage Docker Meilisearch
+function createDockerMeilisearch(): DockerMeilisearch {
+  return {
+    start: () => {
+      return new Promise<void>((resolve, reject) => {
+        console.log("Starting Meilisearch via Docker...");
+
+        // Check for both docker compose and docker-compose
+        exec("which docker", async (error) => {
+          if (error) {
+            reject(
+              new Error(
+                "Docker is not installed or not in PATH. Please install Docker first."
+              )
+            );
+            return;
+          }
+
+          // Try modern docker compose first, fallback to docker-compose
+          const dockerCommand = await new Promise<string>((resolveCommand) => {
+            exec("docker compose version", (error) => {
+              if (!error) {
+                resolveCommand("docker compose");
+              } else {
+                exec("docker-compose version", (error) => {
+                  resolveCommand(error ? "none" : "docker-compose");
+                });
+              }
+            });
+          });
+
+          if (dockerCommand === "none") {
+            reject(
+              new Error(
+                "Neither 'docker compose' nor 'docker-compose' found. Please install Docker Compose."
+              )
+            );
+            return;
+          }
+
+          const process = exec(
+            `${dockerCommand} -f docker-compose.test.yml up -d`,
+            {
+              cwd: path.join(__dirname, "../.."),
+            }
+          );
+
+          process.stderr?.on("data", (data) => {
+            console.error(`Docker stderr: ${data}`);
+          });
+
+          process.on("error", (error) => {
+            reject(error);
+          });
+
+          process.on("close", async (code) => {
+            if (code !== 0) {
+              reject(new Error(`Docker compose exited with code ${code}`));
+              return;
+            }
+
+            // Wait for Meilisearch to be ready
+            let retries = 30;
+            while (retries > 0) {
+              try {
+                await fetch("http://localhost:7700/health");
+                console.log("Meilisearch is ready");
+                resolve();
+                return;
+              } catch (e) {
+                retries--;
+                if (retries === 0) {
+                  reject(new Error("Meilisearch failed to start"));
+                  return;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                console.log("Waiting for Meilisearch to be ready...");
+              }
+            }
+          });
+        });
+      });
+    },
+    stop: () => {
+      return new Promise<void>((resolve, reject) => {
+        console.log("Stopping Meilisearch...");
+        // Use the same docker command detection logic
+        exec("docker compose -f docker-compose.test.yml down", (error) => {
+          if (!error) {
+            resolve();
+          } else {
+            exec("docker-compose -f docker-compose.test.yml down", (error) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve();
+              }
+            });
+          }
+        });
+      });
+    },
+  };
+}
+
+// Update main execution
 const argv = minimist(process.argv.slice(2));
 const pattern = argv.pattern || argv.p;
 
-runAllTests(pattern).catch(console.error);
+async function main() {
+  const docker = createDockerMeilisearch();
+
+  try {
+    // Only start Docker if we're not in CI
+    if (!process.env.GITHUB_ACTIONS) {
+      await docker.start();
+    }
+
+    await runAllTests(pattern);
+  } catch (error) {
+    console.error("Error:", error);
+    process.exit(1);
+  } finally {
+    // Only stop Docker if we're not in CI
+    if (!process.env.GITHUB_ACTIONS) {
+      await docker.stop();
+    }
+  }
+}
+
+main().catch(console.error);

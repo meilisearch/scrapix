@@ -72,7 +72,7 @@ export class Crawler {
   ): Promise<RequestQueue> {
     const requestQueue = await RequestQueue.open(JSON.stringify(urls));
 
-    if (this.config?.use_sitemap !== false) {
+    if (this.config?.use_sitemap == true) {
       try {
         log.info("Extracting URLs from sitemaps");
         const sitemapUrls = await extractUrlsFromSitemap(

@@ -10,6 +10,9 @@ export default function MainNav() {
         <Link href="/products" className="hover:underline">
           Products
         </Link>
+        <Link href="/references" className="hover:underline">
+          References
+        </Link>
       </div>
     </nav>
   );

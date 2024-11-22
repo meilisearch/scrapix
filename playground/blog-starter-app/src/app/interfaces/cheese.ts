@@ -1,0 +1,26 @@
+export type Cheese = {
+  slug: string;
+  name: string;
+  description: string;
+  price: number;
+  image?: string;
+  cheese: string;
+  url: string;
+  milk: string;
+  country: string;
+  region: string;
+  family: string;
+  type: string;
+  fat_content: string;
+  calcium_content: string;
+  texture: string;
+  rind: string;
+  color: string;
+  flavor: string;
+  aroma: string;
+  vegetarian: string;
+  vegan: string;
+  synonyms: string;
+  alt_spellings: string;
+  producers: string;
+};

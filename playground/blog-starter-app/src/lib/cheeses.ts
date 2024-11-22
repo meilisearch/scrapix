@@ -1,4 +1,4 @@
-import type { Cheese } from "@/interfaces/cheese";
+import type { Cheese } from "@/app/interfaces/cheese";
 import cheeses from "../../_data/cheeses.json";
 
 function createSlug(name: string): string {

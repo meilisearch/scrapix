@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Cheese } from "@/interfaces/cheese";
+import type { Cheese } from "@/app/interfaces/cheese";
 
 type Props = {
   cheeses: Cheese[];

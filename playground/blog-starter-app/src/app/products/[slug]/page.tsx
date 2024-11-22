@@ -1,6 +1,8 @@
 import Container from "@/app/_components/container";
 import { getAllCheeses, getCheeseBySlug } from "@/lib/cheeses";
 import { notFound } from "next/navigation";
+import CheeseDetails from "@/app/_components/cheese-details";
+import ProductSchema from "@/app/_components/product-schema";
 
 type Props = {
   params: {
@@ -41,16 +43,25 @@ export default async function CheesePage({ params }: Props) {
 
   return (
     <main>
+      <ProductSchema cheese={cheese} />
       <Container>
         <article className="mb-32">
-          <h1 className="text-4xl font-bold mb-4">{cheese.name}</h1>
           <div className="max-w-2xl mx-auto">
+            <h1 className="text-4xl font-bold mt-8 mb-4">{cheese.name}</h1>
             <div className="mb-6 text-lg">
               <p className="font-bold mb-4">Price: ${cheese.price}</p>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-600 dark:text-gray-300 mb-8">
                 {cheese.description}
               </p>
+              <CheeseDetails cheese={cheese} />
             </div>
+            {cheese.country === "France" && (
+              <div id="french-cheese-warning" className="mt-8">
+                <p className="text-lg font-bold signature">
+                  PAS MAL NON ? C'est français.
+                </p>
+              </div>
+            )}
           </div>
         </article>
       </Container>

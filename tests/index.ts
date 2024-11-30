@@ -127,9 +127,9 @@ async function runAllTests(pattern?: string) {
 
   const updateLine = (message: string) => {
     const truncatedMessage =
-      message.length > terminalWidth
-        ? message.slice(0, terminalWidth - 3) + "..."
-        : message.padEnd(terminalWidth, " ");
+      message.length > terminalWidth ?
+        message.slice(0, terminalWidth - 3) + "..."
+      : message.padEnd(terminalWidth, " ");
     process.stdout.write(`\r${truncatedMessage}`);
   };
 
@@ -195,31 +195,26 @@ async function runAllTests(pattern?: string) {
   }
 }
 
-// Add new interface for Docker management
-interface DockerMeilisearch {
+// Update DockerMeilisearch interface to DockerServices
+interface DockerServices {
   start: () => Promise<void>;
   stop: () => Promise<void>;
+  waitForServices: () => Promise<void>;
 }
 
-// Add function to manage Docker Meilisearch
-function createDockerMeilisearch(): DockerMeilisearch {
+// Update the docker management function
+function createDockerServices(): DockerServices {
   return {
     start: () => {
       return new Promise<void>((resolve, reject) => {
-        console.log("Starting Meilisearch via Docker...");
+        console.log("Starting services via Docker...");
 
-        // Check for both docker compose and docker-compose
         exec("which docker", async (error) => {
           if (error) {
-            reject(
-              new Error(
-                "Docker is not installed or not in PATH. Please install Docker first."
-              )
-            );
+            reject(new Error("Docker is not installed or not in PATH"));
             return;
           }
 
-          // Try modern docker compose first, fallback to docker-compose
           const dockerCommand = await new Promise<string>((resolveCommand) => {
             exec("docker compose version", (error) => {
               if (!error) {
@@ -233,11 +228,7 @@ function createDockerMeilisearch(): DockerMeilisearch {
           });
 
           if (dockerCommand === "none") {
-            reject(
-              new Error(
-                "Neither 'docker compose' nor 'docker-compose' found. Please install Docker Compose."
-              )
-            );
+            reject(new Error("Docker Compose not found"));
             return;
           }
 
@@ -252,42 +243,58 @@ function createDockerMeilisearch(): DockerMeilisearch {
             console.error(`Docker stderr: ${data}`);
           });
 
-          process.on("error", (error) => {
-            reject(error);
-          });
-
-          process.on("close", async (code) => {
+          process.on("close", (code) => {
             if (code !== 0) {
               reject(new Error(`Docker compose exited with code ${code}`));
               return;
             }
-
-            // Wait for Meilisearch to be ready
-            let retries = 30;
-            while (retries > 0) {
-              try {
-                await fetch("http://localhost:7700/health");
-                console.log("Meilisearch is ready");
-                resolve();
-                return;
-              } catch (e) {
-                retries--;
-                if (retries === 0) {
-                  reject(new Error("Meilisearch failed to start"));
-                  return;
-                }
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                console.log("Waiting for Meilisearch to be ready...");
-              }
-            }
+            resolve();
           });
         });
       });
     },
+
+    waitForServices: async () => {
+      console.log("Waiting for services to be ready...");
+
+      // Wait for Meilisearch
+      let retries = 30;
+      while (retries > 0) {
+        try {
+          await fetch("http://localhost:7700/health");
+          console.log("Meilisearch is ready");
+          break;
+        } catch (e) {
+          retries--;
+          if (retries === 0) {
+            throw new Error("Meilisearch failed to start");
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          console.log("Waiting for Meilisearch...");
+        }
+      }
+
+      // Wait for playground-app
+      retries = 30;
+      while (retries > 0) {
+        try {
+          await fetch("http://localhost:3000");
+          console.log("Blog app is ready");
+          break;
+        } catch (e) {
+          retries--;
+          if (retries === 0) {
+            throw new Error("Blog app failed to start");
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          console.log("Waiting for blog app...");
+        }
+      }
+    },
+
     stop: () => {
       return new Promise<void>((resolve, reject) => {
-        console.log("Stopping Meilisearch...");
-        // Use the same docker command detection logic
+        console.log("Stopping services...");
         exec("docker compose -f docker-compose.test.yml down", (error) => {
           if (!error) {
             resolve();
@@ -311,12 +318,13 @@ const argv = minimist(process.argv.slice(2));
 const pattern = argv.pattern || argv.p;
 
 async function main() {
-  const docker = createDockerMeilisearch();
+  const docker = createDockerServices();
 
   try {
     // Only start Docker if we're not in CI
     if (!process.env.GITHUB_ACTIONS) {
       await docker.start();
+      await docker.waitForServices();
     }
 
     await runAllTests(pattern);

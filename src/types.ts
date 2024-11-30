@@ -2,6 +2,13 @@ import { Settings } from "meilisearch";
 import { CheerioAPI } from "cheerio";
 
 export type CrawlerType = "cheerio" | "puppeteer" | "playwright";
+
+export const CrawlerTypes = {
+  Cheerio: "cheerio" as CrawlerType,
+  Puppeteer: "puppeteer" as CrawlerType,
+  Playwright: "playwright" as CrawlerType,
+} as const;
+
 export type Strategy =
   | "docssearch"
   | "default"
@@ -9,6 +16,15 @@ export type Strategy =
   | "markdown"
   | "custom"
   | "pdf";
+
+export const Strategies = {
+  DocSearch: "docssearch" as Strategy,
+  Default: "default" as Strategy,
+  Schema: "schema" as Strategy,
+  Markdown: "markdown" as Strategy,
+  Custom: "custom" as Strategy,
+  PDF: "pdf" as Strategy,
+} as const;
 
 export interface Config {
   /** Required Meilisearch Configuration */
@@ -61,7 +77,7 @@ export interface Config {
    *
    * @default "cheerio"
    */
-  crawler_type: CrawlerType;
+  crawler_type?: CrawlerType;
 
   /** Content Extraction Configuration */
 
@@ -231,7 +247,7 @@ export interface Config {
    * ```ts
    * sitemap_urls: [
    *   "https://example.com/custom-sitemap.xml",
-   *   "https://example.com/blog-sitemap.xml"
+   *   "https://example.com/playground-sitemap.xml"
    * ]
    * ```
    *
@@ -449,7 +465,7 @@ export type SchemaSettings = {
    *
    * @default false
    */
-  convert_dates: boolean;
+  convert_dates?: boolean;
 
   /** Only extract data from the specified type
    *
@@ -457,7 +473,7 @@ export type SchemaSettings = {
    *
    * @default null
    */
-  only_type: string;
+  only_type?: string;
 };
 
 export type Scraper = {

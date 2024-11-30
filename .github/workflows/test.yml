@@ -1,0 +1,39 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Start test environment
+        run: docker-compose -f docker-compose.test.yml up -d
+
+      - name: Wait for services
+        run: |
+          .github/scripts/wait-for-it.sh localhost:7700 -t 60
+          .github/scripts/wait-for-it.sh localhost:3000 -t 60
+          .github/scripts/wait-for-it.sh localhost:8080 -t 60
+
+      - name: Run tests
+        run: yarn test:integration
+
+      - name: Cleanup
+        run: docker-compose -f docker-compose.test.yml down

@@ -5,9 +5,9 @@ import CheeseDetails from "@/app/_components/cheese-details";
 import ProductSchema from "@/app/_components/product-schema";
 
 type Props = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 export function generateStaticParams() {

@@ -4,9 +4,9 @@ import { Pagination } from "@/app/_components/pagination";
 import { getAllCheeses } from "@/lib/cheeses";
 
 type Props = {
-  searchParams?: {
+  searchParams?: Promise<{
     page?: string;
-  };
+  }>;
 };
 
 const ITEMS_PER_PAGE = 24;

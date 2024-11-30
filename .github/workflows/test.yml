@@ -35,6 +35,9 @@ jobs:
           docker-compose up -d
           docker ps -a
 
+      - name: Make wait-for-it.sh executable
+        run: chmod +x .github/scripts/wait-for-it.sh
+
       - name: Wait for services
         run: |
           .github/scripts/wait-for-it.sh localhost:7700 -t 60

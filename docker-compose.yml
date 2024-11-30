@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+services:
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    environment:
+      - MEILI_MASTER_KEY=masterKey
+    ports:
+      - "7700:7700"
+    networks:
+      - crawler-network
+
+  playground:
+    build:
+      context: ./playground
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - crawler-network
+
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=test
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - meilisearch
+      - playground
+    networks:
+      - crawler-network
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - crawler-network
+
+volumes:
+  meili_data:
+
+networks:
+  crawler-network:
+    driver: bridge
+    name: crawler-network

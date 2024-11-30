@@ -1,9 +1,0 @@
-{
-  "start_urls": ["https://blog.meilisearch.com"],
-  "urls_to_not_index": ["https://blog.meilisearch.com/author"],
-  "meilisearch_url": "localhost:7700",
-  "meilisearch_api_key": "masterKey",
-  "meilisearch_index_uid": "default-complex-cheerio",
-  "crawler_type": "cheerio",
-  "batch_size": 10
-}

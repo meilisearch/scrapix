@@ -3,6 +3,8 @@ name: Test
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 jobs:
   test:
@@ -24,16 +26,40 @@ jobs:
         run: yarn build
 
       - name: Start test environment
-        run: docker-compose -f docker-compose.test.yml up -d
+        run: |
+          docker-compose up -d
+          docker ps -a
 
       - name: Wait for services
         run: |
           .github/scripts/wait-for-it.sh localhost:7700 -t 60
           .github/scripts/wait-for-it.sh localhost:3000 -t 60
           .github/scripts/wait-for-it.sh localhost:8080 -t 60
+          sleep 10 # Give services extra time to fully initialize
+
+      - name: Debug service logs
+        if: always()
+        run: |
+          echo "=== Meilisearch Logs ==="
+          docker-compose logs meilisearch
+          echo "=== Playground Logs ==="
+          docker-compose logs playground
+          echo "=== Scraper Logs ==="
+          docker-compose logs scraper
+          echo "=== Redis Logs ==="
+          docker-compose logs redis
 
       - name: Run tests
         run: yarn test:integration
 
+      - name: Show test logs on failure
+        if: failure()
+        run: |
+          echo "=== Service Status ==="
+          docker-compose ps
+          echo "=== Recent Logs ==="
+          docker-compose logs --tail=100
+
       - name: Cleanup
-        run: docker-compose -f docker-compose.test.yml down
+        if: always()
+        run: docker-compose down -v

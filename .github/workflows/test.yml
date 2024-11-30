@@ -17,13 +17,18 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18"
-          cache: "yarn"
+          cache: "npm"
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
 
       - name: Build
-        run: yarn build
+        run: npm run build
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
 
       - name: Start test environment
         run: |
@@ -50,7 +55,7 @@ jobs:
           docker-compose logs redis
 
       - name: Run tests
-        run: yarn test:integration
+        run: npm run test
 
       - name: Show test logs on failure
         if: failure()

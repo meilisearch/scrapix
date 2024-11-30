@@ -30,17 +30,17 @@ export abstract class BaseCrawler {
     this.crawlerType = config.crawler_type || "cheerio";
 
     this.scraper =
-      this.config.strategy === "docssearch"
-        ? new DocsearchScraper(this.sender, this.config)
-        : this.config.strategy === "schema"
-          ? new SchemaScraper(this.sender, this.config)
-          : this.config.strategy === "markdown"
-            ? new MarkdownScraper(this.sender, this.config)
-            : this.config.strategy === "custom"
-              ? new CustomScraper(this.sender, this.config)
-              : this.config.strategy === "pdf"
-                ? new PDFScraper(this.sender, this.config)
-                : new DefaultScraper(this.sender, this.config);
+      this.config.strategy === "docssearch" ?
+        new DocsearchScraper(this.sender, this.config)
+      : this.config.strategy === "schema" ?
+        new SchemaScraper(this.sender, this.config)
+      : this.config.strategy === "markdown" ?
+        new MarkdownScraper(this.sender, this.config)
+      : this.config.strategy === "custom" ?
+        new CustomScraper(this.sender, this.config)
+      : this.config.strategy === "pdf" ?
+        new PDFScraper(this.sender, this.config)
+      : new DefaultScraper(this.sender, this.config);
   }
 
   abstract createRouter(): Router<any>;
@@ -65,39 +65,44 @@ export abstract class BaseCrawler {
     const excluded_crawled_globs = this.__generate_globs(
       this.config.urls_to_exclude || []
     );
+    console.log("crawled_globs", crawled_globs);
     const indexed_globs = this.__generate_globs(
       this.config.urls_to_index || this.urls
     );
+    console.log("indexed_globs", indexed_globs);
     const excluded_indexed_globs = this.__generate_globs(
       this.config.urls_to_not_index || []
     );
+    console.log("excluded_indexed_globs", excluded_indexed_globs);
+    log.debug("URL matching check", {
+      url: request.loadedUrl,
+      shouldIndex: this.__match_globs(request.loadedUrl, indexed_globs),
+      isExcluded: this.__match_globs(request.loadedUrl, excluded_indexed_globs),
+      isPaginated: this.__is_paginated_url(request.loadedUrl),
+    });
 
     if (request.loadedUrl && !this.__is_paginated_url(request.loadedUrl)) {
       if (
         this.__match_globs(request.loadedUrl, indexed_globs) &&
         !this.__match_globs(request.loadedUrl, excluded_indexed_globs)
       ) {
-        // Convert Puppeteer page to Cheerio instance
         let $: cheerio.CheerioAPI;
-        // TODO: Add Playwright support
-        if (this.crawlerType === "puppeteer") {
-          const pageContent = await context.page.content();
-          $ = cheerio.load(pageContent);
-        } else {
-          $ = context.$;
-        }
 
-        if (this.config.strategy == "pdf") {
-          // Check if URL is a PDF
-          if (request.loadedUrl.toLowerCase().endsWith(".pdf")) {
-            this.nb_page_indexed++;
-            const emptyCheerio = cheerio.load("");
-            await this.scraper.get(request.loadedUrl, emptyCheerio);
+        try {
+          if (this.crawlerType === "puppeteer") {
+            const pageContent = await context.page.content();
+            $ = cheerio.load(pageContent);
+          } else {
+            $ = context.$;
           }
-          return;
-        }
 
-        if ($) {
+          if (!$) {
+            log.error("Cheerio instance is undefined", {
+              url: request.loadedUrl,
+            });
+            return;
+          }
+
           // Check for 404 before incrementing counter and scraping
           if (this.__is404Page($)) {
             log.debug("404 page detected, skipping", {
@@ -107,9 +112,14 @@ export abstract class BaseCrawler {
           }
 
           this.nb_page_indexed++;
+          log.debug("Starting scraper.get", { url: request.loadedUrl });
           await this.scraper.get(request.loadedUrl, $);
-        } else {
-          log.warning("Cheerio context is undefined, skipping scraper.get");
+          log.debug("Completed scraper.get", { url: request.loadedUrl });
+        } catch (error) {
+          log.error("Error processing page", {
+            url: request.loadedUrl,
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       }
     }
@@ -253,7 +263,14 @@ export abstract class BaseCrawler {
     );
 
     // Check text content
-    const bodyText = $("body").text().toLowerCase();
+    const bodyText = $("body")
+      .clone()
+      .find("script")
+      .remove()
+      .end()
+      .text()
+      .toLowerCase();
+
     const hasErrorText = commonErrorTexts.some((text) =>
       bodyText.includes(text)
     );

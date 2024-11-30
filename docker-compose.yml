@@ -6,6 +6,8 @@ services:
       - MEILI_MASTER_KEY=masterKey
     ports:
       - "7700:7700"
+    networks:
+      - crawler-network
 
   playground:
     build:
@@ -13,6 +15,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    networks:
+      - crawler-network
 
   scraper:
     build:
@@ -26,12 +30,21 @@ services:
     depends_on:
       - meilisearch
       - playground
+    networks:
+      - crawler-network
 
   redis:
     image: redis:latest
     restart: always
     ports:
       - 6379:6379
+    networks:
+      - crawler-network
 
 volumes:
   meili_data:
+
+networks:
+  crawler-network:
+    driver: bridge
+    name: crawler-network

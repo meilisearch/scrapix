@@ -70,6 +70,11 @@ export class Crawler {
   private static async setupRequestQueue(
     urls: string[]
   ): Promise<RequestQueue> {
+    if (!urls || !Array.isArray(urls)) {
+      log.error("Invalid or missing start_urls", { urls });
+      throw new Error("start_urls must be an array of strings");
+    }
+
     const requestQueue = await RequestQueue.open(JSON.stringify(urls));
 
     if (this.config?.use_sitemap == true) {

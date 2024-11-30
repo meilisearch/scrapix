@@ -31,52 +31,90 @@ export class Sender {
     });
   }
 
+  //Initialize the Sender - The sender is responsible for sending the documents to the Meilisearch instance
+  //If the index does not exist, it will be created
+  //If the index exists, it will create a temporary index and swap it with the existing one
   async init() {
     log.debug("Starting Sender initialization");
     try {
       await Webhook.get(this.config).started(this.config);
-      const index = await this.client.getIndex(this.initial_index_uid);
 
-      if (index) {
-        let existingSettings = null;
-        if (this.config.keep_settings !== false) {
-          try {
-            existingSettings = await index.getSettings();
-          } catch (e) {
-            log.warning("Failed to retrieve existing settings", { error: e });
+      // Validate required config
+      if (!this.initial_index_uid) {
+        throw new Error("Meilisearch index UID is required");
+      }
+
+      let existingSettings = null;
+      let indexExists = false;
+
+      try {
+        const index = await this.client.getIndex(this.initial_index_uid);
+        log.debug("Index exists", { indexUid: this.initial_index_uid });
+        if (index) {
+          indexExists = true;
+          if (this.config.keep_settings !== false) {
+            try {
+              existingSettings = await index.getSettings();
+            } catch (err) {
+              log.warning("Failed to retrieve existing settings", {
+                error: err,
+              });
+            }
           }
         }
-
-        this.index_uid = this.initial_index_uid + "_crawler_tmp";
-
-        const tmp_index = await this.client.getIndex(this.index_uid);
-        if (tmp_index) {
-          const task = await this.client.deleteIndex(this.index_uid);
-          await this.client.waitForTask(task.taskUid);
-        }
-
-        await this.client.createIndex(this.index_uid, {
-          primaryKey: this.config.primary_key || "uid",
-        });
-
-        if (existingSettings && this.config.keep_settings !== false) {
-          log.info("Applying kept settings to temporary index", {
-            indexUid: this.index_uid,
-          });
-          const task = await this.client
-            .index(this.index_uid)
-            .updateSettings(existingSettings);
-          await this.client.waitForTask(task.taskUid);
-        }
-      } else {
-        await this.client.createIndex(this.index_uid, {
-          primaryKey: this.config.primary_key || "uid",
+      } catch (err) {
+        // Index doesn't exist, we'll create it
+        log.debug("Index does not exist, will create new one", {
+          indexUid: this.initial_index_uid,
         });
       }
 
-      log.info("Sender initialization completed", { indexUid: this.index_uid });
-    } catch (e) {
-      log.warning("Error during Sender initialization", { error: e });
+      // If index exists, create temporary index
+      if (indexExists) {
+        this.index_uid = `${this.initial_index_uid}_crawler_tmp`;
+
+        try {
+          // Check if temp index exists and delete if needed
+          const tmp_index = await this.client.getIndex(this.index_uid);
+          if (tmp_index) {
+            const deleteTask = await this.client.deleteIndex(this.index_uid);
+            await this.client.waitForTask(deleteTask.taskUid);
+          }
+        } catch (err) {
+          // Temp index doesn't exist, which is fine
+        }
+      }
+
+      // Create the index (either temp or initial)
+      try {
+        const createTask = await this.client.createIndex(this.index_uid, {
+          primaryKey: this.config.primary_key || "uid",
+        });
+        await this.client.waitForTask(createTask.taskUid);
+
+        // Apply existing settings if needed
+        if (existingSettings && this.config.keep_settings !== false) {
+          log.info("Applying kept settings to index", {
+            indexUid: this.index_uid,
+          });
+          const settingsTask = await this.client
+            .index(this.index_uid)
+            .updateSettings(existingSettings);
+          await this.client.waitForTask(settingsTask.taskUid);
+        }
+
+        log.info("Sender initialization completed", {
+          indexUid: this.index_uid,
+        });
+      } catch (err) {
+        throw new Error(
+          `Failed to create index: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Unknown error";
+      log.error("Error during Sender initialization", { error: errorMsg });
+      throw new Error(`Sender initialization failed: ${errorMsg}`);
     }
   }
 

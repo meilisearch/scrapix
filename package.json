@@ -24,11 +24,12 @@
   },
   "scripts": {
     "build": "yarn tsc",
-    "start": "yarn tsc && node dist/src/bin/index.js",
-    "serve": "yarn tsc && node dist/src/server.js",
+    "start": "node dist/src/bin/index.js",
+    "start:server": "node dist/src/server/index.js",
+    "dev": "yarn tsc & node dist/src/bin/index.js",
+    "dev:server": "yarn tsc & node dist/src/server/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "tests": "yarn tsc && node dist/tests/index.js",
     "test": "ts-node tests/index.js",
     "test:integration": "jest --config jest.integration.config.js",
     "test:watch": "jest --watch"

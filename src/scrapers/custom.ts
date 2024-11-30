@@ -33,7 +33,8 @@ export default class CustomScraper {
       };
 
       for (const [key, selector] of Object.entries(this.selectors || {})) {
-        const elements = $(selector);
+        const elements =
+          typeof selector === "string" ? $(selector) : $(selector.join(", "));
         if (elements.length > 0) {
           data[key] = elements
             .map((_, el) => this._clean_text($(el).text()))

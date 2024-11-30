@@ -1,7 +1,7 @@
 import Queue, { Job, DoneCallback } from "bull";
-import { initMeilisearchClient } from "./utils/meilisearch_client";
+import { initMeilisearchClient } from "../utils/meilisearch_client";
 import { fork } from "child_process";
-import { Config } from "./types";
+import { Config } from "../types";
 import { Log } from "@crawlee/core";
 
 const log = new Log({ prefix: "CrawlTaskQueue" });
@@ -18,8 +18,9 @@ export class TaskQueue {
 
     try {
       // Initialize queue with Redis URL if available
-      this.queue = process.env.REDIS_URL
-        ? new Queue(queueName, process.env.REDIS_URL)
+      this.queue =
+        process.env.REDIS_URL ?
+          new Queue(queueName, process.env.REDIS_URL)
         : new Queue(queueName);
 
       if (process.env.REDIS_URL) {

@@ -1,5 +1,70 @@
 import { Settings } from "meilisearch";
 import { CheerioAPI } from "cheerio";
+import { z } from "zod";
+
+export const ConfigSchema = z.object({
+  // Required Meilisearch Configuration
+  meilisearch_index_uid: z.string(),
+  meilisearch_url: z.string().url(),
+  meilisearch_api_key: z.string(),
+
+  // Required Crawling Configuration
+  start_urls: z.array(z.string().url()),
+  crawler_type: z
+    .enum(["cheerio", "puppeteer", "playwright"])
+    .optional()
+    .default("cheerio"),
+
+  // Content Extraction Configuration
+  strategy: z
+    .enum(["docssearch", "default", "schema", "markdown", "custom", "pdf"])
+    .optional()
+    .default("default"),
+  selectors: z.record(z.union([z.string(), z.array(z.string())])).nullish(),
+  schema_settings: z
+    .object({
+      convert_dates: z.boolean().optional().default(false),
+      only_type: z.string().nullish(),
+    })
+    .nullish(),
+
+  // URL Control Configuration
+  urls_to_exclude: z.array(z.string()).nullish(),
+  urls_to_index: z.array(z.string()).nullish(),
+  urls_to_not_index: z.array(z.string()).nullish(),
+  use_sitemap: z.boolean().optional().default(false),
+  sitemap_urls: z.array(z.string()).nullish(),
+
+  // Performance Configuration
+  max_concurrency: z.number().positive().optional(),
+  max_requests_per_minute: z.number().positive().optional(),
+  batch_size: z.number().positive().optional().default(1000),
+
+  // Meilisearch Configuration
+  primary_key: z.string().nullish(),
+  meilisearch_settings: z.any().nullish(), // Settings type from meilisearch
+
+  // Request Configuration
+  additional_request_headers: z.record(z.string()).nullish(),
+  user_agents: z.array(z.string()).optional().default([]),
+  launch_options: z.record(z.any()).nullish(),
+
+  // Webhook Configuration
+  webhook_url: z.string().url().nullish(),
+  webhook_payload: z.record(z.any()).nullish(),
+
+  // Error Detection
+  not_found_selectors: z.array(z.string()).nullish(),
+  keep_settings: z.boolean().optional().default(true),
+
+  // PDF Configuration
+  pdf_settings: z
+    .object({
+      split_per_page: z.boolean().optional().default(false),
+      extract_metadata: z.boolean().optional().default(false),
+    })
+    .nullish(),
+});
 
 export type CrawlerType = "cheerio" | "puppeteer" | "playwright";
 
@@ -131,7 +196,7 @@ export interface Config {
    *
    * @default null
    */
-  selectors?: Record<string, string>;
+  selectors?: Record<string, string | string[]> | null;
 
   /** Settings for schema-based extraction
    * Those settings are usefull only if strategy is set to `schema`.
@@ -140,9 +205,9 @@ export interface Config {
    *
    * For the list of the supported types, see https://schema.org/docs/full.html
    *
-   * @default { convert_dates: false, only_type: null }
+   * @default null
    */
-  schema_settings?: SchemaSettings;
+  schema_settings?: SchemaSettings | null;
 
   /** URL Control Configuration */
 
@@ -159,9 +224,9 @@ export interface Config {
    * ```
    *
    * Default: No URLs will be excluded.
-   * @default []
+   * @default null
    */
-  urls_to_exclude?: string[];
+  urls_to_exclude?: string[] | null;
 
   /** Specific URLs to index (overrides start_urls if provided)
    *
@@ -188,9 +253,9 @@ export interface Config {
    * - `*` matches any sequence within a path segment
    * - `**` matches across path segments
    *
-   * @default []
+   * @default null
    */
-  urls_to_index?: string[];
+  urls_to_index?: string[] | null;
 
   /** URLs to exclude from indexing
    *
@@ -217,9 +282,9 @@ export interface Config {
    * ]
    * ```
    *
-   * @default []
+   * @default null
    */
-  urls_to_not_index?: string[];
+  urls_to_not_index?: string[] | null;
 
   /** Whether to use sitemap for URL discovery
    *
@@ -253,9 +318,9 @@ export interface Config {
    *
    * If provided URLs are invalid or unreachable, the crawler will fall back to using start_urls.
    *
-   * @default undefined
+   * @default null
    */
-  sitemap_urls?: string[];
+  sitemap_urls?: string[] | null;
 
   /** Performance Configuration */
 
@@ -266,14 +331,14 @@ export interface Config {
    *
    * @default Infinity
    */
-  max_concurrency?: number;
+  max_concurrency?: number | null;
 
   /** Maximum requests per minute rate limit
    *
    * This controls how many total requests can be made per minute. It counts the amount of requests done every second, to ensure there is not a burst of requests at the `maxConcurrency` limit followed by a long period of waiting. By default, it is set to `Infinity` which means the crawler will keep going up to the `maxConcurrency`. We would set this if we wanted our crawler to work at full throughput, but also not keep hitting the website we're crawling with non-stop requests.
    * @default Infinity
    */
-  max_requests_per_minute?: number;
+  max_requests_per_minute?: number | null;
 
   /** Number of documents to index in each batch
    *
@@ -292,7 +357,7 @@ export interface Config {
    * Default: 1000 documents per batch
    * @default 1000
    */
-  batch_size?: number;
+  batch_size?: number | null;
 
   /** Meilisearch Configuration */
 
@@ -311,7 +376,7 @@ export interface Config {
    *
    * Default: A random UUID will be generated and stored in the `uid` field.
    */
-  primary_key?: string;
+  primary_key?: string | null;
 
   /** Custom Meilisearch index settings.
    * These settings will be applied to the Meilisearch index each time the crawler runs.
@@ -339,7 +404,7 @@ export interface Config {
    *
    * Default: Strategy-specific settings will be applied.
    */
-  meilisearch_settings?: Settings;
+  meilisearch_settings?: Settings | null;
 
   /** Request Configuration */
 
@@ -360,9 +425,9 @@ export interface Config {
    * ```
    *
    * Default: No additional headers will be added.
-   * @default {}
+   * @default null
    */
-  additional_request_headers?: Record<string, string>;
+  additional_request_headers?: Record<string, string> | null;
 
   /** Custom User-Agent strings to rotate through
    * Used to send a custom user agent to Meilisearch.
@@ -375,7 +440,7 @@ export interface Config {
    * Not useful for most users, but can be used to pass custom options to the Puppeteer instance.
    * @default null
    */
-  launch_options?: Record<string, any>;
+  launch_options?: Record<string, any> | null;
 
   /** Webhook Configuration */
 
@@ -400,7 +465,7 @@ export interface Config {
    *
    * @default null
    */
-  webhook_url?: string;
+  webhook_url?: string | null;
 
   /** Custom payload to include in webhook requests
    *
@@ -421,7 +486,7 @@ export interface Config {
    *
    * @default {}
    */
-  webhook_payload?: Record<string, any>;
+  webhook_payload?: Record<string, any> | null;
 
   /** Error Detection */
 
@@ -435,9 +500,9 @@ export interface Config {
    *
    * The selectors are JQuery selector used by Cheerio.
    *
-   * @default []
+   * @default null
    */
-  not_found_selectors?: string[];
+  not_found_selectors?: string[] | null;
 
   /** Whether to keep existing Meilisearch index settings
    *
@@ -447,15 +512,22 @@ export interface Config {
    *
    * @default true
    */
-  keep_settings?: boolean;
+  keep_settings?: boolean | null;
 
   /** PDF Strategy Configuration */
   pdf_settings?: {
-    /** Split PDF into separate documents per page */
+    /** Split PDF into separate documents per page
+     *
+     * @default false
+     */
     split_per_page?: boolean;
-    /** Extract PDF metadata */
+
+    /** Extract PDF metadata
+     *
+     * @default false
+     */
     extract_metadata?: boolean;
-  };
+  } | null;
 }
 
 export type SchemaSettings = {
@@ -473,7 +545,7 @@ export type SchemaSettings = {
    *
    * @default null
    */
-  only_type?: string;
+  only_type?: string | null;
 };
 
 export type Scraper = {

@@ -3,9 +3,9 @@ dotenv.config();
 
 import express from "express";
 import { TaskQueue } from "./taskQueue";
-import { Sender } from "./sender";
-import { Crawler } from "./crawlers";
-import { Config } from "./types";
+import { Sender } from "../sender";
+import { Crawler } from "../crawlers";
+import { ConfigSchema } from "../types";
 import { Log } from "@crawlee/core";
 
 const port = process.env.PORT || 8080;
@@ -43,28 +43,43 @@ class Server {
   }
 
   __asyncCrawl(req: express.Request, res: express.Response) {
-    this.taskQueue.add(req.body);
-    log.info("Asynchronous crawl task added to queue", { config: req.body });
-    res.send("Crawling task queued");
+    try {
+      const config = ConfigSchema.parse(req.body);
+      this.taskQueue.add(config);
+      log.info("Asynchronous crawl task added to queue", { config });
+      res.send("Crawling task queued");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      log.error("Invalid configuration received", { error });
+      res.status(400).send(`Invalid configuration: ${errorMessage}`);
+    }
   }
 
   async __syncCrawl(req: express.Request, res: express.Response) {
-    const config: Config = req.body;
-    log.info("Starting synchronous crawl", { config });
-    const sender = new Sender(config);
-    await sender.init();
+    try {
+      const config = ConfigSchema.parse(req.body);
+      log.info("Starting synchronous crawl", { config });
+      const sender = new Sender(config);
+      await sender.init();
 
-    const crawler = await Crawler.create(
-      config.crawler_type || "cheerio",
-      sender,
-      config
-    );
+      const crawler = await Crawler.create(
+        config.crawler_type || "cheerio",
+        sender,
+        config
+      );
 
-    await Crawler.run(crawler);
-    await sender.finish();
+      await Crawler.run(crawler);
+      await sender.finish();
 
-    log.info("Synchronous crawl completed", { config });
-    res.send("Crawling finished");
+      log.info("Synchronous crawl completed", { config });
+      res.send("Crawling finished");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      log.error("Invalid configuration or crawl error", { error });
+      res.status(400).send(`Error: ${errorMessage}`);
+    }
   }
 
   /**

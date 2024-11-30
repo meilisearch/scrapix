@@ -6,7 +6,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { Sender } from "../sender";
 import { Crawler } from "../crawlers";
-import { Config } from "../types";
+import { Config, ConfigSchema } from "../types";
 
 function getConfig({
   configPath,
@@ -15,15 +15,21 @@ function getConfig({
   configPath?: string;
   config?: string;
 }): Config {
+  let parsedConfig: unknown;
+
   if (configPath) {
-    return JSON.parse(
+    parsedConfig = JSON.parse(
       fs.readFileSync(configPath, { encoding: "utf-8" })
-    ) as Config;
+    );
   } else if (config) {
-    return JSON.parse(config) as Config;
+    parsedConfig = JSON.parse(config);
+  } else {
+    throw new Error("Please provide either --config or --configPath");
   }
 
-  throw new Error("Please provide either --config or --configPath");
+  // Validate config against schema
+  const validatedConfig = ConfigSchema.parse(parsedConfig);
+  return validatedConfig;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -57,9 +63,8 @@ function getConfig({
     }).argv;
 
   const config = getConfig(argv);
-  const launchOptions = argv.browserPath
-    ? { executablePath: argv.browserPath }
-    : {};
+  const launchOptions =
+    argv.browserPath ? { executablePath: argv.browserPath } : {};
 
   const sender = new Sender(config);
   await sender.init();

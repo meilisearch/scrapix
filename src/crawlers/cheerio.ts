@@ -24,9 +24,9 @@ export class CheerioCrawler extends BaseCrawler {
     requestQueue: RequestQueue,
     router: Router<CheerioCrawlingContext>
   ): CheerioCrawlerOptions {
-    const preNavigationHooks: CheerioHook[] = this.config
-      .additional_request_headers
-      ? [
+    const preNavigationHooks: CheerioHook[] =
+      this.config.additional_request_headers ?
+        [
           (crawlingContext) => {
             const { request } = crawlingContext;
             request.headers = {
@@ -51,6 +51,10 @@ export class CheerioCrawler extends BaseCrawler {
   }
 
   createCrawlerInstance(options: CheerioCrawlerOptions): CrawleeCheerioCrawler {
+    if (this.config.strategy === "pdf") {
+      options.additionalMimeTypes = ["application/pdf"];
+    }
+
     return new CrawleeCheerioCrawler(options);
   }
 

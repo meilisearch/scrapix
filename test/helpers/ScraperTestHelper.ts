@@ -5,8 +5,10 @@ import { MeiliSearch } from "meilisearch";
 export class ScraperTestHelper {
   private meiliClient: MeiliSearch;
   private scraperUrl: string;
+  private indexUid: string;
 
-  constructor() {
+  constructor(indexUid: string) {
+    this.indexUid = indexUid;
     this.meiliClient = new MeiliSearch({
       host: process.env.MEILI_HOST || "http://localhost:7700",
       apiKey: process.env.MEILI_MASTER_KEY || "masterKey",
@@ -44,14 +46,11 @@ export class ScraperTestHelper {
     }
   }
 
-  async waitForScrapingToComplete(
-    indexUid: string,
-    timeoutMs = 30000
-  ): Promise<void> {
+  async waitForScrapingToComplete(timeoutMs = 30000): Promise<void> {
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeoutMs) {
-      const tasks = await this.meiliClient.index(indexUid).getTasks();
+      const tasks = await this.meiliClient.index(this.indexUid).getTasks();
       const pendingTasks = tasks.results.filter(
         (task) => task.status !== "succeeded" && task.status !== "failed"
       );
@@ -67,39 +66,50 @@ export class ScraperTestHelper {
   }
 
   async getSearchResults(
-    indexUid: string,
-    query: string,
+    query: string = "",
+    options: Record<string, any> | undefined = undefined,
     maxAttempts = 10,
     delayMs = 1000
   ): Promise<any> {
     return await this.retryOperation(
       async () => {
-        const response = await this.meiliClient.index(indexUid).search(query);
-        return response;
+        const response = await this.meiliClient
+          .index(this.indexUid)
+          .search(query, options);
+
+        if (response.hits.length === 0) {
+          throw new Error("No search results found");
+        } else {
+          return response.hits;
+        }
       },
       maxAttempts,
       delayMs
     );
   }
 
-  async debugAllIndexes() {
-    const indexes = await this.meiliClient.getIndexes();
-    console.log("Indexes:", indexes);
-  }
-
-  async debugAllStats() {
-    const stats = await this.meiliClient.getStats();
+  async debugStats() {
+    const stats = await this.getStats();
     console.log("Stats:", stats);
   }
 
-  async getStats(
-    indexUid: string,
-    maxAttempts = 10,
-    delayMs = 1000
-  ): Promise<any> {
+  async debugSearchResults(
+    query: string = "",
+    options: Record<string, any> | undefined = undefined
+  ) {
+    const searchResults = await this.getSearchResults(query, options);
+    console.log("Search Results:", searchResults);
+  }
+
+  async debugSettings() {
+    const settings = await this.getSettings();
+    console.log("Settings:", settings);
+  }
+
+  async getStats(maxAttempts = 10, delayMs = 1000): Promise<any> {
     return await this.retryOperation(
       async () => {
-        const stats = await this.meiliClient.index(indexUid).getStats();
+        const stats = await this.meiliClient.index(this.indexUid).getStats();
         return stats;
       },
       maxAttempts,
@@ -107,14 +117,12 @@ export class ScraperTestHelper {
     );
   }
 
-  async getSettings(
-    indexUid: string,
-    maxAttempts = 10,
-    delayMs = 1000
-  ): Promise<any> {
+  async getSettings(maxAttempts = 10, delayMs = 1000): Promise<any> {
     return await this.retryOperation(
       async () => {
-        const settings = await this.meiliClient.index(indexUid).getSettings();
+        const settings = await this.meiliClient
+          .index(this.indexUid)
+          .getSettings();
         return settings;
       },
       maxAttempts,
@@ -122,9 +130,9 @@ export class ScraperTestHelper {
     );
   }
 
-  async deleteIndex(indexUid: string) {
+  async deleteIndex() {
     try {
-      await this.meiliClient.deleteIndex(indexUid);
+      await this.meiliClient.deleteIndex(this.indexUid);
     } catch (error) {
       // Ignore if index doesn't exist
     }

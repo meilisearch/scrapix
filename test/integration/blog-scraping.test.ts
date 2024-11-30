@@ -13,33 +13,34 @@ describe("Blog Scraping", () => {
     return testInstance.teardown();
   });
 
-  const runScrapingTest = async (useAsync = false) => {
+  it("scrap blog posts with no options", async () => {
     const config = createTestConfig({
       start_urls: ["http://playground:3000/blog"],
     });
 
-    await testInstance.runScraper(config, useAsync);
-
-    await testInstance.helper.debugAllIndexes();
-    await testInstance.helper.debugAllStats();
+    await testInstance.runScraper(config);
 
     // Test search results
-    const searchResults = await testInstance.helper.getSearchResults(
-      testInstance.currentIndexUid!,
-      ""
-    );
-    expect(searchResults?.hits).toHaveSearchResult({
+    const searchResults = await testInstance.helper.getSearchResults();
+    expect(searchResults).toHaveSearchResult({
       h3: "The Art and History of Camembert Cheese",
     });
 
     // Test stats
-    const stats = await testInstance.helper.getStats(
-      testInstance.currentIndexUid!
-    );
+    const stats = await testInstance.helper.getStats();
     expect(stats).toHaveDocumentCount(3); // Assuming 3 blog posts
-  };
+  });
 
-  it("should scrape blog posts correctly", async () => {
-    await runScrapingTest();
+  it("scrap blog posts with strategy schema", async () => {
+    const config = createTestConfig({
+      start_urls: ["http://playground:3000/blog"],
+      strategy: "schema",
+    });
+
+    await testInstance.runScraper(config);
+
+    await testInstance.helper.debugStats();
+    await testInstance.helper.debugSearchResults();
+    await testInstance.helper.debugSettings();
   });
 });

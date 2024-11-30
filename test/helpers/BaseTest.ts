@@ -12,11 +12,13 @@ export interface TestMetrics {
 
 export class BaseTest {
   public helper: ScraperTestHelper;
-  public currentIndexUid: string | null = null;
+  public currentIndexUid: string;
   private metrics: TestMetrics | null = null;
 
   constructor() {
-    this.helper = new ScraperTestHelper();
+    this.currentIndexUid = this.generateRandomIndexUid();
+
+    this.helper = new ScraperTestHelper(this.currentIndexUid);
   }
 
   async setup() {
@@ -29,7 +31,7 @@ export class BaseTest {
       if (this.metrics) {
         await this.saveMetrics();
       }
-      await this.helper.deleteIndex(this.currentIndexUid);
+      await this.helper.deleteIndex();
     }
   }
 
@@ -47,18 +49,16 @@ export class BaseTest {
   public async runScraper(config: Config, useAsync = false) {
     const startTime = Date.now();
 
-    // Ensure we have a random index UID
-    config.meilisearch_index_uid = this.generateRandomIndexUid();
-    this.currentIndexUid = config.meilisearch_index_uid;
+    config.meilisearch_index_uid = this.currentIndexUid;
 
     await this.helper.startScraping(config, useAsync);
 
     if (useAsync) {
-      await this.helper.waitForScrapingToComplete(this.currentIndexUid);
+      await this.helper.waitForScrapingToComplete();
     }
 
     const endTime = Date.now();
-    const stats = await this.helper.getStats(this.currentIndexUid);
+    const stats = await this.helper.getStats();
 
     this.metrics = {
       testName: expect.getState().currentTestName || "unknown",

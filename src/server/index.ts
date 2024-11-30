@@ -47,12 +47,17 @@ class Server {
       const config = ConfigSchema.parse(req.body);
       this.taskQueue.add(config);
       log.info("Asynchronous crawl task added to queue", { config });
-      res.send("Crawling task queued");
+      res.status(200).send({
+        status: "ok",
+        indexUid: config.meilisearch_index_uid,
+      });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       log.error("Invalid configuration received", { error });
-      res.status(400).send(`Invalid configuration: ${errorMessage}`);
+      res
+        .status(400)
+        .send({ status: "error", error: { message: errorMessage } });
     }
   }
 
@@ -63,22 +68,23 @@ class Server {
       const sender = new Sender(config);
       await sender.init();
 
-      const crawler = await Crawler.create(
-        config.crawler_type || "cheerio",
-        sender,
-        config
-      );
+      const crawler = await Crawler.create(config.crawler_type, sender, config);
 
       await Crawler.run(crawler);
       await sender.finish();
 
       log.info("Synchronous crawl completed", { config });
-      res.send("Crawling finished");
+      res.status(200).send({
+        status: "ok",
+        indexUid: config.meilisearch_index_uid,
+      });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       log.error("Invalid configuration or crawl error", { error });
-      res.status(400).send(`Error: ${errorMessage}`);
+      res
+        .status(400)
+        .send({ status: "error", error: { message: errorMessage } });
     }
   }
 
@@ -89,7 +95,7 @@ class Server {
    */
   __log_webhook(req: express.Request, res: express.Response) {
     log.info("Webhook received", { body: req.body });
-    res.send("Webhook acknowledged");
+    res.status(200).send({ status: "ok" });
   }
 }
 

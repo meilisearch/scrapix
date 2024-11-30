@@ -1,7 +1,8 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  testMatch: ["**/tests/integration/**/*.test.ts"],
-  setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"],
+  testMatch: ["**/test/integration/**/*.test.ts"],
+  setupFilesAfterEnv: ["./test/setup.ts"],
+  globalSetup: "./test/globalSetup.ts",
   testTimeout: 30000,
 };

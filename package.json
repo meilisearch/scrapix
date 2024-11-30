@@ -30,8 +30,7 @@
     "dev:server": "yarn tsc & node dist/src/server/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "ts-node tests/index.js",
-    "test:integration": "jest --config jest.integration.config.js",
+    "test": "jest --config jest.integration.config.js",
     "test:watch": "jest --watch"
   },
   "author": "It's not you it's me",
@@ -60,9 +59,11 @@
     "ts-node": "^10.9.2",
     "typescript": "5.7.2",
     "@jest/globals": "^29.7.0",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.0.0",
     "jest": "^29.7.0",
-    "ts-jest": "^29.1.2"
+    "ts-jest": "^29.1.2",
+    "axios": "^1.0.0",
+    "meilisearch": "^0.35.0"
   },
   "files": [
     "dist",

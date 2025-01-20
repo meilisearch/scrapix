@@ -1,6 +1,7 @@
 {
-  "start_urls": ["https://platform.openai.com/docs"],
-  "meilisearch_url": "localhost:7700",
-  "meilisearch_api_key": "masterKey",
-  "meilisearch_index_uid": "openai"
+  "start_urls": ["https://docs.stripe.com", "https://docs.stripe.com/payments"],
+  "meilisearch_url": "https://ms-5fb917c45cfa-68.lon.meilisearch.io",
+  "meilisearch_api_key": "e8bfc81e0c669a7d03635a6de6c375506b7a1521",
+  "meilisearch_index_uid": "stripe",
+  "crawler_type": "cheerio"
 }

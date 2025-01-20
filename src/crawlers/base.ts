@@ -61,7 +61,7 @@ export abstract class BaseCrawler {
     this.nb_page_crawled++;
     log.debug("Processing page", { url: request.loadedUrl });
 
-    const crawled_globs = this.__generate_globs(this.urls);
+    const crawled_globs = this.__generate_globs(this.config.start_urls);
     const excluded_crawled_globs = this.__generate_globs(
       this.config.urls_to_exclude || []
     );

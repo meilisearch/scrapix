@@ -78,10 +78,9 @@ export abstract class BaseCrawler {
       url: request.loadedUrl,
       shouldIndex: this.__match_globs(request.loadedUrl, indexed_globs),
       isExcluded: this.__match_globs(request.loadedUrl, excluded_indexed_globs),
-      isPaginated: this.__is_paginated_url(request.loadedUrl),
     });
 
-    if (request.loadedUrl && !this.__is_paginated_url(request.loadedUrl)) {
+    if (request.loadedUrl) {
       if (
         this.__match_globs(request.loadedUrl, indexed_globs) &&
         !this.__match_globs(request.loadedUrl, excluded_indexed_globs)
@@ -213,12 +212,6 @@ export abstract class BaseCrawler {
       ".swf",
     ];
     return fileExtensions.some((extension) => url.endsWith(extension));
-  }
-
-  protected __is_paginated_url(url: string) {
-    const urlObject = new URL(url);
-    const pathname = urlObject.pathname;
-    return /\/\d+\//.test(pathname);
   }
 
   protected __is404Page($: cheerio.CheerioAPI): boolean {

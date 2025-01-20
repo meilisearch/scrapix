@@ -11,7 +11,7 @@ interface PDFDocument {
   uid: string;
   url: string;
   title?: string;
-  content: string;
+  content?: string;
   page_number?: number;
   total_pages?: number;
   metadata?: {
@@ -29,13 +29,13 @@ interface PDFDocument {
 export default class PDFScraper {
   sender: Sender;
   settings: Config["meilisearch_settings"];
-  splitPerPage: boolean;
+  extractContent: boolean;
   extractMetadata: boolean;
 
   constructor(sender: Sender, config: Config) {
     log.info("Initializing PDFScraper", { config });
     this.sender = sender;
-    this.splitPerPage = config.pdf_settings?.split_per_page ?? false;
+    this.extractContent = config.pdf_settings?.extract_content ?? false;
     this.extractMetadata = config.pdf_settings?.extract_metadata ?? true;
 
     this.settings = config.meilisearch_settings || {
@@ -48,6 +48,11 @@ export default class PDFScraper {
     void this.sender.updateSettings(this.settings);
   }
   async get(url: string, _: CheerioAPI) {
+    if (!url.toLowerCase().endsWith(".pdf")) {
+      log.debug("Skipping non-PDF URL", { url });
+      return;
+    }
+
     try {
       log.debug("Starting PDF extraction", { url });
 
@@ -55,54 +60,19 @@ export default class PDFScraper {
       const buffer = await response.arrayBuffer();
       const pdf = await pdfParse(Buffer.from(buffer));
 
-      if (this.splitPerPage) {
-        // Extract each page separately
-        for (let i = 0; i < pdf.numpages; i++) {
-          const pageText = await this._extractPageText(
-            Buffer.from(buffer),
-            i + 1
-          );
-          await this._addData({
-            uid: uuidv4(),
-            url: `${url}#page=${i + 1}`,
-            content: pageText,
-            page_number: i + 1,
-            total_pages: pdf.numpages,
-            metadata: this.extractMetadata
-              ? this._extractMetadata(pdf)
-              : undefined,
-          });
-        }
-      } else {
-        // Extract entire PDF as one document
-        await this._addData({
-          uid: uuidv4(),
-          url,
-          content: pdf.text,
-          total_pages: pdf.numpages,
-          metadata: this.extractMetadata
-            ? this._extractMetadata(pdf)
-            : undefined,
-        });
-      }
+      // Extract entire PDF as one document
+      await this._addData({
+        uid: uuidv4(),
+        url,
+        content: this.extractContent ? pdf.text : undefined,
+        total_pages: pdf.numpages,
+        metadata: this.extractMetadata ? this._extractMetadata(pdf) : undefined,
+      });
 
       log.info("PDF extraction completed", { url });
     } catch (error) {
       log.error("PDF extraction failed", { error, url });
     }
-  }
-
-  private async _extractPageText(
-    buffer: Buffer,
-    pageNum: number
-  ): Promise<string> {
-    const options = {
-      pagerender: (pageData: any) => pageData.getTextContent(),
-      max: pageNum,
-      min: pageNum,
-    };
-    const data = await pdfParse(buffer, options);
-    return data.text;
   }
 
   private _extractMetadata(pdf: any) {

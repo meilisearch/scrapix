@@ -55,13 +55,13 @@ export const ConfigSchema = z.object({
 
   // Error Detection
   not_found_selectors: z.array(z.string()).nullish(),
-  keep_settings: z.boolean().optional().default(true),
+  keep_settings: z.boolean().optional().default(false),
 
   // PDF Configuration
   pdf_settings: z
     .object({
-      split_per_page: z.boolean().optional().default(false),
-      extract_metadata: z.boolean().optional().default(false),
+      extract_content: z.boolean().optional().default(false),
+      extract_metadata: z.boolean().optional().default(true),
     })
     .nullish(),
 });
@@ -516,11 +516,11 @@ export interface Config {
 
   /** PDF Strategy Configuration */
   pdf_settings?: {
-    /** Split PDF into separate documents per page
+    /** Extract PDF content
      *
      * @default false
      */
-    split_per_page?: boolean;
+    extract_content?: boolean;
 
     /** Extract PDF metadata
      *

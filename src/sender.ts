@@ -142,17 +142,36 @@ export class Sender {
   }
 
   async updateSettings(settings: Settings) {
-    if (
-      this.config.keep_settings === false ||
-      this.index_uid === this.initial_index_uid
-    ) {
+    try {
+      // Check if original index exists and we want to keep settings
+      if (this.config.keep_settings && this.initial_index_uid) {
+        try {
+          // Try to get existing settings from original index
+          const existingSettings = await this.client
+            .index(this.initial_index_uid)
+            .getSettings();
+
+          log.debug("Copying existing settings to temporary index");
+          const task = await this.client
+            .index(this.index_uid)
+            .updateSettings(existingSettings);
+          await this.client.waitForTask(task.taskUid);
+          return;
+        } catch (error) {
+          // If original index doesn't exist, fall through to applying new settings
+          log.debug("Original index not found, will apply new settings");
+        }
+      }
+
+      // Apply new settings if keep_settings is false or original index doesn't exist
       log.debug("Updating Meilisearch index settings");
       const task = await this.client
         .index(this.index_uid)
         .updateSettings(settings);
       await this.client.waitForTask(task.taskUid);
-    } else {
-      log.debug("Skipping settings update due to keep_settings=true");
+    } catch (error) {
+      log.error("Failed to update settings", { error });
+      throw error;
     }
   }
 

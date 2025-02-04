@@ -65,20 +65,12 @@ export abstract class BaseCrawler {
     const excluded_crawled_globs = this.__generate_globs(
       this.config.urls_to_exclude || []
     );
-    console.log("crawled_globs", crawled_globs);
     const indexed_globs = this.__generate_globs(
       this.config.urls_to_index || this.urls
     );
-    console.log("indexed_globs", indexed_globs);
     const excluded_indexed_globs = this.__generate_globs(
       this.config.urls_to_not_index || []
     );
-    console.log("excluded_indexed_globs", excluded_indexed_globs);
-    log.debug("URL matching check", {
-      url: request.loadedUrl,
-      shouldIndex: this.__match_globs(request.loadedUrl, indexed_globs),
-      isExcluded: this.__match_globs(request.loadedUrl, excluded_indexed_globs),
-    });
 
     if (request.loadedUrl) {
       if (

@@ -1,71 +1,81 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
+import * as dotenv from "dotenv";
+dotenv.config();
 
-import fs from 'fs'
-import yargs from 'yargs'
-import { hideBin } from 'yargs/helpers'
-import { Sender } from '../sender'
-import { Crawler } from '../crawler'
-import { Config } from '../types'
+import fs from "fs";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+import { Sender } from "../sender";
+import { Crawler } from "../crawlers";
+import { Config, ConfigSchema } from "../types";
 
 function getConfig({
   configPath,
   config,
 }: {
-  configPath?: string
-  config?: string
+  configPath?: string;
+  config?: string;
 }): Config {
+  let parsedConfig: unknown;
+
   if (configPath) {
-    return JSON.parse(
-      fs.readFileSync(configPath, { encoding: 'utf-8' })
-    ) as Config
+    parsedConfig = JSON.parse(
+      fs.readFileSync(configPath, { encoding: "utf-8" })
+    );
   } else if (config) {
-    return JSON.parse(config) as Config
+    parsedConfig = JSON.parse(config);
+  } else {
+    throw new Error("Please provide either --config or --configPath");
   }
 
-  throw new Error('Please provide either --config or --configPath')
+  // Validate config against schema
+  const validatedConfig = ConfigSchema.parse(parsedConfig);
+  return validatedConfig;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-;(async () => {
+(async () => {
   // Parse command line arguments and get a configuration file path
   const argv = await yargs(hideBin(process.argv))
-    .option('config', {
-      alias: 'c',
-      describe: 'configuration',
-      type: 'string',
+    .option("config", {
+      alias: "c",
+      describe: "configuration",
+      type: "string",
     })
-    .option('configPath', {
-      alias: 'p',
-      describe: 'Path to configuration file',
-      type: 'string',
+    .option("configPath", {
+      alias: "p",
+      describe: "Path to configuration file",
+      type: "string",
     })
-    .option('browserPath', {
-      alias: 'b',
-      describe: 'Path to browser binary',
-      type: 'string',
+    .option("browserPath", {
+      alias: "b",
+      describe: "Path to browser binary",
+      type: "string",
     })
     .check((argv) => {
       if (argv.config && argv.configPath) {
         throw new Error(
-          'You can only use either --config or --configPath, not both.'
-        )
+          "You can only use either --config or --configPath, not both."
+        );
       } else if (!argv.config && !argv.configPath) {
-        throw new Error('You must provide one of --config or --configPath.')
+        throw new Error("You must provide one of --config or --configPath.");
       }
-      return true
-    }).argv
+      return true;
+    }).argv;
 
-  const config = getConfig(argv)
-  const launchOptions = argv.browserPath
-    ? { executablePath: argv.browserPath }
-    : {}
+  const config = getConfig(argv);
+  const launchOptions =
+    argv.browserPath ? { executablePath: argv.browserPath } : {};
 
-  const sender = new Sender(config)
-  await sender.init()
+  const sender = new Sender(config);
+  await sender.init();
 
-  const crawler = new Crawler(sender, config, launchOptions)
+  const crawler = await Crawler.create(
+    config.crawler_type || "cheerio",
+    sender,
+    config,
+    config.launch_options || launchOptions
+  );
 
-  await crawler.run()
-  await sender.finish()
-})()
+  await Crawler.run(crawler);
+  await sender.finish();
+})();

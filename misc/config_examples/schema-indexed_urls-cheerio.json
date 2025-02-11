@@ -1,0 +1,14 @@
+{
+  "start_urls": [
+    "https://eu.patagonia.com/fr/fr/shop",
+    "https://eu.patagonia.com/fr/fr/product"
+  ],
+  "urls_to_index": ["https://eu.patagonia.com/fr/fr/product"],
+  "meilisearch_url": "localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "patagonia",
+  "strategy": "schema",
+  "primary_key": "sku",
+  "crawler_type": "cheerio",
+  "batch_size": 100
+}

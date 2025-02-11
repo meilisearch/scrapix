@@ -33,8 +33,7 @@ data:
   "meilisearch_url": "http://localhost:7700",
   "meilisearch_api_key": "masterKey",
   "meilisearch_index_uid": "google",
-  "strategy": "default", // docssearch, schema*, custom or default
-  "headless": true, // Use headless browser for rendering javascript websites
+  "strategy": "default", // docssearch, schema*, custom, markdown or default
   "batch_size": 1000, // pass null to send documents 1 at a time or specify a batch size
   "primary_key": null,
   "meilisearch_settings": {
@@ -51,6 +50,12 @@ data:
     ],
     "filterableAttributes": ["urls_tags"],
     "distinctAttribute": "url"
+  },
+  "selectors": { // Only for custom
+    "main_content": "main",
+    "headings": "h1, h2, h3",
+    "paragraphs": "p",
+    "custom_field": ".custom-class",
   },
   "schema_settings": {
     "only_type": "Product", // Product, Article, etc...
@@ -158,10 +163,6 @@ Name of the index on which the content is indexed.
 `stategy`
 default: `default`
 Scraping strategy: - `default` Scrapes the content of webpages, it is suitable for most use cases. It indexes the content in this format (show example) - `docssearch` Scrapes the content of webpages, it suits most use cases. The difference with the default strategy is that it indexes the content in a format compatible with docs-search bar - `schema` Scraps the [`schema`](https://schema.org/) information of your web app.
-
-`headless`
-default: `true`
-Wether or not the javascript should be loaded before scraping starts.
 
 `primary_key`
 The key name in your documents containing their unique identifier.

@@ -1,0 +1,13 @@
+{
+  "start_urls": ["https://example.com/documents/"],
+  "meilisearch_url": "localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "pdf-documents",
+  "crawler_type": "cheerio",
+  "strategy": "pdf",
+  "pdf_settings": {
+    "split_per_page": true,
+    "extract_metadata": true
+  },
+  "urls_to_index": ["https://example.com/documents/**/*.pdf"]
+}

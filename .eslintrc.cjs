@@ -39,6 +39,7 @@ module.exports = {
     '@typescript-eslint/return-await': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
+    "@typescript-eslint/no-unsafe-assignment": "off",
     '@typescript-eslint/member-delimiter-style': [
       'error',
       {

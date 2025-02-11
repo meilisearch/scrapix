@@ -75,7 +75,7 @@ export class Crawler {
       throw new Error("start_urls must be an array of strings");
     }
 
-    const requestQueue = await RequestQueue.open(JSON.stringify(urls));
+    const requestQueue = await RequestQueue.open('default');
 
     if (this.config?.use_sitemap == true) {
       try {

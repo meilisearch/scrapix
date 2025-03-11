@@ -22,6 +22,7 @@ export type Config = {
   user_agents?: string[]
   webhook_payload?: Record<string, any>
   webhook_url?: string
+  timeout?: number
 }
 
 export type SchemaSettings = {

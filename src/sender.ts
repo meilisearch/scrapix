@@ -11,6 +11,7 @@ export class Sender {
   index_uid: string
   batch_size: number
   client: MeiliSearch
+  timeout: number
   nb_documents_sent = 0
 
   constructor(config: Config) {
@@ -19,6 +20,7 @@ export class Sender {
     this.initial_index_uid = config.meilisearch_index_uid
     this.index_uid = this.initial_index_uid
     this.batch_size = config.batch_size || 1000
+    this.timeout = config.timeout || 100000
 
     //Create a Meilisearch client
     this.client = initMeilisearchClient({
@@ -116,7 +118,7 @@ export class Sender {
     const task = await this.client
       .index(this.index_uid)
       .addDocuments(this.queue)
-    await this.client.waitForTask(task.taskUid, { timeOutMs: 15000 })
+    await this.client.waitForTask(task.taskUid, { timeOutMs: this.timeout })
   }
 
   async __swapIndex() {

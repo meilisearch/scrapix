@@ -15,7 +15,7 @@ export type Config = {
   batch_size?: number
   meilisearch_settings?: Settings
   strategy?: 'docssearch' | 'default' | 'schema'
-  headless?: boolean
+  headless?: 'new' | 'old' | boolean
   urls_to_index?: string[] // Overwrites start_urls if present
   urls_to_not_index?: string[]
   schema_settings?: SchemaSettings

@@ -15,7 +15,11 @@ import SchemaScraper from './scrapers/schema'
 import { Sender } from './sender'
 import { Config, Scraper } from './types'
 import { Webhook } from './webhook.js'
-import { PuppeteerNode } from 'puppeteer-core'
+import {
+  BrowserLaunchArgumentOptions,
+  LaunchOptions,
+  PuppeteerNode,
+} from 'puppeteer-core'
 
 type DefaultHandler = Parameters<
   Parameters<Router<PuppeteerCrawlingContext>['addDefaultHandler']>[0]
@@ -90,12 +94,12 @@ export class Crawler {
       preNavigationHooks: preNavigationHooks,
       launchContext: {
         launchOptions: {
-          headless: this.config.headless || true,
+          headless: this.config.headless ?? 'new',
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
           ignoreDefaultArgs: ['--disable-extensions'],
           ...this.launchOptions,
         },
-      },
+      } as LaunchOptions & BrowserLaunchArgumentOptions,
     }
 
     if (puppeteerCrawlerOptions.launchContext && this.launcher) {

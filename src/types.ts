@@ -74,21 +74,10 @@ export const CrawlerTypes = {
   Playwright: "playwright" as CrawlerType,
 } as const;
 
-export type Strategy =
-  | "docssearch"
-  | "default"
-  | "schema"
-  | "markdown"
-  | "custom"
-  | "pdf";
+export type Strategy = "default";
 
 export const Strategies = {
-  DocSearch: "docssearch" as Strategy,
   Default: "default" as Strategy,
-  Schema: "schema" as Strategy,
-  Markdown: "markdown" as Strategy,
-  Custom: "custom" as Strategy,
-  PDF: "pdf" as Strategy,
 } as const;
 
 export interface Config {
@@ -150,36 +139,136 @@ export interface Config {
    *
    * Specifies how content should be extracted from crawled web pages. Available strategies:
    *
-   * `default`: General-purpose strategy suitable for any website. Creates a hierarchical
-   *   content structure by:
-   *   - Extracting all page text
-   *   - Using `p` tags for content blocks
-   *   - Building logical sections based on heading tags (h1-h6)
-   *   - Grouping content between headings into cohesive blocks
-   *
-   * `docssearch`: Compatible with DocSearch plugin implementations. Preserves content
-   *   structure for seamless integration with existing DocSearch frontend components.
-   *
-   * `schema`: Extracts structured data from Schema.org compatible websites, including:
-   *   - CMS-generated content
-   *   - E-commerce product pages
-   *   - Rich metadata and schema-defined content blocks
-   *   Ideal for sites with standardized semantic markup.
-   *
-   * `markdown`: Converts webpage content to Markdown format. Particularly useful for:
-   *   - Documentation sites
-   *   - Code-heavy content
-   *   - Building RAG (Retrieval Augmented Generation) systems
-   *
-   * `custom`: Provides full control over content extraction through user-defined selectors.
-   *   Allows precise targeting of specific page elements and custom data structures.
-   *
-   * `pdf`: Extracts PDF content and metadata. Particularly useful for:
-   *   - PDF documents
+   * `default`: Advanced strategy that combines multiple extraction methods with AI capabilities.
+   * Features can be enabled/disabled and configured independently:
+   * - Block splitting: Logical content blocks
+   * - Meta data extraction
+   * - Custom selectors
+   * - Markdown conversion
+   * - PDF extraction
+   * - Schema.org data
+   * - AI content extraction
+   * - AI summarization
    *
    * @default "default"
    */
   strategy?: Strategy;
+
+  /** Feature configuration for the default strategy */
+  features?: {
+    /** Block splitting configuration */
+    block_split?: {
+      /** Whether to enable block splitting */
+      activated?: boolean;
+      /** List of wildcards for pages to include */
+      include_pages?: string[];
+      /** List of wildcards for pages to exclude */
+      exclude_pages?: string[];
+    };
+
+    /** Meta data extraction configuration */
+    metadata?: {
+      /** Whether to enable meta data extraction */
+      activated?: boolean;
+      /** List of wildcards for pages to include */
+      include_pages?: string[];
+      /** List of wildcards for pages to exclude */
+      exclude_pages?: string[];
+    };
+
+    /** Custom selectors configuration */
+    custom_selectors?: {
+      /** Whether to enable custom selectors */
+      activated?: boolean;
+      /** List of wildcards for pages to include */
+      include_pages?: string[];
+      /** List of wildcards for pages to exclude */
+      exclude_pages?: string[];
+      /** Custom selectors to use */
+      selectors?: Record<string, string>;
+    };
+
+    /** Markdown conversion configuration */
+    markdown?: {
+      /** Whether to enable markdown conversion */
+      activated?: boolean;
+      /** List of wildcards for pages to include */
+      include_pages?: string[];
+      /** List of wildcards for pages to exclude */
+      exclude_pages?: string[];
+    };
+
+    /** PDF extraction configuration */
+    pdf?: {
+      /** Whether to enable PDF extraction */
+      activated?: boolean;
+      /** List of wildcards for pages to include */
+      include_pages?: string[];
+      /** List of wildcards for pages to exclude */
+      exclude_pages?: string[];
+      /** Whether to extract PDF content */
+      extract_content?: boolean;
+      /** Whether to extract PDF metadata */
+      extract_metadata?: boolean;
+    };
+
+    /** Schema.org extraction configuration */
+    schema?: {
+      /** Whether to enable schema extraction */
+      activated?: boolean;
+      /** List of wildcards for pages to include */
+      include_pages?: string[];
+      /** List of wildcards for pages to exclude */
+      exclude_pages?: string[];
+      /** Whether to convert dates to timestamp format */
+      convert_dates?: boolean;
+      /** Only extract data from the specified type */
+      only_type?: string | null;
+    };
+
+    /** AI extraction configuration */
+    ai_extraction?: {
+      /** Whether to enable AI extraction */
+      activated?: boolean;
+      /** List of wildcards for pages to include */
+      include_pages?: string[];
+      /** List of wildcards for pages to exclude */
+      exclude_pages?: string[];
+      /** AI model configuration */
+      model_config?: {
+        /** Model to use for extraction */
+        model?: string | null;
+        /** API key for the model */
+        api_key?: string | null;
+      };
+      /** List of prompts to use for extraction */
+      prompts?: Array<{
+        /** The prompt to use */
+        prompt: string;
+        /** List of wildcards for pages to include */
+        include_pages?: string[];
+        /** List of wildcards for pages to exclude */
+        exclude_pages?: string[];
+      }>;
+    };
+
+    /** AI summary configuration */
+    ai_summary?: {
+      /** Whether to enable AI summary */
+      activated?: boolean;
+      /** List of wildcards for pages to include */
+      include_pages?: string[];
+      /** List of wildcards for pages to exclude */
+      exclude_pages?: string[];
+      /** AI model configuration */
+      model_config?: {
+        /** Model to use for summary */
+        model?: string | null;
+        /** API key for the model */
+        api_key?: string | null;
+      };
+    };
+  };
 
   /** Custom CSS selectors for content extraction
    *
@@ -554,7 +643,7 @@ export type Scraper = {
 
 export type DocumentType =
   | DocsSearchDocument
-  | DefaultDocument
+  | BlockDocument
   | SchemaDocument
   | MarkdownDocument
   | CustomDocument;
@@ -589,22 +678,64 @@ export type DocsSearchDocument = HierarchyLevel &
     type: "lvl0" | "lvl1" | "lvl2" | "lvl3" | "lvl4" | "lvl5" | "content";
   };
 
-export type DefaultDocument = {
+export type BlockDocument = {
   url: string;
   uid?: string;
-  anchor: string;
-  title: string;
-  meta: Meta;
-  image_url?: string;
-  page_block: number;
-  urls_tags: string[];
+  title?: string | null;
+  meta?: Meta | null;
+  image_url?: string | null;
+  page_block?: number | null;
+  urls_tags?: string[] | null;
   h1?: string | null;
   h2?: string | null;
   h3?: string | null;
   h4?: string | null;
   h5?: string | null;
   h6?: string | null;
-  p: string[] | string;
+  p?: string[] | string | null;
+  anchor?: string | null;
+};
+
+export type FullPageDocument = {
+  uid?: string;
+  title?: string | null;
+  url: string;
+  domain?: string | null;
+  anchor?: string | null;
+  urls_tags?: string[] | null;
+
+  /// blocks of the page
+  blocks: {
+    h1?: string | null;
+    h2?: string | null;
+    h3?: string | null;
+    h4?: string | null;
+    h5?: string | null;
+    h6?: string | null;
+    p?: string[] | string | null;
+    anchor?: string | null;
+  }[];
+
+  /// optional metadata from feature metadata
+  metadata?: Record<string, string> | null;
+
+  /// optional custom selectors from feature custom_selectors
+  custom?: Record<string, string[] | string> | null;
+
+  /// optional markdown from feature markdown
+  markdown?: string | null;
+
+  /// optional pdfs from feature pdf
+  pdfs?: Array<{content?: string, metadata?: any}> | null;
+
+  /// optional schema from feature schema
+  schema?: Record<string, any> | null;
+
+  /// optional AI extraction results
+  ai_extraction?: Record<string, any> | null;
+
+  /// optional AI summary
+  ai_summary?: string | null;
 };
 
 export type SchemaDocument = {

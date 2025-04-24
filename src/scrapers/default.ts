@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { v4 as uuidv4 } from "uuid";
 import { Sender } from "../sender";
-import { Config, Meta, DefaultDocument } from "../types";
+import { Config, Meta, BlockDocument } from "../types";
 import { CheerioAPI } from "cheerio";
 import { Log } from "@crawlee/core";
 
@@ -38,7 +38,7 @@ export default class DefaultScraper {
       const title = $("title").text();
       const meta = this._extract_metadata_from_page($);
 
-      let data: DefaultDocument = {} as DefaultDocument;
+      let data: BlockDocument = {} as BlockDocument;
       let elems = $(
         "main h1, main h2, main h3, main h4, main h5, main h6, main p, main td, main li, main span"
       );
@@ -65,7 +65,7 @@ export default class DefaultScraper {
           if (data["h1"]) {
             await this._add_data(data);
             page_block++;
-            data = {} as DefaultDocument;
+            data = {} as BlockDocument;
           }
           data["h1"] = text;
           data.anchor = "#" + id;
@@ -73,7 +73,7 @@ export default class DefaultScraper {
           if (data["h2"]) {
             await this._add_data(data);
             page_block++;
-            data = { h1: data["h1"] } as DefaultDocument;
+            data = { h1: data["h1"] } as BlockDocument;
           }
           data.anchor = "#" + id;
           data["h2"] = text;
@@ -81,7 +81,7 @@ export default class DefaultScraper {
           if (data["h3"]) {
             await this._add_data(data);
             page_block++;
-            data = { h1: data["h1"], h2: data["h2"] } as DefaultDocument;
+            data = { h1: data["h1"], h2: data["h2"] } as BlockDocument;
           }
           data.anchor = "#" + id;
           data["h3"] = text;
@@ -93,7 +93,7 @@ export default class DefaultScraper {
               h1: data["h1"],
               h2: data["h2"],
               h3: data["h3"],
-            } as DefaultDocument;
+            } as BlockDocument;
           }
           data.anchor = "#" + id;
           data["h4"] = text;
@@ -106,7 +106,7 @@ export default class DefaultScraper {
               h2: data["h2"],
               h3: data["h3"],
               h4: data["h4"],
-            } as DefaultDocument;
+            } as BlockDocument;
           }
           data.anchor = "#" + id;
           data["h5"] = text;
@@ -120,7 +120,7 @@ export default class DefaultScraper {
               h3: data["h3"],
               h4: data["h4"],
               h5: data["h5"],
-            } as DefaultDocument;
+            } as BlockDocument;
           }
           data.anchor = "#" + id;
           data["h6"] = text;
@@ -149,7 +149,7 @@ export default class DefaultScraper {
     }
   }
 
-  async _add_data(data: DefaultDocument) {
+  async _add_data(data: BlockDocument) {
     try {
       if (Array.isArray(data["p"])) {
         data["p"] = data["p"].join("\n");

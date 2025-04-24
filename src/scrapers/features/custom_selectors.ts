@@ -1,0 +1,37 @@
+import { CheerioAPI } from "cheerio";
+import { Config, FullPageDocument } from "../../types";
+
+export async function processCustomSelectors($: CheerioAPI, document: FullPageDocument, config: Config): Promise<FullPageDocument> {
+  if (!config.features?.custom_selectors?.activated) {
+    return document;
+  }
+
+  const custom: Record<string, string[] | string> = {};
+
+  // Process each custom selector
+  for (const [key, selector] of Object.entries(config.features?.custom_selectors?.selectors || {})) {
+    const elements = $(selector);
+    const values: string[] = [];
+
+    elements.each((_, element) => {
+      const text = $(element).text().trim();
+      if (text) {
+        values.push(text);
+      }
+    });
+
+    if (values.length > 0) {
+      if (values.length === 1) {
+        custom[key] = values[0];
+      } else {
+        custom[key] = values;
+      }
+    }
+  }
+
+  // Merge custom data with document
+  return {
+    ...document,
+    ...custom
+  };
+} 

@@ -2,6 +2,8 @@ import { CheerioAPI } from 'cheerio'
 import { Config, FullPageDocument } from '../../types'
 import { v4 as uuidv4 } from 'uuid'
 
+type Block = FullPageDocument['blocks'][0]
+
 export async function processFullPage(
   $: CheerioAPI,
   url: string,
@@ -18,29 +20,89 @@ export async function processFullPage(
     elems = $('h1, h2, h3, h4, h5, h6, p, td, li, span')
   }
 
-  const blocks: FullPageDocument['blocks'] = []
-  let currentBlock: FullPageDocument['blocks'][0] = {}
+  const blocks: Block[] = []
+  let currentBlock: Block = {}
 
   for (const elem of elems.toArray()) {
     const tag = elem.tagName.toUpperCase()
     const text = cleanText($(elem).text())
-    // const _id = ($(elem).attr('id') as string) || ''
+    const id = $(elem).attr('id') || ''
 
-    if (tag.startsWith('H')) {
-      // If we have content in the current block, save it
+    if (tag === 'H1') {
       if (Object.keys(currentBlock).length > 0) {
         blocks.push(currentBlock)
         currentBlock = {}
       }
-
-      // Update the current heading level
-      const level = parseInt(tag[1])
-      ;(currentBlock as any)[`h${level}`] = text
-
-      // Clear lower level headings
-      for (let i = level + 1; i <= 6; i++) {
-        ;(currentBlock as any)[`h${i}`] = null
+      currentBlock.h1 = text
+      currentBlock.anchor = id ? `#${id}` : null
+      currentBlock.h2 = null
+      currentBlock.h3 = null
+      currentBlock.h4 = null
+      currentBlock.h5 = null
+      currentBlock.h6 = null
+    } else if (tag === 'H2') {
+      if (Object.keys(currentBlock).length > 0) {
+        blocks.push(currentBlock)
+        currentBlock = { h1: currentBlock.h1 }
       }
+      currentBlock.h2 = text
+      currentBlock.anchor = id ? `#${id}` : null
+      currentBlock.h3 = null
+      currentBlock.h4 = null
+      currentBlock.h5 = null
+      currentBlock.h6 = null
+    } else if (tag === 'H3') {
+      if (Object.keys(currentBlock).length > 0) {
+        blocks.push(currentBlock)
+        currentBlock = {
+          h1: currentBlock.h1,
+          h2: currentBlock.h2,
+        }
+      }
+      currentBlock.h3 = text
+      currentBlock.anchor = id ? `#${id}` : null
+      currentBlock.h4 = null
+      currentBlock.h5 = null
+      currentBlock.h6 = null
+    } else if (tag === 'H4') {
+      if (Object.keys(currentBlock).length > 0) {
+        blocks.push(currentBlock)
+        currentBlock = {
+          h1: currentBlock.h1,
+          h2: currentBlock.h2,
+          h3: currentBlock.h3,
+        }
+      }
+      currentBlock.h4 = text
+      currentBlock.anchor = id ? `#${id}` : null
+      currentBlock.h5 = null
+      currentBlock.h6 = null
+    } else if (tag === 'H5') {
+      if (Object.keys(currentBlock).length > 0) {
+        blocks.push(currentBlock)
+        currentBlock = {
+          h1: currentBlock.h1,
+          h2: currentBlock.h2,
+          h3: currentBlock.h3,
+          h4: currentBlock.h4,
+        }
+      }
+      currentBlock.h5 = text
+      currentBlock.anchor = id ? `#${id}` : null
+      currentBlock.h6 = null
+    } else if (tag === 'H6') {
+      if (Object.keys(currentBlock).length > 0) {
+        blocks.push(currentBlock)
+        currentBlock = {
+          h1: currentBlock.h1,
+          h2: currentBlock.h2,
+          h3: currentBlock.h3,
+          h4: currentBlock.h4,
+          h5: currentBlock.h5,
+        }
+      }
+      currentBlock.h6 = text
+      currentBlock.anchor = id ? `#${id}` : null
     } else if (tag === 'P' || tag === 'TD' || tag === 'LI' || tag === 'SPAN') {
       if (!currentBlock.p) {
         currentBlock.p = []
@@ -60,13 +122,24 @@ export async function processFullPage(
     blocks.push(currentBlock)
   }
 
+  // Convert p arrays to strings in the final blocks
+  const processedBlocks = blocks.map((block) => {
+    if (Array.isArray(block.p)) {
+      return {
+        ...block,
+        p: block.p.join('\n'),
+      } as Block
+    }
+    return block
+  })
+
   return {
     uid: uuidv4(),
     url,
     domain,
     title,
     urls_tags,
-    blocks,
+    blocks: processedBlocks,
   }
 }
 

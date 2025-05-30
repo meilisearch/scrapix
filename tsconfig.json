@@ -1,8 +1,9 @@
 {
   "extends": "@apify/tsconfig",
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "commonjs",
     "target": "ES2022",
+    "moduleResolution": "node",
     "lib": ["ES2019", "DOM"],
     "outDir": "./dist/",
     "allowJs": true,

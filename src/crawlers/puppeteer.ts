@@ -6,25 +6,25 @@ import {
   PuppeteerCrawlingContext,
   Router,
   RequestQueue,
-} from "crawlee";
-import { BaseCrawler } from "./base";
-import { Sender } from "../sender";
-import { Config } from "../types";
+} from 'crawlee'
+import { BaseCrawler } from './base'
+import { Sender } from '../sender'
+import { Config } from '../types'
 
 export class PuppeteerCrawler extends BaseCrawler {
-  launchOptions: Record<string, any> = {};
+  launchOptions: Record<string, any> = {}
 
   constructor(
     sender: Sender,
     config: Config,
     launchOptions: Record<string, any> = {}
   ) {
-    super(sender, config);
-    this.launchOptions = launchOptions;
+    super(sender, config)
+    this.launchOptions = launchOptions
   }
 
   createRouter(): Router<PuppeteerCrawlingContext> {
-    return createPuppeteerRouter();
+    return createPuppeteerRouter()
   }
 
   getCrawlerOptions(
@@ -42,12 +42,12 @@ export class PuppeteerCrawler extends BaseCrawler {
                     ...request.headers(),
                     ...this.config.additional_request_headers,
                   },
-                });
+                })
               }
-            );
+            )
           },
         ]
-      : [];
+      : []
 
     return {
       requestQueue,
@@ -59,24 +59,27 @@ export class PuppeteerCrawler extends BaseCrawler {
       ...(this.config.max_requests_per_minute && {
         maxRequestsPerMinute: this.config.max_requests_per_minute,
       }),
+      ...(this.proxyConfiguration && {
+        proxyConfiguration: this.proxyConfiguration,
+      }),
       launchContext: {
         launchOptions: {
           headless: true,
-          args: ["--no-sandbox", "--disable-setuid-sandbox"],
-          ignoreDefaultArgs: ["--disable-extensions"],
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          ignoreDefaultArgs: ['--disable-extensions'],
           ...this.launchOptions,
         },
       },
-    };
+    }
   }
 
   createCrawlerInstance(
     options: PuppeteerCrawlerOptions
   ): CrawleePuppeteerCrawler {
-    return new CrawleePuppeteerCrawler(options);
+    return new CrawleePuppeteerCrawler(options)
   }
 
   override async defaultHandler(context: PuppeteerCrawlingContext) {
-    await this.handlePage(context);
+    await this.handlePage(context)
   }
 }

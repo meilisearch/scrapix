@@ -6,27 +6,27 @@ import {
   PlaywrightCrawlingContext,
   Router,
   RequestQueue,
-} from "crawlee";
-import { LaunchOptions } from "playwright";
+} from 'crawlee'
+import { LaunchOptions } from 'playwright'
 // import { firefox } from "playwright";
-import { BaseCrawler } from "./base";
-import { Sender } from "../sender";
-import { Config } from "../types";
+import { BaseCrawler } from './base'
+import { Sender } from '../sender'
+import { Config } from '../types'
 
 export class PlaywrightCrawler extends BaseCrawler {
-  launchOptions: LaunchOptions = {};
+  launchOptions: LaunchOptions = {}
 
   constructor(
     sender: Sender,
     config: Config,
     launchOptions: LaunchOptions = {}
   ) {
-    super(sender, config);
-    this.launchOptions = launchOptions;
+    super(sender, config)
+    this.launchOptions = launchOptions
   }
 
   createRouter(): Router<PlaywrightCrawlingContext> {
-    return createPlaywrightRouter();
+    return createPlaywrightRouter()
   }
 
   getCrawlerOptions(
@@ -37,18 +37,18 @@ export class PlaywrightCrawler extends BaseCrawler {
       .additional_request_headers
       ? [
           async (crawlingContext) => {
-            await crawlingContext.page.route("**/*", async (route) => {
-              const request = route.request();
+            await crawlingContext.page.route('**/*', async (route) => {
+              const request = route.request()
               await route.continue({
                 headers: {
                   ...request.headers(),
                   ...this.config.additional_request_headers,
                 },
-              });
-            });
+              })
+            })
           },
         ]
-      : [];
+      : []
 
     return {
       requestQueue,
@@ -60,21 +60,24 @@ export class PlaywrightCrawler extends BaseCrawler {
       ...(this.config.max_requests_per_minute && {
         maxRequestsPerMinute: this.config.max_requests_per_minute,
       }),
+      ...(this.proxyConfiguration && {
+        proxyConfiguration: this.proxyConfiguration,
+      }),
       launchContext: {
         launchOptions: {
           ...this.launchOptions,
         },
       },
-    };
+    }
   }
 
   createCrawlerInstance(
     options: PlaywrightCrawlerOptions
   ): CrawleePlaywrightCrawler {
-    return new CrawleePlaywrightCrawler(options);
+    return new CrawleePlaywrightCrawler(options)
   }
 
   override async defaultHandler(context: PlaywrightCrawlingContext) {
-    await this.handlePage(context);
+    await this.handlePage(context)
   }
 }

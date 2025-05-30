@@ -1,6 +1,6 @@
-import { Settings } from "meilisearch";
-import { CheerioAPI } from "cheerio";
-import { z } from "zod";
+import { Settings } from 'meilisearch'
+import { CheerioAPI } from 'cheerio'
+import { z } from 'zod'
 
 export const ConfigSchema = z.object({
   // Required Meilisearch Configuration
@@ -11,15 +11,23 @@ export const ConfigSchema = z.object({
   // Required Crawling Configuration
   start_urls: z.array(z.string().url()),
   crawler_type: z
-    .enum(["cheerio", "puppeteer", "playwright"])
+    .enum(['cheerio', 'puppeteer', 'playwright'])
     .optional()
-    .default("cheerio"),
+    .default('cheerio'),
+
+  // Proxy Configuration
+  proxy_configuration: z
+    .object({
+      proxyUrls: z.array(z.string().url()).optional(),
+      tieredProxyUrls: z.array(z.array(z.string().url())).optional(),
+    })
+    .optional(),
 
   // Content Extraction Configuration
   strategy: z
-    .enum(["docssearch", "default", "schema", "markdown", "custom", "pdf"])
+    .enum(['docssearch', 'default', 'schema', 'markdown', 'custom', 'pdf'])
     .optional()
-    .default("default"),
+    .default('default'),
   selectors: z.record(z.union([z.string(), z.array(z.string())])).nullish(),
   schema_settings: z
     .object({
@@ -64,33 +72,33 @@ export const ConfigSchema = z.object({
       extract_metadata: z.boolean().optional().default(true),
     })
     .nullish(),
-});
+})
 
-export type CrawlerType = "cheerio" | "puppeteer" | "playwright";
+export type CrawlerType = 'cheerio' | 'puppeteer' | 'playwright'
 
 export const CrawlerTypes = {
-  Cheerio: "cheerio" as CrawlerType,
-  Puppeteer: "puppeteer" as CrawlerType,
-  Playwright: "playwright" as CrawlerType,
-} as const;
+  Cheerio: 'cheerio' as CrawlerType,
+  Puppeteer: 'puppeteer' as CrawlerType,
+  Playwright: 'playwright' as CrawlerType,
+} as const
 
-export type Strategy = "default";
+export type Strategy = 'default'
 
 export const Strategies = {
-  Default: "default" as Strategy,
-} as const;
+  Default: 'default' as Strategy,
+} as const
 
 export interface Config {
   /** Required Meilisearch Configuration */
 
   /** The unique identifier for the Meilisearch index */
-  meilisearch_index_uid: string;
+  meilisearch_index_uid: string
 
   /** The URL of the Meilisearch server instance */
-  meilisearch_url: string;
+  meilisearch_url: string
 
   /** The API key for authenticating with Meilisearch */
-  meilisearch_api_key: string;
+  meilisearch_api_key: string
 
   /** Required Crawling Configuration */
 
@@ -103,7 +111,7 @@ export interface Config {
    * Example: If start_urls = ["https://example.com"], only URLs beginning with
    * "https://example.com" will be crawled
    */
-  start_urls: string[];
+  start_urls: string[]
 
   /** Type of crawler to use for web scraping
    *
@@ -131,144 +139,175 @@ export interface Config {
    *
    * @default "cheerio"
    */
-  crawler_type?: CrawlerType;
-
-  /** Content Extraction Configuration */
+  crawler_type?: CrawlerType
 
   /** Content extraction strategy to use
    *
-   * Specifies how content should be extracted from crawled web pages. Available strategies:
-   *
-   * `default`: Advanced strategy that combines multiple extraction methods with AI capabilities.
-   * Features can be enabled/disabled and configured independently:
-   * - Block splitting: Logical content blocks
-   * - Meta data extraction
-   * - Custom selectors
-   * - Markdown conversion
-   * - PDF extraction
-   * - Schema.org data
-   * - AI content extraction
-   * - AI summarization
+   * Specifies how content should be extracted from pages:
+   * - `default`: Standard content extraction
+   * - `pdf`: PDF document extraction
+   * - `docssearch`: Documentation search optimized extraction
+   * - `schema`: Schema.org structured data extraction
+   * - `markdown`: Markdown content extraction
+   * - `custom`: Custom selector-based extraction
    *
    * @default "default"
    */
-  strategy?: Strategy;
+  strategy?: 'default' | 'pdf' | 'docssearch' | 'schema' | 'markdown' | 'custom'
+
+  /** Proxy Configuration
+   *
+   * Configuration for using proxies with the crawler. This helps avoid IP blocking
+   * and enables more reliable web scraping.
+   *
+   * Example:
+   * ```ts
+   * proxy_configuration: {
+   *   proxyUrls: [
+   *     'http://proxy-1.com',
+   *     'http://proxy-2.com'
+   *   ]
+   * }
+   * ```
+   *
+   * Or using tiered proxies:
+   * ```ts
+   * proxy_configuration: {
+   *   tieredProxyUrls: [
+   *     [null], // First try without proxy
+   *     ['http://okay-proxy.com'],
+   *     ['http://better-proxy.com', 'http://better-proxy-2.com'],
+   *     ['http://premium-proxy.com']
+   *   ]
+   * }
+   * ```
+   *
+   * @default null
+   */
+  proxy_configuration?: {
+    /** List of proxy URLs to rotate through */
+    proxyUrls?: string[]
+    /** Tiered list of proxy URLs for automatic proxy rotation based on blocking */
+    tieredProxyUrls?: string[][]
+  } | null
+
+  /** Content Extraction Configuration */
 
   /** Feature configuration for the default strategy */
   features?: {
     /** Block splitting configuration */
     block_split?: {
       /** Whether to enable block splitting */
-      activated?: boolean;
+      activated?: boolean
       /** List of wildcards for pages to include */
-      include_pages?: string[];
+      include_pages?: string[]
       /** List of wildcards for pages to exclude */
-      exclude_pages?: string[];
-    };
+      exclude_pages?: string[]
+    }
 
     /** Meta data extraction configuration */
     metadata?: {
       /** Whether to enable meta data extraction */
-      activated?: boolean;
+      activated?: boolean
       /** List of wildcards for pages to include */
-      include_pages?: string[];
+      include_pages?: string[]
       /** List of wildcards for pages to exclude */
-      exclude_pages?: string[];
-    };
+      exclude_pages?: string[]
+    }
 
     /** Custom selectors configuration */
     custom_selectors?: {
       /** Whether to enable custom selectors */
-      activated?: boolean;
+      activated?: boolean
       /** List of wildcards for pages to include */
-      include_pages?: string[];
+      include_pages?: string[]
       /** List of wildcards for pages to exclude */
-      exclude_pages?: string[];
+      exclude_pages?: string[]
       /** Custom selectors to use */
-      selectors?: Record<string, string>;
-    };
+      selectors?: Record<string, string>
+    }
 
     /** Markdown conversion configuration */
     markdown?: {
       /** Whether to enable markdown conversion */
-      activated?: boolean;
+      activated?: boolean
       /** List of wildcards for pages to include */
-      include_pages?: string[];
+      include_pages?: string[]
       /** List of wildcards for pages to exclude */
-      exclude_pages?: string[];
-    };
+      exclude_pages?: string[]
+    }
 
     /** PDF extraction configuration */
     pdf?: {
       /** Whether to enable PDF extraction */
-      activated?: boolean;
+      activated?: boolean
       /** List of wildcards for pages to include */
-      include_pages?: string[];
+      include_pages?: string[]
       /** List of wildcards for pages to exclude */
-      exclude_pages?: string[];
+      exclude_pages?: string[]
       /** Whether to extract PDF content */
-      extract_content?: boolean;
+      extract_content?: boolean
       /** Whether to extract PDF metadata */
-      extract_metadata?: boolean;
-    };
+      extract_metadata?: boolean
+    }
 
     /** Schema.org extraction configuration */
     schema?: {
       /** Whether to enable schema extraction */
-      activated?: boolean;
+      activated?: boolean
       /** List of wildcards for pages to include */
-      include_pages?: string[];
+      include_pages?: string[]
       /** List of wildcards for pages to exclude */
-      exclude_pages?: string[];
+      exclude_pages?: string[]
       /** Whether to convert dates to timestamp format */
-      convert_dates?: boolean;
+      convert_dates?: boolean
       /** Only extract data from the specified type */
-      only_type?: string | null;
-    };
+      only_type?: string | null
+    }
 
     /** AI extraction configuration */
     ai_extraction?: {
       /** Whether to enable AI extraction */
-      activated?: boolean;
+      activated?: boolean
       /** List of wildcards for pages to include */
-      include_pages?: string[];
+      include_pages?: string[]
       /** List of wildcards for pages to exclude */
-      exclude_pages?: string[];
+      exclude_pages?: string[]
       /** AI model configuration */
       model_config?: {
         /** Model to use for extraction */
-        model?: string | null;
+        model?: string | null
         /** API key for the model */
-        api_key?: string | null;
-      };
+        api_key?: string | null
+      }
       /** List of prompts to use for extraction */
       prompts?: Array<{
         /** The prompt to use */
-        prompt: string;
+        prompt: string
         /** List of wildcards for pages to include */
-        include_pages?: string[];
+        include_pages?: string[]
         /** List of wildcards for pages to exclude */
-        exclude_pages?: string[];
-      }>;
-    };
+        exclude_pages?: string[]
+      }>
+    }
 
     /** AI summary configuration */
     ai_summary?: {
       /** Whether to enable AI summary */
-      activated?: boolean;
+      activated?: boolean
       /** List of wildcards for pages to include */
-      include_pages?: string[];
+      include_pages?: string[]
       /** List of wildcards for pages to exclude */
-      exclude_pages?: string[];
+      exclude_pages?: string[]
       /** AI model configuration */
       model_config?: {
         /** Model to use for summary */
-        model?: string | null;
+        model?: string | null
         /** API key for the model */
-        api_key?: string | null;
-      };
-    };
-  };
+        api_key?: string | null
+      }
+    }
+  }
 
   /** Custom CSS selectors for content extraction
    *
@@ -285,7 +324,7 @@ export interface Config {
    *
    * @default null
    */
-  selectors?: Record<string, string | string[]> | null;
+  selectors?: Record<string, string | string[]> | null
 
   /** Settings for schema-based extraction
    * Those settings are usefull only if strategy is set to `schema`.
@@ -296,7 +335,7 @@ export interface Config {
    *
    * @default null
    */
-  schema_settings?: SchemaSettings | null;
+  schema_settings?: SchemaSettings | null
 
   /** URL Control Configuration */
 
@@ -315,7 +354,7 @@ export interface Config {
    * Default: No URLs will be excluded.
    * @default null
    */
-  urls_to_exclude?: string[] | null;
+  urls_to_exclude?: string[] | null
 
   /** Specific URLs to index (overrides start_urls if provided)
    *
@@ -344,7 +383,7 @@ export interface Config {
    *
    * @default null
    */
-  urls_to_index?: string[] | null;
+  urls_to_index?: string[] | null
 
   /** URLs to exclude from indexing
    *
@@ -373,7 +412,7 @@ export interface Config {
    *
    * @default null
    */
-  urls_to_not_index?: string[] | null;
+  urls_to_not_index?: string[] | null
 
   /** Whether to use sitemap for URL discovery
    *
@@ -387,7 +426,7 @@ export interface Config {
    *
    * @default false
    */
-  use_sitemap?: boolean;
+  use_sitemap?: boolean
 
   /** Optional custom sitemap URLs
    *
@@ -409,7 +448,7 @@ export interface Config {
    *
    * @default null
    */
-  sitemap_urls?: string[] | null;
+  sitemap_urls?: string[] | null
 
   /** Performance Configuration */
 
@@ -420,14 +459,14 @@ export interface Config {
    *
    * @default Infinity
    */
-  max_concurrency?: number | null;
+  max_concurrency?: number | null
 
   /** Maximum requests per minute rate limit
    *
    * This controls how many total requests can be made per minute. It counts the amount of requests done every second, to ensure there is not a burst of requests at the `maxConcurrency` limit followed by a long period of waiting. By default, it is set to `Infinity` which means the crawler will keep going up to the `maxConcurrency`. We would set this if we wanted our crawler to work at full throughput, but also not keep hitting the website we're crawling with non-stop requests.
    * @default Infinity
    */
-  max_requests_per_minute?: number | null;
+  max_requests_per_minute?: number | null
 
   /** Number of documents to index in each batch
    *
@@ -446,7 +485,7 @@ export interface Config {
    * Default: 1000 documents per batch
    * @default 1000
    */
-  batch_size?: number | null;
+  batch_size?: number | null
 
   /** Meilisearch Configuration */
 
@@ -465,7 +504,7 @@ export interface Config {
    *
    * Default: A random UUID will be generated and stored in the `uid` field.
    */
-  primary_key?: string | null;
+  primary_key?: string | null
 
   /** Custom Meilisearch index settings.
    * These settings will be applied to the Meilisearch index each time the crawler runs.
@@ -493,7 +532,7 @@ export interface Config {
    *
    * Default: Strategy-specific settings will be applied.
    */
-  meilisearch_settings?: Settings | null;
+  meilisearch_settings?: Settings | null
 
   /** Request Configuration */
 
@@ -516,20 +555,20 @@ export interface Config {
    * Default: No additional headers will be added.
    * @default null
    */
-  additional_request_headers?: Record<string, string> | null;
+  additional_request_headers?: Record<string, string> | null
 
   /** Custom User-Agent strings to rotate through
    * Used to send a custom user agent to Meilisearch.
    *
    * @default []
    */
-  user_agents?: string[];
+  user_agents?: string[]
 
   /** Custom Puppeteer instance
    * Not useful for most users, but can be used to pass custom options to the Puppeteer instance.
    * @default null
    */
-  launch_options?: Record<string, any> | null;
+  launch_options?: Record<string, any> | null
 
   /** Webhook Configuration */
 
@@ -554,7 +593,7 @@ export interface Config {
    *
    * @default null
    */
-  webhook_url?: string | null;
+  webhook_url?: string | null
 
   /** Custom payload to include in webhook requests
    *
@@ -575,7 +614,7 @@ export interface Config {
    *
    * @default {}
    */
-  webhook_payload?: Record<string, any> | null;
+  webhook_payload?: Record<string, any> | null
 
   /** Error Detection */
 
@@ -591,7 +630,7 @@ export interface Config {
    *
    * @default null
    */
-  not_found_selectors?: string[] | null;
+  not_found_selectors?: string[] | null
 
   /** Whether to keep existing Meilisearch index settings
    *
@@ -601,22 +640,7 @@ export interface Config {
    *
    * @default true
    */
-  keep_settings?: boolean | null;
-
-  /** PDF Strategy Configuration */
-  pdf_settings?: {
-    /** Extract PDF content
-     *
-     * @default false
-     */
-    extract_content?: boolean;
-
-    /** Extract PDF metadata
-     *
-     * @default false
-     */
-    extract_metadata?: boolean;
-  } | null;
+  keep_settings?: boolean | null
 }
 
 export type SchemaSettings = {
@@ -626,7 +650,7 @@ export type SchemaSettings = {
    *
    * @default false
    */
-  convert_dates?: boolean;
+  convert_dates?: boolean
 
   /** Only extract data from the specified type
    *
@@ -634,130 +658,130 @@ export type SchemaSettings = {
    *
    * @default null
    */
-  only_type?: string | null;
-};
+  only_type?: string | null
+}
 
 export type Scraper = {
-  get: (url: string, $: CheerioAPI) => Promise<void>;
-};
+  get: (url: string, $: CheerioAPI) => Promise<void>
+}
 
 export type DocumentType =
   | DocsSearchDocument
   | BlockDocument
   | SchemaDocument
   | MarkdownDocument
-  | CustomDocument;
+  | CustomDocument
 
 export type HierarchyLevel = {
-  hierarchy_lvl0?: string | null;
-  hierarchy_lvl1?: string | null;
-  hierarchy_lvl2?: string | null;
-  hierarchy_lvl3?: string | null;
-  hierarchy_lvl4?: string | null;
-  hierarchy_lvl5?: string | null;
-};
+  hierarchy_lvl0?: string | null
+  hierarchy_lvl1?: string | null
+  hierarchy_lvl2?: string | null
+  hierarchy_lvl3?: string | null
+  hierarchy_lvl4?: string | null
+  hierarchy_lvl5?: string | null
+}
 
 export type RadioHierarchyLevel = {
-  hierarchy_radio_lvl0?: string | null;
-  hierarchy_radio_lvl1?: string | null;
-  hierarchy_radio_lvl2?: string | null;
-  hierarchy_radio_lvl3?: string | null;
-  hierarchy_radio_lvl4?: string | null;
-  hierarchy_radio_lvl5?: string | null;
-};
+  hierarchy_radio_lvl0?: string | null
+  hierarchy_radio_lvl1?: string | null
+  hierarchy_radio_lvl2?: string | null
+  hierarchy_radio_lvl3?: string | null
+  hierarchy_radio_lvl4?: string | null
+  hierarchy_radio_lvl5?: string | null
+}
 
-export type HTag = "H1" | "H2" | "H3" | "H4" | "H5";
+export type HTag = 'H1' | 'H2' | 'H3' | 'H4' | 'H5'
 
 export type DocsSearchDocument = HierarchyLevel &
   RadioHierarchyLevel & {
-    url: string;
-    uid?: string;
-    anchor: string;
-    content?: string[] | string;
-    level: number;
-    type: "lvl0" | "lvl1" | "lvl2" | "lvl3" | "lvl4" | "lvl5" | "content";
-  };
+    url: string
+    uid?: string
+    anchor: string
+    content?: string[] | string
+    level: number
+    type: 'lvl0' | 'lvl1' | 'lvl2' | 'lvl3' | 'lvl4' | 'lvl5' | 'content'
+  }
 
 export type BlockDocument = {
-  url: string;
-  uid?: string;
-  title?: string | null;
-  meta?: Meta | null;
-  image_url?: string | null;
-  page_block?: number | null;
-  urls_tags?: string[] | null;
-  h1?: string | null;
-  h2?: string | null;
-  h3?: string | null;
-  h4?: string | null;
-  h5?: string | null;
-  h6?: string | null;
-  p?: string[] | string | null;
-  anchor?: string | null;
-};
+  url: string
+  uid?: string
+  title?: string | null
+  meta?: Meta | null
+  image_url?: string | null
+  page_block?: number | null
+  urls_tags?: string[] | null
+  h1?: string | null
+  h2?: string | null
+  h3?: string | null
+  h4?: string | null
+  h5?: string | null
+  h6?: string | null
+  p?: string[] | string | null
+  anchor?: string | null
+}
 
 export type FullPageDocument = {
-  uid?: string;
-  title?: string | null;
-  url: string;
-  domain?: string | null;
-  anchor?: string | null;
-  urls_tags?: string[] | null;
+  uid?: string
+  title?: string | null
+  url: string
+  domain?: string | null
+  anchor?: string | null
+  urls_tags?: string[] | null
 
   /// blocks of the page
-  blocks: {
-    h1?: string | null;
-    h2?: string | null;
-    h3?: string | null;
-    h4?: string | null;
-    h5?: string | null;
-    h6?: string | null;
-    p?: string[] | string | null;
-    anchor?: string | null;
-  }[];
+  blocks: Array<{
+    h1?: string | null
+    h2?: string | null
+    h3?: string | null
+    h4?: string | null
+    h5?: string | null
+    h6?: string | null
+    p?: string[] | string | null
+    anchor?: string | null
+  }>
 
   /// optional metadata from feature metadata
-  metadata?: Record<string, string> | null;
+  metadata?: Record<string, string> | null
 
   /// optional custom selectors from feature custom_selectors
-  custom?: Record<string, string[] | string> | null;
+  custom?: Record<string, string[] | string> | null
 
   /// optional markdown from feature markdown
-  markdown?: string | null;
+  markdown?: string | null
 
   /// optional pdfs from feature pdf
-  pdfs?: Array<{content?: string, metadata?: any}> | null;
+  // pdfs?: Array<{content?: string, metadata?: any}> | null;
 
   /// optional schema from feature schema
-  schema?: Record<string, any> | null;
+  schema?: Record<string, any> | null
 
   /// optional AI extraction results
-  ai_extraction?: Record<string, any> | null;
+  ai_extraction?: Record<string, any> | null
 
   /// optional AI summary
-  ai_summary?: string | null;
-};
+  ai_summary?: string | null
+}
 
 export type SchemaDocument = {
-  uid: string;
-  [key: string]: any;
-};
+  uid: string
+  [key: string]: any
+}
 
 export type Meta = {
-  [name: string]: string;
-};
+  [name: string]: string
+}
 
 export type MarkdownDocument = {
-  uid: string;
-  url: string;
-  title: string;
-  description: string;
-  content: string;
-  urls_tags: string[];
-  meta?: Meta;
-};
+  uid: string
+  url: string
+  title: string
+  description: string
+  content: string
+  urls_tags: string[]
+  meta?: Meta
+}
 
 export type CustomDocument = {
-  uid: string;
-  [key: string]: any;
-};
+  uid: string
+  [key: string]: any
+}

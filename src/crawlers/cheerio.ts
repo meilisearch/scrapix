@@ -6,36 +6,36 @@ import {
   CheerioCrawlingContext,
   Router,
   RequestQueue,
-} from "crawlee";
-import { BaseCrawler } from "./base";
-import { Sender } from "../sender";
-import { Config } from "../types";
+} from 'crawlee'
+import { BaseCrawler } from './base'
+import { Sender } from '../sender'
+import { Config } from '../types'
 
 export class CheerioCrawler extends BaseCrawler {
   constructor(sender: Sender, config: Config) {
-    super(sender, config);
+    super(sender, config)
   }
 
   createRouter(): Router<CheerioCrawlingContext> {
-    return createCheerioRouter();
+    return createCheerioRouter()
   }
 
   getCrawlerOptions(
     requestQueue: RequestQueue,
     router: Router<CheerioCrawlingContext>
   ): CheerioCrawlerOptions {
-    const preNavigationHooks: CheerioHook[] =
-      this.config.additional_request_headers ?
-        [
+    const preNavigationHooks: CheerioHook[] = this.config
+      .additional_request_headers
+      ? [
           (crawlingContext) => {
-            const { request } = crawlingContext;
+            const { request } = crawlingContext
             request.headers = {
               ...request.headers,
               ...this.config.additional_request_headers,
-            };
+            }
           },
         ]
-      : [];
+      : []
 
     return {
       requestQueue,
@@ -47,18 +47,21 @@ export class CheerioCrawler extends BaseCrawler {
       ...(this.config.max_requests_per_minute && {
         maxRequestsPerMinute: this.config.max_requests_per_minute,
       }),
-    };
+      ...(this.proxyConfiguration && {
+        proxyConfiguration: this.proxyConfiguration,
+      }),
+    }
   }
 
   createCrawlerInstance(options: CheerioCrawlerOptions): CrawleeCheerioCrawler {
-    if (this.config.strategy === "pdf") {
-      options.additionalMimeTypes = ["application/pdf"];
+    if (this.config.strategy === 'pdf') {
+      options.additionalMimeTypes = ['application/pdf']
     }
 
-    return new CrawleeCheerioCrawler(options);
+    return new CrawleeCheerioCrawler(options)
   }
 
   override async defaultHandler(context: CheerioCrawlingContext) {
-    await this.handlePage(context);
+    await this.handlePage(context)
   }
 }

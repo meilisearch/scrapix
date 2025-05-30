@@ -9,6 +9,7 @@ import { processAIExtraction } from './features/ai_extraction'
 import { processAISummary } from './features/ai_summary'
 import { CheerioAPI } from 'cheerio'
 import { processFullPage } from './features/full_page'
+import * as minimatch from 'minimatch'
 
 export class Scraper {
   private config: Config
@@ -53,7 +54,7 @@ export class Scraper {
     // Finally, if block split is enabled, split the document into smaller blocks
     let documents: BlockDocument[] = []
     if (this.shouldProcessFeature(features.block_split, url)) {
-      documents = await processBlockSplit($, documents, this.config)
+      documents = await processBlockSplit($, document, this.config)
     } else {
       documents.push(document)
     }
@@ -67,7 +68,7 @@ export class Scraper {
   private shouldProcessFeature(feature: any, url: string): boolean {
     if (!feature?.activated) return false
 
-    const includePages = feature.include_pages || ['*']
+    const includePages = feature.include_pages || ['**']
     const excludePages = feature.exclude_pages || []
 
     // Check if URL matches any include pattern
@@ -84,13 +85,9 @@ export class Scraper {
   }
 
   private matchesPattern(url: string, pattern: string): boolean {
-    // Convert pattern to regex
-    const regexPattern = pattern
-      .replace(/\./g, '\\.')
-      .replace(/\*\*/g, '.*')
-      .replace(/\*/g, '[^/]*')
-    const regex = new RegExp(`^${regexPattern}$`)
-    return regex.test(url)
+    // Remove protocol for matching
+    const cleanUrl = url.replace(/^https?:\/\//, '')
+    return minimatch.minimatch(cleanUrl, pattern)
   }
 }
 

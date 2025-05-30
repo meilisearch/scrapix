@@ -23,18 +23,95 @@ export const ConfigSchema = z.object({
     })
     .optional(),
 
-  // Content Extraction Configuration
-  strategy: z
-    .enum(['docssearch', 'default', 'schema', 'markdown', 'custom', 'pdf'])
-    .optional()
-    .default('default'),
-  selectors: z.record(z.union([z.string(), z.array(z.string())])).nullish(),
-  schema_settings: z
+  // Features Configuration
+  features: z
     .object({
-      convert_dates: z.boolean().optional().default(false),
-      only_type: z.string().nullish(),
+      block_split: z
+        .object({
+          activated: z.boolean().optional(),
+          include_pages: z.array(z.string()).optional(),
+          exclude_pages: z.array(z.string()).optional(),
+        })
+        .optional(),
+      metadata: z
+        .object({
+          activated: z.boolean().optional(),
+          include_pages: z.array(z.string()).optional(),
+          exclude_pages: z.array(z.string()).optional(),
+        })
+        .optional(),
+      custom_selectors: z
+        .object({
+          activated: z.boolean().optional(),
+          include_pages: z.array(z.string()).optional(),
+          exclude_pages: z.array(z.string()).optional(),
+          selectors: z
+            .record(z.union([z.string(), z.array(z.string())]))
+            .optional(),
+        })
+        .optional(),
+      markdown: z
+        .object({
+          activated: z.boolean().optional(),
+          include_pages: z.array(z.string()).optional(),
+          exclude_pages: z.array(z.string()).optional(),
+        })
+        .optional(),
+      pdf: z
+        .object({
+          activated: z.boolean().optional(),
+          include_pages: z.array(z.string()).optional(),
+          exclude_pages: z.array(z.string()).optional(),
+          extract_content: z.boolean().optional().default(false),
+          extract_metadata: z.boolean().optional().default(true),
+        })
+        .optional(),
+      schema: z
+        .object({
+          activated: z.boolean().optional(),
+          include_pages: z.array(z.string()).optional(),
+          exclude_pages: z.array(z.string()).optional(),
+          convert_dates: z.boolean().optional().default(false),
+          only_type: z.string().nullish(),
+        })
+        .optional(),
+      ai_extraction: z
+        .object({
+          activated: z.boolean().optional(),
+          include_pages: z.array(z.string()).optional(),
+          exclude_pages: z.array(z.string()).optional(),
+          model_config: z
+            .object({
+              model: z.string().nullish(),
+              api_key: z.string().nullish(),
+            })
+            .optional(),
+          prompts: z
+            .array(
+              z.object({
+                prompt: z.string(),
+                include_pages: z.array(z.string()).optional(),
+                exclude_pages: z.array(z.string()).optional(),
+              })
+            )
+            .optional(),
+        })
+        .optional(),
+      ai_summary: z
+        .object({
+          activated: z.boolean().optional(),
+          include_pages: z.array(z.string()).optional(),
+          exclude_pages: z.array(z.string()).optional(),
+          model_config: z
+            .object({
+              model: z.string().nullish(),
+              api_key: z.string().nullish(),
+            })
+            .optional(),
+        })
+        .optional(),
     })
-    .nullish(),
+    .optional(),
 
   // URL Control Configuration
   urls_to_exclude: z.array(z.string()).nullish(),
@@ -141,20 +218,6 @@ export interface Config {
    */
   crawler_type?: CrawlerType
 
-  /** Content extraction strategy to use
-   *
-   * Specifies how content should be extracted from pages:
-   * - `default`: Standard content extraction
-   * - `pdf`: PDF document extraction
-   * - `docssearch`: Documentation search optimized extraction
-   * - `schema`: Schema.org structured data extraction
-   * - `markdown`: Markdown content extraction
-   * - `custom`: Custom selector-based extraction
-   *
-   * @default "default"
-   */
-  strategy?: 'default' | 'pdf' | 'docssearch' | 'schema' | 'markdown' | 'custom'
-
   /** Proxy Configuration
    *
    * Configuration for using proxies with the crawler. This helps avoid IP blocking
@@ -191,9 +254,11 @@ export interface Config {
     tieredProxyUrls?: string[][]
   } | null
 
-  /** Content Extraction Configuration */
-
-  /** Feature configuration for the default strategy */
+  /** Features Configuration
+   *
+   * Configuration for various content extraction and processing features.
+   * Each feature can be enabled/disabled and configured with specific settings.
+   */
   features?: {
     /** Block splitting configuration */
     block_split?: {
@@ -224,7 +289,7 @@ export interface Config {
       /** List of wildcards for pages to exclude */
       exclude_pages?: string[]
       /** Custom selectors to use */
-      selectors?: Record<string, string>
+      selectors?: Record<string, string | string[]>
     }
 
     /** Markdown conversion configuration */
@@ -308,34 +373,6 @@ export interface Config {
       }
     }
   }
-
-  /** Custom CSS selectors for content extraction
-   *
-   * Only used when the strategy is set to `custom`.
-   * Those will be the selectors used to extract the content from the page.
-   *
-   * e.g.
-   * ```ts
-   * selectors: {
-   *   title: "h1",
-   *   content: ["p", "div.content"]
-   * }
-   * ```
-   *
-   * @default null
-   */
-  selectors?: Record<string, string | string[]> | null
-
-  /** Settings for schema-based extraction
-   * Those settings are usefull only if strategy is set to `schema`.
-   *
-   * This allow to get more fine-grained control over the data extracted from the pages. Like getting only some specific types of data.
-   *
-   * For the list of the supported types, see https://schema.org/docs/full.html
-   *
-   * @default null
-   */
-  schema_settings?: SchemaSettings | null
 
   /** URL Control Configuration */
 
@@ -643,73 +680,26 @@ export interface Config {
   keep_settings?: boolean | null
 }
 
-export type SchemaSettings = {
-  /** Convert dates to timestamp format
-   *
-   * Dates on schema.org are often represented as strings with the format "2024-01-01". This option will convert those dates to timestamp format, which is easier for search engines to understand.
-   *
-   * @default false
-   */
-  convert_dates?: boolean
-
-  /** Only extract data from the specified type
-   *
-   * See type list here: https://schema.org/docs/full.html
-   *
-   * @default null
-   */
-  only_type?: string | null
-}
-
 export type Scraper = {
   get: (url: string, $: CheerioAPI) => Promise<void>
 }
 
-export type DocumentType =
-  | DocsSearchDocument
-  | BlockDocument
-  | SchemaDocument
-  | MarkdownDocument
-  | CustomDocument
-
-export type HierarchyLevel = {
-  hierarchy_lvl0?: string | null
-  hierarchy_lvl1?: string | null
-  hierarchy_lvl2?: string | null
-  hierarchy_lvl3?: string | null
-  hierarchy_lvl4?: string | null
-  hierarchy_lvl5?: string | null
-}
-
-export type RadioHierarchyLevel = {
-  hierarchy_radio_lvl0?: string | null
-  hierarchy_radio_lvl1?: string | null
-  hierarchy_radio_lvl2?: string | null
-  hierarchy_radio_lvl3?: string | null
-  hierarchy_radio_lvl4?: string | null
-  hierarchy_radio_lvl5?: string | null
-}
+export type DocumentType = BlockDocument | FullPageDocument
 
 export type HTag = 'H1' | 'H2' | 'H3' | 'H4' | 'H5'
 
-export type DocsSearchDocument = HierarchyLevel &
-  RadioHierarchyLevel & {
-    url: string
-    uid?: string
-    anchor: string
-    content?: string[] | string
-    level: number
-    type: 'lvl0' | 'lvl1' | 'lvl2' | 'lvl3' | 'lvl4' | 'lvl5' | 'content'
-  }
-
 export type BlockDocument = {
+  // Basic document fields
   url: string
   uid?: string
+  parent_document_id?: string
   title?: string | null
-  meta?: Meta | null
-  image_url?: string | null
-  page_block?: number | null
+  domain?: string | null
   urls_tags?: string[] | null
+  page_block?: number | null
+  anchor?: string | null
+
+  // Content structure fields
   h1?: string | null
   h2?: string | null
   h3?: string | null
@@ -717,7 +707,14 @@ export type BlockDocument = {
   h5?: string | null
   h6?: string | null
   p?: string[] | string | null
-  anchor?: string | null
+
+  // Feature-specific fields
+  meta?: Meta | null
+  custom?: Record<string, string[] | string> | null
+  markdown?: string | null
+  schema?: Record<string, any> | null
+  ai_extraction?: Record<string, any> | null
+  ai_summary?: string | null
 }
 
 export type FullPageDocument = {
@@ -769,19 +766,4 @@ export type SchemaDocument = {
 
 export type Meta = {
   [name: string]: string
-}
-
-export type MarkdownDocument = {
-  uid: string
-  url: string
-  title: string
-  description: string
-  content: string
-  urls_tags: string[]
-  meta?: Meta
-}
-
-export type CustomDocument = {
-  uid: string
-  [key: string]: any
 }

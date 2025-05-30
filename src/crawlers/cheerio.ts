@@ -54,7 +54,7 @@ export class CheerioCrawler extends BaseCrawler {
   }
 
   createCrawlerInstance(options: CheerioCrawlerOptions): CrawleeCheerioCrawler {
-    if (this.config.strategy === 'pdf') {
+    if (this.config.features?.pdf?.activated) {
       options.additionalMimeTypes = ['application/pdf']
     }
 

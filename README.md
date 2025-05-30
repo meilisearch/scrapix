@@ -33,7 +33,48 @@ data:
   "meilisearch_url": "http://localhost:7700",
   "meilisearch_api_key": "masterKey",
   "meilisearch_index_uid": "google",
-  "strategy": "default", // docssearch, schema*, custom, markdown or default
+  "features": {
+    "block_split": {
+      "activated": true,
+      "include_pages": ["*"],
+      "exclude_pages": []
+    },
+    "metadata": {
+      "activated": true,
+      "include_pages": ["*"],
+      "exclude_pages": []
+    },
+    "custom_selectors": {
+      "activated": false,
+      "include_pages": ["*"],
+      "exclude_pages": [],
+      "selectors": {
+        "main_content": "main",
+        "headings": "h1, h2, h3",
+        "paragraphs": "p",
+        "custom_field": ".custom-class"
+      }
+    },
+    "markdown": {
+      "activated": false,
+      "include_pages": ["*"],
+      "exclude_pages": []
+    },
+    "pdf": {
+      "activated": false,
+      "include_pages": ["*"],
+      "exclude_pages": [],
+      "extract_content": false,
+      "extract_metadata": true
+    },
+    "schema": {
+      "activated": false,
+      "include_pages": ["*"],
+      "exclude_pages": [],
+      "convert_dates": true,
+      "only_type": "Product"
+    }
+  },
   "batch_size": 1000, // pass null to send documents 1 at a time or specify a batch size
   "primary_key": null,
   "meilisearch_settings": {
@@ -50,16 +91,6 @@ data:
     ],
     "filterableAttributes": ["urls_tags"],
     "distinctAttribute": "url"
-  },
-  "selectors": { // Only for custom
-    "main_content": "main",
-    "headings": "h1, h2, h3",
-    "paragraphs": "p",
-    "custom_field": ".custom-class",
-  },
-  "schema_settings": {
-    "only_type": "Product", // Product, Article, etc...
-    "convert_dates": true // default false
   }
 }
 ```
@@ -74,7 +105,7 @@ The queue will dispatch the job to the worker.
 
 ### 2. Scrape the website
 
-#### 2.1. Default strategy
+#### 2.1. Default features
 
 The worker will crawl only pages with the same domain names as those specified in the `start_urls` config option. It will not try to scrape the external links or files. It will also not try to scrape paginated pages (like `/page/1`).
 For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contain:
@@ -91,7 +122,7 @@ For each scrappable page it will scrape the data by trying to create blocks of t
 - meta: The meta of the page present in the head tag (json object containing the desciption, keywords, author, twitter, og, etc...)
 - url_tags: the url pathname split by / (array of string). The last element has been removed because it's the page name.
 
-#### 2.2. Docsearch strategy
+#### 2.2. Docsearch feature
 
 The worker will crawl only pages with the same domain names as those specified in the `start_urls` config option. It will not try to scrape the external links or files. It will also not try to scrape when pages are paginated pages (like `/page/1`).
 For each scrappable page it will scrape the data by trying to create blocks of titles and text. Each block will contain:
@@ -160,20 +191,27 @@ The API key to your Meilisearch instance. This key must have read and write perm
 `meilisearch_index_uid` _mandatory_
 Name of the index on which the content is indexed.
 
-`stategy`
-default: `default`
-Scraping strategy: - `default` Scrapes the content of webpages, it is suitable for most use cases. It indexes the content in this format (show example) - `docssearch` Scrapes the content of webpages, it suits most use cases. The difference with the default strategy is that it indexes the content in a format compatible with docs-search bar - `schema` Scraps the [`schema`](https://schema.org/) information of your web app.
+`features`
+Configuration for various content extraction and processing features. Each feature can be enabled/disabled and configured with specific settings:
+
+- `block_split`: Splits the page into logical content blocks
+- `metadata`: Extracts meta information from the page
+- `custom_selectors`: Allows defining custom CSS selectors for content extraction
+- `markdown`: Converts HTML content to Markdown format
+- `pdf`: Extracts content and metadata from PDF files
+- `schema`: Extracts structured data from Schema.org markup
+
+Each feature can be configured with:
+- `activated`: Whether the feature is enabled
+- `include_pages`: List of page patterns to include
+- `exclude_pages`: List of page patterns to exclude
+- Feature-specific settings (e.g., `extract_content` for PDF, `selectors` for custom_selectors)
 
 `primary_key`
 The key name in your documents containing their unique identifier.
 
 `meilisearch_settings`
 Your custom Meilisearch settings
-
-`schema_settings`
-If your strategy is `schema`:
-`only_type`: Which types of schema should be parsed
-`convert_dates`: If dates should be converted to timestamp. This is usefull to be able to order by date.
 
 `user_agents`
 An array of user agents that are append at the end of the current user agents.

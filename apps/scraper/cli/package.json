@@ -1,5 +1,5 @@
 {
-  "name": "@scrapix/scraper-cli",
+  "name": "@scrapix/cli",
   "license": "MIT",
   "version": "0.1.9",
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
     "dev": "tsc && node dist/index.js"
   },
   "dependencies": {
-    "@scrapix/scraper-core": "file:../core",
+    "@scrapix/core": "file:../core",
     "crawlee": "3.12.0",
     "dotenv": "^16.0.0",
     "yargs": "17.7.2"

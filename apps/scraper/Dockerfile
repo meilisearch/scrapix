@@ -22,7 +22,9 @@ RUN npm run build
 FROM apify/actor-node-puppeteer-chrome:20
 
 # Copy only built JS files from builder image
-COPY --from=builder --chown=myuser /home/myuser/dist ./dist
+COPY --from=builder --chown=myuser /home/myuser/core/dist ./core/dist
+COPY --from=builder --chown=myuser /home/myuser/server/dist ./server/dist
+COPY --from=builder --chown=myuser /home/myuser/cli/dist ./cli/dist
 
 # Copy just package.json and package-lock.json
 # to speed up the build using Docker layer cache.
@@ -40,4 +42,4 @@ COPY --chown=myuser . ./
 
 # Run the image. If you know you won't need headful browsers,
 # you can remove the XVFB start script for a micro perf gain.
-CMD ./start_xvfb_and_run_cmd.sh && npm run start:server -- -c $CRAWLER_CONFIG -b /usr/bin/google-chrome --silent 
+CMD ["./start_xvfb_and_run_cmd.sh", "npm", "run", "start:server", "--", "-c", "$CRAWLER_CONFIG", "-b", "/usr/bin/google-chrome", "--silent"]

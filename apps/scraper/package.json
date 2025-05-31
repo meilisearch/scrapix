@@ -3,6 +3,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build:core": "cd core && yarn build"
+    "build:core": "cd core && yarn build",
+    "build:server": "cd server && yarn build",
+    "build:cli": "cd cli && yarn build",
+    "build": "yarn build:core && yarn build:server && yarn build:cli"
   }
 }

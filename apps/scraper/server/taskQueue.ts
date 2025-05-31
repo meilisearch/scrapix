@@ -1,7 +1,6 @@
 import Queue, { Job, DoneCallback } from 'bull'
-import { initMeilisearchClient } from '../core/utils/meilisearch_client'
 import { fork } from 'child_process'
-import { Config } from '../core/types'
+import { Config, initMeilisearchClient } from '@scrapix/core'
 import { Log } from '@crawlee/core'
 
 const log = new Log({ prefix: 'CrawlTaskQueue' })
@@ -50,14 +49,18 @@ export class TaskQueue {
     }
   }
 
-  add(data: Config) {
+  async add(data: Config) {
     log.debug('Adding task to queue', { config: data })
-    void this.queue.add(data)
+    return await this.queue.add(data)
+  }
+
+  async getJob(jobId: string) {
+    return await this.queue.getJob(jobId)
   }
 
   __process(job: Job, done: DoneCallback) {
     log.debug('Processing job', { jobId: job.id })
-    const childProcess = fork('./dist/src/crawler_process.js')
+    const childProcess = fork('./dist/crawler_process.js')
     childProcess.send(job.data)
     childProcess.on('message', (message) => {
       log.info('Crawler process message', { message })

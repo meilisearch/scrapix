@@ -9,7 +9,7 @@ dotenv.config({ path: ['../../../.env.local', '../../../.env'] })
 import fs from 'fs'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { Sender, Crawler, Config, ConfigSchema } from '@scrapix/scraper-core'
+import { Sender, Crawler, Config, ConfigSchema } from '@scrapix/core';
 
 function getConfig({
   configPath,

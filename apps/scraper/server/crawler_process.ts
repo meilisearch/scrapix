@@ -1,6 +1,4 @@
-import { Sender } from '../sender'
-import { Crawler } from '../crawlers'
-import { Config } from '../core/types'
+import { Sender, Crawler, Config } from '@scrapix/core'
 
 async function startCrawling(config: Config) {
   const sender = new Sender(config)

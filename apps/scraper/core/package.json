@@ -1,5 +1,5 @@
 {
-  "name": "@scrapix/scraper-core",
+  "name": "@scrapix/core",
   "license": "MIT",
   "version": "0.1.9",
   "main": "dist/index.js",

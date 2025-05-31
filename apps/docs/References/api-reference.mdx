@@ -1,0 +1,93 @@
+# API Reference
+
+The Scrapix HTTP server provides several endpoints for crawling websites. The server runs on port 8080 by default, or the port specified in the `PORT` environment variable.
+
+## Starting the Server
+
+```bash
+# Build and start the server
+npm run build
+node dist/server/index.js
+
+# Or with custom port
+PORT=3000 node dist/server/index.js
+```
+
+## Endpoints
+
+### POST /crawl
+
+Alias for `/crawl/async`. Adds a crawling task to the queue for asynchronous processing.
+
+### POST /crawl/async
+
+Adds a crawling task to the queue for asynchronous processing. Requires Redis to be configured via `REDIS_URL` environment variable.
+
+**Request Body:**
+
+The request body should contain a complete Scrapix configuration object. See the [Config Reference](/References/config-reference) for all available options.
+
+**Minimal Example:**
+```json
+{
+  "meilisearch_index_uid": "my-index",
+  "meilisearch_url": "http://localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "start_urls": ["https://example.com"]
+}
+```
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "indexUid": "my-index"
+}
+```
+
+**Error Response:**
+```json
+{
+  "status": "error",
+  "error": {
+    "message": "Error description"
+  }
+}
+```
+
+### POST /crawl/sync
+
+Executes a crawling task synchronously and waits for completion. Does not require Redis.
+
+**Request Body:** Same configuration object as `/crawl/async`
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "indexUid": "my-index"
+}
+```
+
+**Error Response:**
+```json
+{
+  "status": "error",
+  "error": {
+    "message": "Error description"
+  }
+}
+```
+
+### POST /webhook
+
+Internal endpoint for webhook logging and testing. Logs the received payload and returns a success response.
+
+**Request Body:** Any JSON payload
+
+**Response:**
+```json
+{
+  "status": "ok"
+}
+```

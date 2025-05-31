@@ -1,0 +1,8 @@
+{
+  "name": "scraper",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build:core": "cd core && yarn build"
+  }
+}

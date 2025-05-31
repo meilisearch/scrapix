@@ -1,0 +1,185 @@
+# Crawling and Scraping Process
+
+Scrapix implements a sophisticated crawling and scraping system that supports multiple crawler types and scraping strategies. This document explains how the crawling process works and details the available scraping strategies.
+
+## Crawling Process
+
+### Crawler Types
+
+Scrapix supports multiple crawler types to handle different website scenarios:
+
+1. **Cheerio Crawler**: Fast and lightweight HTML parser. Best for static sites.
+   - Pros: Fastest option, low memory usage
+   - Cons: Cannot execute JavaScript or render dynamic content
+   - Recommended for: Static websites, documentation sites
+
+2. **Puppeteer Crawler**: Full Chrome browser automation.
+   - Pros: Can execute JavaScript, render dynamic content
+   - Cons: Higher resource usage, slower than cheerio
+   - Recommended for: Single page applications (SPAs), JavaScript-heavy sites
+
+3. **Playwright Crawler**: Modern browser automation framework (beta).
+   - Pros: Cross-browser support, modern APIs
+   - Cons: Higher resource usage, slower than cheerio
+   - Recommended for: Testing cross-browser compatibility
+   - Note: Currently in beta, API may change
+
+### How Crawling Works
+
+1. **Initialization**:
+   - The crawler starts with the URLs provided in `start_urls`
+   - These URLs are:
+     1. Added to the initial crawling queue
+     2. Used to generate URL patterns that determine which additional URLs to crawl
+   - Sets up the selected scraping strategy
+
+2. **URL Processing**:
+   - The crawler follows links within the same domain as the start URLs
+   - It respects the following URL configurations:
+     - `urls_to_exclude`: URLs to skip during crawling
+     - `urls_to_index`: Specific URLs to index (overrides start_urls)
+     - `urls_to_not_index`: URLs to exclude from indexing but still crawl
+
+3. **Concurrency and Rate Limiting**:
+   - `max_concurrency`: Controls how many concurrent requests are allowed
+   - `max_requests_per_minute`: Limits requests per minute to prevent overloading
+
+## Scraping Strategies
+
+Scrapix offers five different scraping strategies, each designed for specific use cases:
+
+### 1. Default Strategy
+
+General-purpose strategy suitable for any website. Creates a hierarchical content structure by:
+- Extracting all page text
+- Using `p` tags for content blocks
+- Building logical sections based on heading tags (h1-h6)
+- Grouping content between headings into cohesive blocks
+
+Example output structure:
+```json
+{
+    "url": "string",
+    "uid": "string",
+    "title": "string",
+    "meta": {
+        "description": "string",
+        "og:image": "string"
+    },
+    "image_url": "string",
+    "page_block": "number",
+    "urls_tags": ["string"],
+    "h1": "string | null",
+    "h2": "string | null", 
+    "h3": "string | null",
+    "h4": "string | null",
+    "h5": "string | null",
+    "h6": "string | null",
+    "p": "string[] | string"
+}
+```
+
+### 2. Docsearch Strategy
+
+Optimized for documentation websites, this strategy creates granular content blocks that are ideal for documentation search. It's compatible with DocSearch plugin implementations and preserves content structure for seamless integration with existing DocSearch frontend components.
+
+Example output structure:
+```json
+{
+    "url": "string",
+    "uid": "string",
+    "anchor": "string",
+    "content": "string[] | string",
+    "level": "number",
+    "type": "lvl0 | lvl1 | lvl2 | lvl3 | lvl4 | lvl5 | content",
+    "hierarchy_lvl0": "string | null",
+    "hierarchy_lvl1": "string | null",
+    "hierarchy_lvl2": "string | null",
+    "hierarchy_lvl3": "string | null",
+    "hierarchy_lvl4": "string | null",
+    "hierarchy_lvl5": "string | null",
+    "hierarchy_radio_lvl0": "string | null",
+    "hierarchy_radio_lvl1": "string | null",
+    "hierarchy_radio_lvl2": "string | null",
+    "hierarchy_radio_lvl3": "string | null",
+    "hierarchy_radio_lvl4": "string | null",
+    "hierarchy_radio_lvl5": "string | null"
+}
+```
+
+### 3. Schema Strategy
+
+Extracts structured data from Schema.org compatible websites, including:
+- CMS-generated content
+- E-commerce product pages
+- Rich metadata and schema-defined content blocks
+
+Configuration options:
+```json
+{
+    "schema_settings": {
+        "convert_dates": "boolean",
+        "only_type": "string"
+    }
+}
+```
+
+### 4. Markdown Strategy
+
+Converts webpage content to Markdown format. Particularly useful for:
+- Documentation sites
+- Code-heavy content
+- Building RAG (Retrieval Augmented Generation) systems
+
+Example output structure:
+```json
+{
+    "uid": "string",
+    "url": "string",
+    "title": "string",
+    "description": "string",
+    "content": "string",
+    "urls_tags": ["string"],
+    "meta": {
+        "key": "string"
+    }
+}
+```
+
+### 5. Custom Strategy
+
+Provides full control over content extraction through user-defined selectors. Allows precise targeting of specific page elements and custom data structures.
+
+Configuration example:
+```json
+{
+    "selectors": {
+        "selector_name": "string"
+    }
+}
+```
+
+## Advanced Configuration
+
+### Rate Limiting and Concurrency
+
+Control crawler behavior with these settings:
+```json
+{
+    "max_concurrency": "number",
+    "max_requests_per_minute": "number",
+    "batch_size": "number"
+}
+```
+
+### URL Control
+
+Fine-tune URL handling:
+```json
+{
+    "start_urls": ["string"],
+    "urls_to_exclude": ["string"],
+    "urls_to_index": ["string"],
+    "urls_to_not_index": ["string"]
+}
+```

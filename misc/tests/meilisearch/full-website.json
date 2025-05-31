@@ -5,9 +5,6 @@
   "start_urls": ["https://www.meilisearch.com"],
   "crawler_type": "cheerio",
   "features": {
-    "block_split": {
-      "activated": false
-    },
     "metadata": {
       "activated": true
     },

@@ -1,0 +1,21 @@
+# Testing Scrapix
+
+Scrapix includes a comprehensive test suite that can be executed using the command `npm run tests`. The primary objective of this suite is to validate the functionality of crawlers and scrapers. All configuration files for testing scrapers are located in the `misc/config_test` directory.
+
+## Prerequisites
+
+Before running the test suite, ensure that you have a Meilisearch instance running on `http://localhost:7700`.
+
+## Running Tests
+
+To run the entire test suite:
+
+```bash
+npm run tests
+```
+
+To run the tests for a specific crawler or scraper, use the `-p` flag followed by the name of the crawler or scraper configuration file. For example:
+
+```bash
+npm run tests -p "*puppeteer.json"
+```

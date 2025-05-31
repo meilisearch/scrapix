@@ -1,0 +1,18 @@
+{
+  "name": "@scrapix/docs",
+  "version": "0.1.9",
+  "private": true,
+  "scripts": {
+    "dev": "mintlify dev",
+    "start": "mintlify dev",
+    "build": "echo 'Docs build is handled by Mintlify hosting'",
+    "lint": "mintlify broken-links",
+    "preview": "mintlify dev --no-open"
+  },
+  "dependencies": {
+    "mintlify": "^4.0.0"
+  },
+  "devDependencies": {
+    "@mintlify/cli": "^4.0.0"
+  }
+}

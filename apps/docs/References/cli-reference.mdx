@@ -1,0 +1,147 @@
+# CLI Reference
+
+Scrapix provides a command-line interface for web scraping and indexing.
+
+## Installation
+
+Download the latest release from [GitHub releases](https://github.com/meilisearch/scrapix/releases) or build from source.
+
+## Usage
+
+### CLI Crawling
+
+Run a single crawling task with a configuration file:
+
+```bash
+# Using config file path
+scrapix --configPath config.json
+scrapix -p config.json
+
+# Using inline JSON config
+scrapix --config '{"meilisearch_url":"...","start_urls":[...],...}'
+scrapix -c '{"meilisearch_url":"...","start_urls":[...],...}'
+
+# With custom browser path (for Puppeteer/Playwright)
+scrapix -p config.json --browserPath /path/to/chrome
+scrapix -p config.json -b /path/to/chrome
+```
+
+### Server Mode
+
+Start the HTTP API server:
+
+```bash
+# Build and start the server
+npm run build
+node dist/server/index.js
+
+# Or using development mode
+npm run dev:server
+```
+
+## Environment Variables
+
+The following environment variables can be configured:
+
+### Server Configuration
+- `PORT`: Server port number (default: 8080)
+- `REDIS_URL`: Redis connection URL for async task queue management
+
+### AI Features
+- `OPENAI_API_KEY`: Required for AI extraction and AI summary features
+- `OPENAI_MODEL`: OpenAI model to use (optional)
+
+## Configuration Options
+
+The configuration file (JSON format) supports the following options:
+
+```json
+{
+  // Required Meilisearch Configuration
+  "meilisearch_index_uid": "string",  // Unique identifier for the Meilisearch index
+  "meilisearch_url": "string",        // URL of the Meilisearch server instance
+  "meilisearch_api_key": "string",    // API key for Meilisearch authentication
+  "start_urls": ["string"],           // Initial URLs to begin crawling from
+
+  // Crawler Configuration
+  "crawler_type": "cheerio" | "puppeteer" | "playwright", // Web scraping engine (default: "cheerio")
+
+  // Features Configuration
+  "features": {
+    "block_split": {
+      "activated": boolean,
+      "include_pages": ["string"],
+      "exclude_pages": ["string"]
+    },
+    "metadata": {
+      "activated": boolean,
+      "include_pages": ["string"],
+      "exclude_pages": ["string"]
+    },
+    "custom_selectors": {
+      "activated": boolean,
+      "include_pages": ["string"],
+      "exclude_pages": ["string"],
+      "selectors": {
+        "string": "string" | ["string"]
+      }
+    },
+    "markdown": {
+      "activated": boolean,
+      "include_pages": ["string"],
+      "exclude_pages": ["string"]
+    },
+    "pdf": {
+      "activated": boolean,
+      "include_pages": ["string"],
+      "exclude_pages": ["string"],
+      "extract_content": boolean,
+      "extract_metadata": boolean
+    },
+    "schema": {
+      "activated": boolean,
+      "include_pages": ["string"],
+      "exclude_pages": ["string"],
+      "convert_dates": boolean,
+      "only_type": "string"
+    },
+    "ai_extraction": {
+      "activated": boolean,
+      "include_pages": ["string"],
+      "exclude_pages": ["string"],
+      "prompt": "string"
+    },
+    "ai_summary": {
+      "activated": boolean,
+      "include_pages": ["string"],
+      "exclude_pages": ["string"]
+    }
+  },
+
+  // URL Control
+  "urls_to_exclude": ["string"],      // URLs to skip during crawling
+  "urls_to_index": ["string"],        // Specific URLs to index (overrides start_urls)
+  "urls_to_not_index": ["string"],    // URLs to exclude from indexing but still crawl
+  "use_sitemap": boolean,             // Whether to use sitemaps for URL discovery
+  "sitemap_urls": ["string"],         // Custom sitemap URLs to use
+
+  // Performance Configuration
+  "max_concurrency": number,          // Maximum concurrent requests (default: Infinity)
+  "max_requests_per_minute": number,  // Rate limit for requests (default: Infinity)
+  "batch_size": number,               // Documents per indexing batch (default: 1000)
+
+  // Webhook Configuration
+  "webhook_url": "string",            // URL for webhook notifications
+  "webhook_payload": object,          // Custom data for webhook payloads
+
+  // Meilisearch Configuration
+  "primary_key": "string",            // Unique identifier field for documents
+  "meilisearch_settings": object,     // Custom Meilisearch index settings
+
+  // Additional Options
+  "additional_request_headers": object, // Custom HTTP headers for requests
+  "user_agents": ["string"],           // Custom User-Agent strings to rotate
+  "not_found_selectors": ["string"],   // Selectors indicating 404 pages
+  "keep_settings": boolean             // Whether to keep existing index settings
+}
+```

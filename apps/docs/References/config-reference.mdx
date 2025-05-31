@@ -1,0 +1,221 @@
+# Config Reference
+
+The configuration file (JSON format) supports the following options:
+
+## Required Configuration
+
+  ```typescript
+  {
+    meilisearch_index_uid: string;
+    meilisearch_url: string;
+    meilisearch_api_key: string;
+    start_urls: string[];
+  }
+  ```
+
+  - `meilisearch_index_uid`: Unique identifier for the Meilisearch index
+  - `meilisearch_url`: URL of the Meilisearch server instance
+  - `meilisearch_api_key`: API key for Meilisearch authentication
+  - `start_urls`: Initial URLs to begin crawling from
+
+## Crawler Configuration
+
+### Crawler Type
+  ```typescript
+  {
+    crawler_type?: 'cheerio' | 'puppeteer' | 'playwright';
+  }
+  ```
+
+- `crawler_type` (default: "cheerio"): Web scraping engine to use
+  - `cheerio`: Fast HTML parser for static sites
+  - `puppeteer`: Full Chrome automation for dynamic sites
+  - `playwright`: Modern cross-browser automation (beta)
+
+### Proxy Configuration
+  ```typescript
+  {
+    proxy_configuration?: {
+      proxyUrls?: string[];
+      tieredProxyUrls?: string[][];
+    };
+  }
+  ```
+
+- `proxy_configuration`: Optional proxy settings for crawling
+  - `proxyUrls`: List of proxy URLs to rotate through
+  - `tieredProxyUrls`: Tiered proxy configuration for automatic failover
+
+### Features Configuration
+  ```typescript
+  {
+    features?: {
+      block_split?: {
+        activated?: boolean;
+        include_pages?: string[];
+        exclude_pages?: string[];
+      };
+      metadata?: {
+        activated?: boolean;
+        include_pages?: string[];
+        exclude_pages?: string[];
+      };
+      custom_selectors?: {
+        activated?: boolean;
+        include_pages?: string[];
+        exclude_pages?: string[];
+        selectors?: Record<string, string | string[]>;
+      };
+      markdown?: {
+        activated?: boolean;
+        include_pages?: string[];
+        exclude_pages?: string[];
+      };
+      pdf?: {
+        activated?: boolean;
+        include_pages?: string[];
+        exclude_pages?: string[];
+        extract_content?: boolean;
+        extract_metadata?: boolean;
+      };
+      schema?: {
+        activated?: boolean;
+        include_pages?: string[];
+        exclude_pages?: string[];
+        convert_dates?: boolean;
+        only_type?: string;
+      };
+      ai_extraction?: {
+        activated?: boolean;
+        include_pages?: string[];
+        exclude_pages?: string[];
+        prompt?: string;
+      };
+      ai_summary?: {
+        activated?: boolean;
+        include_pages?: string[];
+        exclude_pages?: string[];
+      };
+    };
+  }
+  ```
+
+- `features`: Configuration for various content extraction and processing features
+  - `block_split`: Splits the page into logical content blocks
+  - `metadata`: Extracts meta information from the page
+  - `custom_selectors`: Allows defining custom CSS selectors for content extraction
+  - `markdown`: Converts HTML content to Markdown format
+  - `pdf`: Extracts content and metadata from PDF files
+  - `schema`: Extracts structured data from Schema.org markup
+  - `ai_extraction`: Uses AI to extract specific information from pages
+  - `ai_summary`: Generates AI-powered summaries of page content
+
+## URL Control
+
+  ```typescript
+  {
+    urls_to_exclude?: string[];
+    urls_to_index?: string[];
+    urls_to_not_index?: string[];
+    use_sitemap?: boolean;
+    sitemap_urls?: string[];
+  }
+  ```
+
+  - `urls_to_exclude`: URLs to skip during crawling
+  - `urls_to_index`: Specific URLs to index (overrides start_urls)
+  - `urls_to_not_index`: URLs to exclude from indexing but still crawl
+  - `use_sitemap` (default: false): Whether to use sitemaps for URL discovery
+  - `sitemap_urls`: Optional custom sitemap URLs to use instead of auto-discovery
+
+The crawler will attempt to discover and use sitemaps in the following ways:
+
+1. If `sitemap_urls` is provided, it will use those URLs directly
+2. If `use_sitemap` is true, it will:
+   - Check for sitemap.xml at the root of each start_url
+   - Look for sitemap_index.xml
+   - Parse robots.txt for Sitemap directives
+3. If no sitemaps are found, it will use start_urls directly
+
+## Performance Configuration
+
+  ```typescript
+  {
+    max_concurrency?: number;
+    max_requests_per_minute?: number;
+    batch_size?: number;
+  }
+  ```
+
+- `max_concurrency`: Maximum number of concurrent requests
+- `max_requests_per_minute`: Rate limit for requests per minute
+- `batch_size`: Number of documents to index in each batch
+
+## Meilisearch Configuration
+
+  ```typescript
+  {
+    primary_key?: string;
+    meilisearch_settings?: Settings;
+  }
+  ```
+
+- `primary_key`: Field to use as unique identifier for documents
+- `meilisearch_settings`: Custom Meilisearch index settings
+
+## Request Configuration
+
+  ```typescript
+  {
+    additional_request_headers?: Record<string, string>;
+    user_agents?: string[];
+    launch_options?: Record<string, any>;
+  }
+  ```
+
+- `additional_request_headers`: Custom headers for HTTP requests
+- `user_agents`: Custom User-Agent strings to rotate through
+- `launch_options`: Custom options for browser automation
+
+## Webhook Configuration
+
+  ```typescript
+  {
+    webhook_url?: string;
+    webhook_payload?: Record<string, any>;
+  }
+  ```
+
+- `webhook_url`: URL for webhook notifications
+- `webhook_payload`: Custom data for webhook payloads
+
+Webhook notification types:
+- `started`: Crawling begins
+- `active`: Progress updates
+- `paused`: Crawling paused
+- `completed`: Successful completion
+- `failed`: Error occurred
+
+## Error Detection
+
+  ```typescript
+  {
+    not_found_selectors?: string[];
+    keep_settings?: boolean;
+  }
+  ```
+
+- `not_found_selectors`: CSS selectors for identifying not found pages
+- `keep_settings` (default: false): Whether to keep existing Meilisearch index settings
+
+## Environment Variables
+
+Some features require environment variables to be set:
+
+### AI Features
+- `OPENAI_API_KEY`: Required for AI extraction and AI summary features
+- `OPENAI_MODEL`: OpenAI model to use (optional, defaults to system setting)
+
+### Server Mode
+- `REDIS_URL`: Required for async crawl tasks (/crawl/async endpoint)
+- `PORT`: Server port (default: 8080)

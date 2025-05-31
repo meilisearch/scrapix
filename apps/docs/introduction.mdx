@@ -1,0 +1,142 @@
+# Scrapix
+
+Scrapix is an advanced web scraping and crawling project designed to simplify the process of extracting and indexing data from websites into Meilisearch. It provides a flexible and efficient way to crawl websites and index their content for search.
+
+## Features
+
+### Crawler Types
+- **Cheerio**: Fast and lightweight HTML parser
+  - Best for static websites
+  - Low memory usage
+  - Cannot execute JavaScript
+- **Puppeteer**: Full Chrome browser automation
+  - Handles JavaScript rendering
+  - Good for SPAs
+  - Higher resource usage
+- **Playwright** (Beta): Modern browser automation
+  - Cross-browser support
+  - Modern APIs
+  - Currently in beta
+
+### Content Extraction Features
+- **Block Split**: Splits page content into blocks
+  - Extracts all page text
+  - Uses p tags for content blocks
+  - Builds sections from h1-h6 tags
+- **Full Page**: Extracts complete page content
+  - Preserves page structure
+  - Maintains hierarchical content
+- **Schema**: Structured data extraction
+  - Works with Schema.org markup
+  - Good for e-commerce sites
+  - Supports rich metadata
+  - Optional date conversion
+- **Markdown**: HTML to Markdown conversion
+  - Ideal for documentation
+  - Perfect for RAG systems
+  - Preserves code blocks
+- **Custom Selectors**: User-defined extraction
+  - Custom CSS selectors
+  - Flexible data structures
+- **Metadata**: Extracts page metadata
+  - HTML meta tags
+  - Open Graph data
+  - Additional page information
+- **PDF**: PDF document processing
+  - Extract PDF content
+  - Extract PDF metadata
+  - Support for linked PDFs
+- **AI Extraction**: AI-powered content extraction
+  - Custom prompts for extraction
+  - Uses OpenAI API
+  - Flexible AI-driven processing
+- **AI Summary**: AI-generated content summaries
+  - Automatic content summarization
+  - Uses OpenAI API
+  - Concise content overview
+
+### URL Control
+- **Start URLs**: Define crawl entry points
+- **URL Exclusion**: Skip specific URLs/patterns
+- **Index Control**: Choose what to index
+- **Not Found Detection**: Custom 404 detection
+- **Sitemap Support**: 
+  - Automatic sitemap discovery
+  - Custom sitemap URLs
+  - Robots.txt parsing
+  - XML sitemap processing
+
+### Performance Settings
+- **Concurrency Control**: Limit parallel requests
+- **Rate Limiting**: Requests per minute
+- **Batch Processing**: Document batch size
+- **Resource Management**: Memory optimization
+
+### Request Configuration
+- **Custom Headers**: Add HTTP headers
+- **User Agents**: Rotate user agents
+- **Browser Options**: Custom Puppeteer settings
+
+### Meilisearch Integration
+- **Index Settings**: Configure search behavior
+- **Primary Keys**: Custom document identifiers
+- **Batch Indexing**: Efficient document upload
+- **Settings Sync**: Automatic index configuration
+
+### Webhook Support
+- **Status Updates**: Real-time crawl progress
+- **Custom Payloads**: Additional context
+- **Event Types**: Started, active, completed, failed
+- **Error Reporting**: Detailed failure info
+
+## Getting Started
+
+### CLI Usage
+Download from [releases](https://github.com/meilisearch/scrapix/releases):
+
+```bash
+# Using config file path
+scrapix --configPath config.json
+scrapix -p config.json
+
+# Using inline config
+scrapix --config '{"meilisearch_url": "...", ...}'
+scrapix -c '{"meilisearch_url": "...", ...}'
+
+# With custom browser path
+scrapix -p config.json --browserPath /path/to/browser
+scrapix -p config.json -b /path/to/browser
+```
+
+### API Server
+Start the HTTP server by running the server component:
+
+```bash
+# Start the server (default port 8080)
+node dist/server/index.js
+
+# With custom port
+PORT=3000 node dist/server/index.js
+```
+
+#### API Endpoints
+
+1. **POST /crawl** (alias for /crawl/async)
+   - Queue async crawl task  
+   - Body: Crawl configuration (JSON)
+   - Response: `{"status": "ok", "indexUid": "your-index"}`
+
+2. **POST /crawl/async**
+   - Queue async crawl task (requires Redis)
+   - Body: Crawl configuration (JSON)
+   - Response: `{"status": "ok", "indexUid": "your-index"}`
+
+3. **POST /crawl/sync**
+   - Run synchronous crawl task
+   - Body: Crawl configuration (JSON)
+   - Response: `{"status": "ok", "indexUid": "your-index"}`
+   - Note: Blocks until crawling is complete
+
+4. **POST /webhook**
+   - Internal webhook endpoint for logging
+   - Used for webhook testing and debugging

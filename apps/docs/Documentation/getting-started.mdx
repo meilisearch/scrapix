@@ -1,0 +1,95 @@
+## Getting Started
+
+This guide will walk you through using Scrapix for your first web crawling task. We'll start with the simplest use case - crawling a static website and indexing its content in Meilisearch.
+
+### Prerequisites
+
+Before starting, ensure you have:
+- A running Meilisearch instance
+- The Scrapix server running (default port: 8080)
+- A website to crawl (we'll use a static documentation site as an example)
+
+### 1. Create Your Configuration
+
+First, create a JSON configuration file (`config.json`) with the essential settings:
+
+  ```json
+  {
+    "meilisearch_index_uid": "my_first_index",
+    "meilisearch_url": "http://cloud.meilisearch.com",
+    "meilisearch_api_key": "your_meilisearch_master_key",
+    "start_urls": ["https://example-docs.com"],
+  }
+  ```
+
+Let's break down each required field:
+- `meilisearch_index_uid`: A unique identifier for your search index
+- `meilisearch_url`: Where your Meilisearch instance is running
+- `meilisearch_api_key`: Your Meilisearch master key for authentication
+- `start_urls`: Array of URLs where crawling will begin
+
+### 2. Start the Crawling Process
+
+With your configuration ready, you can start crawling using the API. Here's how to do it with cURL:
+
+  ```bash
+  curl -X POST http://localhost:8080/crawl/async \
+    -H "Content-Type: application/json" \
+    -d @config.json
+  ```
+
+Or using JavaScript/Node.js:
+
+  ```javascript
+  const config = {
+    meilisearch_index_uid: "my_first_index",
+    meilisearch_url: "http://localhost:7700",
+    meilisearch_api_key: "your_meilisearch_master_key",
+    start_urls: ["https://example-docs.com"],
+  };
+
+  await fetch('http://localhost:8080/crawl/async', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(config)
+  });
+  ```
+
+### 3. What Happens Next?
+
+When you submit the crawling task:
+
+1. Scrapix adds your task to the queue
+2. The crawler starts with your specified `start_urls`
+3. It automatically:
+   - Follows links within the same domain
+   - Extracts content from each page
+   - Organizes content into searchable documents
+   - Sends documents to Meilisearch in batches
+
+By default, Scrapix uses a general-purpose scraping strategy that creates a hierarchical content structure from web pages. Here's how it works:
+
+1. **Content Extraction**
+   - Extracts all readable text from the page
+   - Uses `<p>` tags to identify main content blocks
+   - Preserves heading structure (h1-h6) for content organization
+   - Groups content between headings into logical sections
+
+2. **Document Structure**
+   - Creates searchable documents with:
+     - URL and unique identifier
+     - Page title and description
+     - Content blocks organized by hierarchy
+     - Metadata from page tags
+
+While this default strategy works well for most websites, Scrapix also offers specialized strategies for different use cases.
+
+### 4. Monitoring Progress
+
+You can monitor the crawling progress through the server logs. By default, Scrapix will log:
+- When the crawling task starts
+- Batch indexing operations
+- Any errors or warnings
+- Task completion

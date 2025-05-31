@@ -1,0 +1,25 @@
+{
+  "extends": "@apify/tsconfig",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2022",
+    "moduleResolution": "node",
+    "lib": ["ES2019", "DOM"],
+    "outDir": "./dist/",
+    "rootDir": "./",
+    "declaration": true,
+    "allowJs": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules", "playground", "dist", "**/*.js", "**/*.d.ts"]
+}

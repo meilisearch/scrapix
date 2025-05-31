@@ -1,0 +1,88 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Scrapix",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@meilisearch.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://cloud.meilisearch.com"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Documentation",
+      "icon": "book-open-cover",
+      "url": "https://docs.meilisearch.com"
+    },
+    {
+      "name": "Community",
+      "icon": "slack",
+      "url": "https://discord.meilisearch.com"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://blog.meilisearch.com"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "Documentation/getting-started",
+        "Documentation/choosing-best-configuration"
+      ]
+    },
+    {
+      "group": "References",
+      "pages": [
+        "References/config-reference",
+        "References/cli-reference",
+        "References/api-reference",
+        "References/strategies"
+      ]
+    },
+    {
+      "group": "Internals",
+      "pages": [
+        "Internals/crawling"
+      ]
+    },
+    {
+      "group": "Testing",
+      "pages": [
+        "tests"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/meilisearch",
+    "github": "https://github.com/meilisearch",
+    "linkedin": "https://www.linkedin.com/company/meilisearch",
+    "discord": "https://discord.meilisearch.com"
+  }
+}

@@ -83,6 +83,14 @@ typings/
 .nuxt
 dist
 
+# TypeScript compiled files in source directories (but allow dist folders)
+apps/scraper/core/*.js
+apps/scraper/core/*.d.ts
+apps/scraper/core/**/*.js
+apps/scraper/core/**/*.d.ts
+!apps/scraper/core/dist/
+!apps/scraper/cli/dist/
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and *not* Next.js

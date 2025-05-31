@@ -1,0 +1,174 @@
+# Choose the Best Configuration
+
+This guide helps you choose the optimal configuration for your specific use case. We'll look at common scenarios and provide recommended configurations for each.
+
+## Common Scenarios
+
+### "My website uses JavaScript rendering"
+
+If your website relies heavily on JavaScript for content rendering (e.g., Single Page Applications, dynamic content), use the Puppeteer crawler:
+
+```json
+{
+  "crawler_type": "puppeteer",
+  "features": {
+    "block_split": {
+      "activated": true
+    },
+    "metadata": {
+      "activated": true
+    }
+  },
+  "max_concurrency": 4,
+  "max_requests_per_minute": 120
+}
+```
+
+Note: Lower concurrency is recommended for Puppeteer due to higher resource usage.
+
+### "I want to index only one language of my website"
+
+To crawl only specific language versions of your site, use URL patterns in the configuration:
+
+```json
+{
+  "start_urls": ["https://example.com/en"],
+  "urls_to_exclude": [
+    "https://example.com/fr/**",
+    "https://example.com/de/**"
+  ]
+}
+```
+
+### "I want to build a RAG system with my documentation"
+
+For Retrieval Augmented Generation (RAG) systems, use the markdown feature to get clean, structured content:
+
+```json
+{
+  "features": {
+    "markdown": {
+      "activated": true,
+      "include_pages": ["/docs/**"]
+    }
+  },
+  "crawler_type": "cheerio",
+  "meilisearch_settings": {
+    "searchableAttributes": [
+      "content",
+      "title",
+      "description"
+    ]
+  }
+}
+```
+
+### "I'm crawling an e-commerce site with structured data"
+
+For sites using Schema.org markup, use the schema feature:
+
+```json
+{
+  "features": {
+    "schema": {
+      "activated": true,
+      "include_pages": ["/products/**"],
+      "convert_dates": true,
+      "only_type": "Product"
+    }
+  },
+  "meilisearch_settings": {
+    "filterableAttributes": [
+      "price",
+      "category",
+      "brand"
+    ],
+    "sortableAttributes": ["price"]
+  }
+}
+```
+
+### "I need precise control over what content is extracted"
+
+For custom content extraction needs, use the custom_selectors feature:
+
+```json
+{
+  "features": {
+    "custom_selectors": {
+      "activated": true,
+      "include_pages": ["/products/**"],
+      "selectors": {
+        "title": "h1.main-title",
+        "content": ["article p", "div.content"],
+        "category": "span.category-tag"
+      }
+    }
+  }
+}
+```
+
+### "I'm crawling a documentation site with DocSearch"
+
+For documentation sites, especially those using DocSearch-compatible frontends:
+
+```json
+{
+  "features": {
+    "block_split": {
+      "activated": true,
+      "include_pages": ["/docs/**"]
+    }
+  },
+  "crawler_type": "cheerio",
+  "meilisearch_settings": {
+    "searchableAttributes": [
+      "content",
+      "hierarchy_lvl1",
+      "hierarchy_lvl2",
+      "hierarchy_lvl3"
+    ]
+  }
+}
+```
+
+### "My site has rate limiting"
+
+To respect rate limits and prevent overloading the server:
+
+```json
+{
+  "max_concurrency": 2,
+  "max_requests_per_minute": 60,
+  "batch_size": 100,
+  "additional_request_headers": {
+    "User-Agent": "Friendly Bot/1.0"
+  }
+}
+```
+
+## Performance Considerations
+
+- **Memory Usage**: Puppeteer/Playwright crawlers use more memory than Cheerio
+- **Speed**: Cheerio is fastest but can't handle JavaScript rendering
+- **Concurrency**: Start with lower values and increase based on server response
+- **Batch Size**: Larger batches improve indexing speed but use more memory
+
+## Best Practices
+
+1. **Start Simple**: Begin with basic features and add more as needed
+2. **Test First**: Run a small test crawl before full deployment
+3. **Monitor Logs**: Watch for errors or performance issues
+4. **Respect Robots.txt**: Ensure your crawling follows site guidelines
+5. **Use Webhooks**: Enable webhook notifications for monitoring long crawls
+
+```json
+{
+  "webhook_url": "https://your-monitoring.com/webhook",
+  "webhook_payload": {
+    "environment": "production",
+    "source": "docs-crawler"
+  }
+}
+```
+

@@ -345,15 +345,8 @@ export interface Config {
         /** API key for the model */
         api_key?: string | null
       }
-      /** List of prompts to use for extraction */
-      prompts?: Array<{
-        /** The prompt to use */
-        prompt: string
-        /** List of wildcards for pages to include */
-        include_pages?: string[]
-        /** List of wildcards for pages to exclude */
-        exclude_pages?: string[]
-      }>
+      /** Prompt to use for extraction */
+      prompt?: string | null
     }
 
     /** AI summary configuration */

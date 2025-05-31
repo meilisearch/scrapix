@@ -14,9 +14,11 @@ export async function processAIExtraction(
   const feature = config.features?.ai_extraction
   if (!feature?.activated) return document
 
-  const modelConfig = feature.model_config
-  if (!modelConfig?.api_key) {
-    log.warning('OpenAI API key not provided for AI extraction')
+  const apiKey = process.env.OPENAI_API_KEY
+  const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini'
+
+  if (!apiKey) {
+    log.warning('OpenAI API key not provided in environment variables')
     return document
   }
 
@@ -43,7 +45,7 @@ export async function processAIExtraction(
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
-          model: modelConfig.model || 'gpt-4.1-mini', // Fallback to gpt-4.1-mini if gpt-4 fails
+          model: model,
           messages: [
             {
               role: 'system',
@@ -61,7 +63,7 @@ export async function processAIExtraction(
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${modelConfig.api_key}`,
+            Authorization: `Bearer ${apiKey}`,
           },
           timeout: 30000, // 30 second timeout
         }

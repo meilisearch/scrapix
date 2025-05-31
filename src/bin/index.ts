@@ -1,5 +1,10 @@
 import * as dotenv from 'dotenv'
-dotenv.config()
+import { Log } from 'crawlee'
+
+const log = new Log({ prefix: 'Scraper CLI' })
+
+// Load .env file first
+dotenv.config({ path: ['.env.local', '.env'] })
 
 import fs from 'fs'
 import yargs from 'yargs'
@@ -60,6 +65,14 @@ function getConfig({
       }
       return true
     }).argv
+
+  log.info('Starting scraper', {
+    config: argv.config,
+    configPath: argv.configPath,
+    browserPath: argv.browserPath,
+    openaiApiKey: process.env.OPENAI_API_KEY,
+    openaiModel: process.env.OPENAI_MODEL,
+  })
 
   const config = getConfig(argv)
   const launchOptions = argv.browserPath

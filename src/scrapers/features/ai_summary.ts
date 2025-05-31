@@ -14,9 +14,11 @@ export async function processAISummary(
   const feature = config.features?.ai_summary
   if (!feature?.activated) return document
 
-  const modelConfig = feature.model_config
-  if (!modelConfig?.api_key) {
-    log.warning('OpenAI API key not provided for AI summary')
+  const apiKey = process.env.OPENAI_API_KEY
+  const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini'
+
+  if (!apiKey) {
+    log.warning('OpenAI API key not provided in environment variables')
     return document
   }
 
@@ -28,7 +30,7 @@ export async function processAISummary(
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: modelConfig.model || 'gpt-4.1-mini',
+        model: model,
         messages: [
           {
             role: 'system',
@@ -46,7 +48,7 @@ export async function processAISummary(
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${modelConfig.api_key}`,
+          Authorization: `Bearer ${apiKey}`,
         },
       }
     )

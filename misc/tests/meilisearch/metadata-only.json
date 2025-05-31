@@ -1,0 +1,20 @@
+{
+  "meilisearch_url": "https://ms-00623fd6e9e0-72.fra.meilisearch.io",
+  "meilisearch_api_key": "a98cb0a735fe095c55b8562d8d392f942a4d3e21",
+  "meilisearch_index_uid": "meilisearch-metadata",
+  "start_urls": ["https://www.meilisearch.com"],
+  "features": {
+    "metadata": {
+      "activated": true
+    },
+    "block_split": {
+      "activated": false
+    },
+    "markdown": {
+      "activated": false
+    },
+    "schema": {
+      "activated": false
+    }
+  }
+} 

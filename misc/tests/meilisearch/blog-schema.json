@@ -1,0 +1,13 @@
+{
+  "meilisearch_url": "https://ms-00623fd6e9e0-72.fra.meilisearch.io",
+  "meilisearch_api_key": "a98cb0a735fe095c55b8562d8d392f942a4d3e21",
+  "meilisearch_index_uid": "meilisearch-blog-schema",
+  "start_urls": ["https://blog.meilisearch.com"],
+  "urls_to_index": ["https://blog.meilisearch.com/**"],
+  "features": {
+    "schema": {
+      "activated": true,
+      "convert_dates": true
+    }
+  }
+} 

@@ -1,0 +1,19 @@
+{
+  "meilisearch_url": "https://ms-00623fd6e9e0-72.fra.meilisearch.io",
+  "meilisearch_api_key": "a98cb0a735fe095c55b8562d8d392f942a4d3e21",
+  "meilisearch_index_uid": "meilisearch-docs",
+  "start_urls": ["https://www.meilisearch.com/docs"],
+  "urls_to_index": ["https://www.meilisearch.com/docs/**"],
+  "features": {
+    "block_split": {
+      "activated": false
+    },
+    "metadata": {
+      "activated": true
+    },
+    "markdown": {
+      "activated": true
+    }
+  },
+  "batch_size": 50
+} 

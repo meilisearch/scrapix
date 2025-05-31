@@ -1,0 +1,18 @@
+{
+  "meilisearch_url": "https://ms-00623fd6e9e0-72.fra.meilisearch.io",
+  "meilisearch_api_key": "a98cb0a735fe095c55b8562d8d392f942a4d3e21",
+  "meilisearch_index_uid": "meilisearch-ai",
+  "start_urls": ["https://www.meilisearch.com"],
+  "features": {
+    "ai_extraction": {
+      "activated": true,
+      "prompt": "Extract key information and insights from this content"
+    },
+    "block_split": {
+      "activated": false
+    },
+    "metadata": {
+      "activated": false
+    }
+  }
+} 

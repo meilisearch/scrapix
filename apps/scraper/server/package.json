@@ -6,7 +6,6 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "start:worker": "node dist/worker.js",
     "dev": "yarn build && node dist/index.js"
   },
   "dependencies": {

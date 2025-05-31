@@ -1,4 +1,4 @@
-app = "scrapix-server"
+app = "scrapix"
 primary_region = "iad"
 
 [build]

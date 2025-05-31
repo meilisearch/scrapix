@@ -8,7 +8,7 @@ import {
   RequestQueue,
 } from 'crawlee'
 import { BaseCrawler } from './base'
-import { Sender } from '../sender'
+import { Sender } from '../../sender'
 import { Config } from '../types'
 
 export class CheerioCrawler extends BaseCrawler {

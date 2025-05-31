@@ -10,7 +10,7 @@ import {
 import { LaunchOptions } from 'playwright'
 // import { firefox } from "playwright";
 import { BaseCrawler } from './base'
-import { Sender } from '../sender'
+import { Sender } from '../../sender'
 import { Config } from '../types'
 
 export class PlaywrightCrawler extends BaseCrawler {

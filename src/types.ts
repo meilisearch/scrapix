@@ -338,13 +338,6 @@ export interface Config {
       include_pages?: string[]
       /** List of wildcards for pages to exclude */
       exclude_pages?: string[]
-      /** AI model configuration */
-      model_config?: {
-        /** Model to use for extraction */
-        model?: string | null
-        /** API key for the model */
-        api_key?: string | null
-      }
       /** Prompt to use for extraction */
       prompt?: string | null
     }
@@ -357,13 +350,6 @@ export interface Config {
       include_pages?: string[]
       /** List of wildcards for pages to exclude */
       exclude_pages?: string[]
-      /** AI model configuration */
-      model_config?: {
-        /** Model to use for summary */
-        model?: string | null
-        /** API key for the model */
-        api_key?: string | null
-      }
     }
   }
 

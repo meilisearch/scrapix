@@ -80,21 +80,7 @@ export const ConfigSchema = z.object({
           activated: z.boolean().optional(),
           include_pages: z.array(z.string()).optional(),
           exclude_pages: z.array(z.string()).optional(),
-          model_config: z
-            .object({
-              model: z.string().nullish(),
-              api_key: z.string().nullish(),
-            })
-            .optional(),
-          prompts: z
-            .array(
-              z.object({
-                prompt: z.string(),
-                include_pages: z.array(z.string()).optional(),
-                exclude_pages: z.array(z.string()).optional(),
-              })
-            )
-            .optional(),
+          prompt: z.string().optional(),
         })
         .optional(),
       ai_summary: z
@@ -102,12 +88,6 @@ export const ConfigSchema = z.object({
           activated: z.boolean().optional(),
           include_pages: z.array(z.string()).optional(),
           exclude_pages: z.array(z.string()).optional(),
-          model_config: z
-            .object({
-              model: z.string().nullish(),
-              api_key: z.string().nullish(),
-            })
-            .optional(),
         })
         .optional(),
     })

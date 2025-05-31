@@ -2,6 +2,9 @@ import { CheerioAPI } from 'cheerio'
 import { Config, FullPageDocument } from '../../types'
 import axios from 'axios'
 import { cleanHtml } from '../utils/html_cleaner'
+import { Log } from 'crawlee'
+
+const log = new Log({ prefix: 'Scraper: AI Summary' })
 
 export async function processAISummary(
   $: CheerioAPI,
@@ -13,7 +16,7 @@ export async function processAISummary(
 
   const modelConfig = feature.model_config
   if (!modelConfig?.api_key) {
-    console.warn('OpenAI API key not provided for AI summary')
+    log.warning('OpenAI API key not provided for AI summary')
     return document
   }
 
@@ -25,7 +28,7 @@ export async function processAISummary(
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: modelConfig.model || 'gpt-3.5-turbo',
+        model: modelConfig.model || 'gpt-4.1-mini',
         messages: [
           {
             role: 'system',
@@ -34,7 +37,7 @@ export async function processAISummary(
           },
           {
             role: 'user',
-            content: `Please provide a concise summary of the following HTML content:\n\n${cleanedHtml}`,
+            content: `Please provide a concise summary of HTML content that will be then used to generate an embedding representation of the page. \n\n HTML:\n${cleanedHtml}`,
           },
         ],
         temperature: 0.3,
@@ -55,8 +58,8 @@ export async function processAISummary(
       ...document,
       ai_summary: summary,
     }
-  } catch (error) {
-    console.error('AI summary failed:', error)
+  } catch (error: any) {
+    log.error('AI summary failed', { error })
     return document
   }
 }

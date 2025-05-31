@@ -1,6 +1,9 @@
 import { CheerioAPI } from 'cheerio'
 import { Config, BlockDocument, FullPageDocument } from '../../types'
 import { v4 as uuidv4 } from 'uuid'
+import { Log } from 'crawlee'
+
+const _log = new Log({ prefix: 'Scraper: Block Split' })
 
 export async function processBlockSplit(
   _$: CheerioAPI,

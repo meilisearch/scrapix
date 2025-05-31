@@ -1,5 +1,8 @@
 import { CheerioAPI } from 'cheerio'
 import { Config, FullPageDocument } from '../../types'
+import { Log } from 'crawlee'
+
+const _log = new Log({ prefix: 'Scraper: Metadata' })
 
 export async function processMetadata(
   $: CheerioAPI,

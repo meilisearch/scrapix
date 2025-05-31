@@ -1,6 +1,9 @@
 import { CheerioAPI } from 'cheerio'
 import { Config, FullPageDocument } from '../../types'
 import { NodeHtmlMarkdown } from 'node-html-markdown'
+import { Log } from 'crawlee'
+
+const _log = new Log({ prefix: 'Scraper: Markdown' })
 
 export async function processMarkdown(
   $: CheerioAPI,

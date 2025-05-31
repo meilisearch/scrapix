@@ -32,14 +32,20 @@ export const ConfigSchema = z.object({
           include_pages: z.array(z.string()).optional(),
           exclude_pages: z.array(z.string()).optional(),
         })
-        .optional(),
+        .optional()
+        .default({
+          activated: false,
+        }),
       metadata: z
         .object({
           activated: z.boolean().optional(),
           include_pages: z.array(z.string()).optional(),
           exclude_pages: z.array(z.string()).optional(),
         })
-        .optional(),
+        .optional()
+        .default({
+          activated: false,
+        }),
       custom_selectors: z
         .object({
           activated: z.boolean().optional(),
@@ -49,14 +55,20 @@ export const ConfigSchema = z.object({
             .record(z.union([z.string(), z.array(z.string())]))
             .optional(),
         })
-        .optional(),
+        .optional()
+        .default({
+          activated: false,
+        }),
       markdown: z
         .object({
           activated: z.boolean().optional(),
           include_pages: z.array(z.string()).optional(),
           exclude_pages: z.array(z.string()).optional(),
         })
-        .optional(),
+        .optional()
+        .default({
+          activated: false,
+        }),
       pdf: z
         .object({
           activated: z.boolean().optional(),
@@ -65,7 +77,10 @@ export const ConfigSchema = z.object({
           extract_content: z.boolean().optional().default(false),
           extract_metadata: z.boolean().optional().default(true),
         })
-        .optional(),
+        .optional()
+        .default({
+          activated: false,
+        }),
       schema: z
         .object({
           activated: z.boolean().optional(),
@@ -74,7 +89,10 @@ export const ConfigSchema = z.object({
           convert_dates: z.boolean().optional().default(false),
           only_type: z.string().nullish(),
         })
-        .optional(),
+        .optional()
+        .default({
+          activated: false,
+        }),
       ai_extraction: z
         .object({
           activated: z.boolean().optional(),
@@ -82,14 +100,20 @@ export const ConfigSchema = z.object({
           exclude_pages: z.array(z.string()).optional(),
           prompt: z.string().optional(),
         })
-        .optional(),
+        .optional()
+        .default({
+          activated: false,
+        }),
       ai_summary: z
         .object({
           activated: z.boolean().optional(),
           include_pages: z.array(z.string()).optional(),
           exclude_pages: z.array(z.string()).optional(),
         })
-        .optional(),
+        .optional()
+        .default({
+          activated: false,
+        }),
     })
     .optional(),
 

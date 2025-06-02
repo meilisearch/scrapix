@@ -1,8 +1,7 @@
-import http from 'http'
-import https from 'https'
+import http from 'node:http'
 import httpProxy from 'http-proxy'
 import express from 'express'
-import { URL } from 'url'
+import { URL } from 'node:url'
 import { v4 as uuidv4 } from 'uuid'
 
 interface ProxyStats {
@@ -39,7 +38,7 @@ class CrawlerProxy {
     this.stats = {
       requestsToday: 0,
       totalRequests: 0,
-      lastReset: new Date()
+      lastReset: new Date(),
     }
 
     this.setupProxyEvents()
@@ -58,12 +57,12 @@ class CrawlerProxy {
     this.proxy.on('proxyReq', (proxyReq, req) => {
       const requestId = uuidv4()
       const startTime = Date.now()
-      
+
       // Add headers to identify the proxy
       proxyReq.setHeader('X-Scrapix-Proxy', 'true')
       proxyReq.setHeader('X-Scrapix-Region', process.env.FLY_REGION || 'local')
       proxyReq.setHeader('X-Request-ID', requestId)
-      
+
       // Store request info for logging
       ;(req as any).proxyStartTime = startTime
       ;(req as any).proxyRequestId = requestId
@@ -72,7 +71,7 @@ class CrawlerProxy {
     this.proxy.on('proxyRes', (proxyRes, req) => {
       const duration = Date.now() - ((req as any).proxyStartTime || 0)
       const requestId = (req as any).proxyRequestId
-      
+
       this.logRequest({
         id: requestId || uuidv4(),
         timestamp: new Date(),
@@ -81,7 +80,7 @@ class CrawlerProxy {
         userAgent: req.headers['user-agent'],
         statusCode: proxyRes.statusCode,
         duration,
-        clientIP: this.getClientIP(req)
+        clientIP: this.getClientIP(req),
       })
 
       this.updateStats()
@@ -101,8 +100,10 @@ class CrawlerProxy {
     if (this.requestLogs.length > this.maxLogs) {
       this.requestLogs = this.requestLogs.slice(0, this.maxLogs)
     }
-    
-    console.log(`[${log.timestamp.toISOString()}] ${log.method} ${log.url} - ${log.statusCode} (${log.duration}ms) - ${log.clientIP}`)
+
+    console.log(
+      `[${log.timestamp.toISOString()}] ${log.method} ${log.url} - ${log.statusCode} (${log.duration}ms) - ${log.clientIP}`
+    )
   }
 
   private updateStats(): void {
@@ -114,10 +115,12 @@ class CrawlerProxy {
     setInterval(() => {
       const now = new Date()
       const lastReset = this.stats.lastReset
-      
-      if (now.getDate() !== lastReset.getDate() || 
-          now.getMonth() !== lastReset.getMonth() || 
-          now.getFullYear() !== lastReset.getFullYear()) {
+
+      if (
+        now.getDate() !== lastReset.getDate() ||
+        now.getMonth() !== lastReset.getMonth() ||
+        now.getFullYear() !== lastReset.getFullYear()
+      ) {
         this.stats.requestsToday = 0
         this.stats.lastReset = now
         console.log('Daily stats reset')
@@ -125,9 +128,12 @@ class CrawlerProxy {
     }, 60000) // Check every minute
   }
 
-  public handleHttpRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+  public handleHttpRequest(
+    req: http.IncomingMessage,
+    res: http.ServerResponse
+  ): void {
     const url = new URL(req.url!, `http://${req.headers.host}`)
-    
+
     // Don't proxy requests to the management interface
     if (url.pathname.startsWith('/proxy-')) {
       res.writeHead(404)
@@ -138,30 +144,34 @@ class CrawlerProxy {
     this.proxy.web(req, res, {
       target: url.href,
       headers: {
-        host: url.host
-      }
+        host: url.host,
+      },
     })
   }
 
-  public handleHttpsConnect(req: http.IncomingMessage, socket: any, head: Buffer): void {
+  public handleHttpsConnect(
+    req: http.IncomingMessage,
+    socket: any,
+    head: Buffer
+  ): void {
     const [hostname, port] = req.url!.split(':')
     const targetPort = parseInt(port) || 443
 
     const targetSocket = new (require('net').Socket)()
-    
+
     targetSocket.connect(targetPort, hostname, () => {
       socket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
       targetSocket.pipe(socket)
       socket.pipe(targetSocket)
-      
+
       this.logRequest({
         id: uuidv4(),
         timestamp: new Date(),
         method: 'CONNECT',
         url: req.url!,
-        clientIP: this.getClientIP(req)
+        clientIP: this.getClientIP(req),
       })
-      
+
       this.updateStats()
     })
 
@@ -208,7 +218,7 @@ app.get('/proxy-health', (req, res) => {
     status: 'healthy',
     region: process.env.FLY_REGION || 'local',
     timestamp: new Date().toISOString(),
-    stats: crawlerProxy.getStats()
+    stats: crawlerProxy.getStats(),
   })
 })
 
@@ -216,7 +226,7 @@ app.get('/proxy-health', (req, res) => {
 app.get('/proxy-stats', (req, res) => {
   res.json({
     stats: crawlerProxy.getStats(),
-    recentLogs: crawlerProxy.getRecentLogs(20)
+    recentLogs: crawlerProxy.getRecentLogs(20),
   })
 })
 
@@ -231,8 +241,8 @@ app.get('/proxy-info', (req, res) => {
     usage: {
       http: `http://${req.headers.host}`,
       https: `http://${req.headers.host}`,
-      note: 'Configure your crawler to use this server as HTTP/HTTPS proxy'
-    }
+      note: 'Configure your crawler to use this server as HTTP/HTTPS proxy',
+    },
   })
 })
 

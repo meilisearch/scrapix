@@ -60,7 +60,7 @@ export class TaskQueue {
 
   __process(job: Job, done: DoneCallback) {
     log.debug('Processing job', { jobId: job.id })
-    const childProcess = fork('./dist/crawler_process.js')
+    const childProcess = fork('./dist/src/crawler_process.js')
     childProcess.send(job.data)
     childProcess.on('message', (message) => {
       log.info('Crawler process message', { message })

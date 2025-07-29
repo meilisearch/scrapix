@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios'
-import { Config } from './src/types'
+import { Config } from './types'
 import { Log } from '@crawlee/core'
 
 const log = new Log({ prefix: 'WebhookNotifier' })

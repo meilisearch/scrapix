@@ -1,6 +1,6 @@
 import { MeiliSearch, Settings } from 'meilisearch'
 import { Config, DocumentType } from './types'
-import { initMeilisearchClient } from './src/utils/meilisearch_client'
+import { initMeilisearchClient } from './utils/meilisearch_client'
 import { Webhook } from './webhook'
 import { Log } from '@crawlee/core'
 

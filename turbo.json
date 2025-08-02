@@ -1,19 +1,69 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "REDIS_URL",
+    "OPENAI_API_KEY",
+    "WEBHOOK_URL",
+    "WEBHOOK_TOKEN",
+    "PROXY_AUTH_ENABLED",
+    "PROXY_AUTH_USERNAME",
+    "PROXY_AUTH_PASSWORD",
+    "PROXY_AUTH_TOKEN"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".next/**"],
+      "env": ["NODE_ENV"]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "dev:build": {
+      "cache": false,
+      "persistent": true,
+      "outputs": ["dist/**"]
     },
     "start": {
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "cache": false
     },
-    "lint": {},
-    "lint:fix": {},
-    "test": {}
+    "scrape": {
+      "dependsOn": ["@scrapix/core#build", "@scrapix/cli#build"],
+      "cache": false
+    },
+    "lint": {
+      "outputs": [],
+      "inputs": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "eslint.config.mjs"]
+    },
+    "lint:fix": {
+      "outputs": [],
+      "cache": false,
+      "inputs": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "eslint.config.mjs"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "inputs": ["src/**", "jest.config.js", "jest.setup.js"],
+      "env": ["NODE_ENV"]
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "inputs": ["**/*.ts", "**/*.tsx", "tsconfig.json"]
+    }
   }
 }

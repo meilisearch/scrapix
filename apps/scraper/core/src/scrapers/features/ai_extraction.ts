@@ -1,11 +1,32 @@
 import { CheerioAPI } from 'cheerio'
 import { Config, FullPageDocument } from '../../types'
-import axios from 'axios'
 import { cleanHtml } from '../../utils/html_cleaner'
 import { Log } from 'crawlee'
+import { getConfig } from '../../constants'
+import { openaiHttpClient } from '../../utils/http_client'
 
 const log = new Log({ prefix: 'Scraper: AI Extraction' })
 
+/**
+ * Extract structured data from HTML using AI
+ * 
+ * @param {CheerioAPI} $ - Cheerio instance with loaded HTML
+ * @param {FullPageDocument} document - The document being processed
+ * @param {Config} config - Crawler configuration with AI extraction settings
+ * @returns {Promise<FullPageDocument>} Document with AI-extracted data added
+ * 
+ * @description
+ * Uses OpenAI GPT to extract structured information from HTML content
+ * based on custom prompts. The extracted data is added to the document
+ * under the 'ai_extraction' field.
+ * 
+ * @example
+ * ```typescript
+ * // With config.features.ai_extraction.prompt = "Extract product price"
+ * const doc = await processAIExtraction($, document, config);
+ * console.log(doc.ai_extraction); // { price: "$19.99" }
+ * ```
+ */
 export async function processAIExtraction(
   $: CheerioAPI,
   document: FullPageDocument,
@@ -15,7 +36,7 @@ export async function processAIExtraction(
   if (!feature?.activated) return document
 
   const apiKey = process.env.OPENAI_API_KEY
-  const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini'
+  const model = getConfig('AI', 'DEFAULT_MODEL')
 
   if (!apiKey) {
     log.warning('OpenAI API key not provided in environment variables')
@@ -27,7 +48,7 @@ export async function processAIExtraction(
     const cleanedHtml = cleanHtml($)
 
     // Truncate content if it's too long (OpenAI has token limits)
-    const maxLength = 4000 // Adjust this based on your needs
+    const maxLength = getConfig('AI', 'MAX_CONTENT_LENGTH')
     const truncatedHtml =
       cleanedHtml.length > maxLength
         ? cleanedHtml.substring(0, maxLength) + '...'
@@ -42,8 +63,8 @@ export async function processAIExtraction(
 
     const extractedData: Record<string, any> = {}
     try {
-      const response = await axios.post(
-        'https://api.openai.com/v1/chat/completions',
+      const response = await openaiHttpClient.post(
+        '/chat/completions',
         {
           model: model,
           messages: [
@@ -57,7 +78,7 @@ export async function processAIExtraction(
               content: `${prompt}\n\nHTML content to analyze:\n${truncatedHtml}`,
             },
           ],
-          temperature: 0.1,
+          temperature: getConfig('AI', 'EXTRACTION_TEMPERATURE'),
           response_format: { type: 'json_object' },
         },
         {
@@ -65,7 +86,7 @@ export async function processAIExtraction(
             'Content-Type': 'application/json',
             Authorization: `Bearer ${apiKey}`,
           },
-          timeout: 30000, // 30 second timeout
+          timeout: getConfig('AI', 'REQUEST_TIMEOUT'),
         }
       )
 

@@ -1,56 +1,92 @@
-# Scrapix Network Proxy
+# @scrapix/proxy
 
-A high-performance HTTP/HTTPS proxy server designed for web crawling. Routes crawler traffic through multiple regions for improved performance and IP rotation. Compatible with Crawlee and other web scraping tools.
+A secure, high-performance HTTP/HTTPS proxy server designed for enterprise web crawling with authentication and monitoring capabilities.
 
-## Features
+## 🚀 Features
 
-- **HTTP/HTTPS Proxy**: Full support for HTTP and HTTPS tunneling
-- **Simple & Fast**: No authentication or rate limiting - maximum performance
-- **Request Logging**: Detailed logging of all proxy requests
-- **Multi-Region Ready**: Optimized for deployment across multiple Fly.io regions
+- **HTTP/HTTPS Proxy**: Full support for HTTP and HTTPS tunneling via CONNECT
+- **Authentication**: Configurable Basic and Bearer token authentication
+- **Request Logging**: Detailed logging with configurable retention
+- **Multi-Region Ready**: Optimized for deployment across multiple regions
 - **Health Monitoring**: Built-in health check and stats endpoints
-- **IP Rotation**: Different proxy endpoints provide different exit IPs
+- **IP Rotation**: Deploy to different regions for different exit IPs
+- **Security**: Configurable authentication to prevent unauthorized usage
 
-## Proxy Configuration
+## 🔧 Configuration
 
-### Basic Usage
+### Environment Variables
 
-Configure your crawler to use the proxy:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PROXY_PORT` | Proxy server port | `8080` |
+| `PORT` | Management API port | `3000` |
+| `PROXY_AUTH_ENABLED` | Enable authentication | `false` |
+| `PROXY_AUTH_TYPE` | Auth type: `basic` or `bearer` | `basic` |
+| `PROXY_AUTH_USERS` | Basic auth users (comma-separated) | - |
+| `PROXY_AUTH_TOKENS` | Bearer tokens (comma-separated) | - |
+| `SCRAPIX_PROXY_MAX_LOGS` | Max logs to keep in memory | `1000` |
+| `SCRAPIX_PROXY_TIMEOUT` | Request timeout (ms) | `30000` |
 
-```javascript
-// Crawlee example
-import { CheerioCrawler } from 'crawlee'
+### Authentication Setup
 
-const crawler = new CheerioCrawler({
-  proxyConfiguration: {
-    proxyUrls: [
-      'http://scrapix-proxy-iad.fly.dev:8080',
-      'http://scrapix-proxy-lax.fly.dev:8080',
-      'http://scrapix-proxy-lhr.fly.dev:8080'
-    ]
-  },
-  // ... other options
-})
-```
-
-### Using cURL
-
+#### Basic Authentication
 ```bash
-# HTTP proxy
-curl -x http://scrapix-proxy-iad.fly.dev:8080 https://httpbin.org/ip
-
-# Test different regions
-curl -x http://scrapix-proxy-lax.fly.dev:8080 https://httpbin.org/ip
-curl -x http://scrapix-proxy-lhr.fly.dev:8080 https://httpbin.org/ip
+export PROXY_AUTH_ENABLED=true
+export PROXY_AUTH_TYPE=basic
+export PROXY_AUTH_USERS="user1:pass1,user2:pass2"
 ```
 
-## Management Endpoints
+#### Bearer Token Authentication
+```bash
+export PROXY_AUTH_ENABLED=true
+export PROXY_AUTH_TYPE=bearer
+export PROXY_AUTH_TOKENS="token1,token2,token3"
+```
+
+## 📡 Usage
+
+### With Authentication
+
+#### Basic Auth
+```bash
+# Using curl
+curl -x http://user1:pass1@localhost:8080 https://httpbin.org/ip
+
+# In your crawler configuration
+{
+  "proxy_configuration": {
+    "proxyUrls": ["http://user1:pass1@proxy.example.com:8080"]
+  }
+}
+```
+
+#### Bearer Token
+```bash
+# Using curl with Proxy-Authorization header
+curl -x http://localhost:8080 \
+  -H "Proxy-Authorization: Bearer token1" \
+  https://httpbin.org/ip
+
+# In your code
+const proxyAgent = new HttpsProxyAgent({
+  host: 'proxy.example.com',
+  port: 8080,
+  headers: {
+    'Proxy-Authorization': 'Bearer token1'
+  }
+});
+```
+
+### Without Authentication (Development)
+```bash
+curl -x http://localhost:8080 https://httpbin.org/ip
+```
+
+## 📊 Management API
 
 ### GET /proxy-health
-
 Health check endpoint for monitoring.
 
-**Response:**
 ```json
 {
   "status": "healthy",
@@ -65,10 +101,8 @@ Health check endpoint for monitoring.
 ```
 
 ### GET /proxy-stats
-
 Detailed statistics and recent request logs.
 
-**Response:**
 ```json
 {
   "stats": {
@@ -91,10 +125,8 @@ Detailed statistics and recent request logs.
 ```
 
 ### GET /proxy-info
-
 General information about the proxy server.
 
-**Response:**
 ```json
 {
   "name": "@scrapix/proxy",
@@ -102,118 +134,108 @@ General information about the proxy server.
   "type": "HTTP/HTTPS Proxy",
   "region": "iad",
   "uptime": 3600,
+  "authEnabled": true,
+  "authType": "basic",
   "usage": {
-    "http": "http://scrapix-proxy-iad.fly.dev:8080",
-    "https": "http://scrapix-proxy-iad.fly.dev:8080",
-    "note": "Configure your crawler to use this server as HTTP/HTTPS proxy"
+    "http": "http://user:pass@proxy.example.com:8080",
+    "https": "http://user:pass@proxy.example.com:8080"
   }
 }
 ```
 
-## Local Development
+## 🛠️ Development
 
 ```bash
 # Install dependencies
-npm install
+yarn install
 
-# Start development server
-npm run dev
+# Development mode with auto-reload
+yarn dev
 
-# Build for production
-npm run build
+# Build TypeScript
+yarn build
 
 # Start production server
-npm start
+yarn start
+
+# Run tests
+yarn test
+
+# Lint code
+yarn lint
 ```
 
-## Deployment
+## 🚀 Deployment
 
-### Single Region Deployment
+### Docker
 
 ```bash
-fly deploy
+# Build image
+docker build -t scrapix-proxy .
+
+# Run with authentication
+docker run -p 8080:8080 -p 3000:3000 \
+  -e PROXY_AUTH_ENABLED=true \
+  -e PROXY_AUTH_TYPE=basic \
+  -e PROXY_AUTH_USERS="user1:pass1" \
+  scrapix-proxy
 ```
 
-### Multi-Region Deployment
+### Docker Compose
 
-Use the included deployment script to deploy to multiple regions:
+```yaml
+version: '3.8'
+services:
+  proxy:
+    image: scrapix-proxy
+    ports:
+      - "8080:8080"
+      - "3000:3000"
+    environment:
+      - PROXY_AUTH_ENABLED=true
+      - PROXY_AUTH_TYPE=bearer
+      - PROXY_AUTH_TOKENS=${PROXY_TOKENS}
+    restart: unless-stopped
+```
+
+### Fly.io Multi-Region
+
+Deploy to multiple regions for IP diversity:
 
 ```bash
-./deploy-regions.sh
+# Deploy to US East
+fly deploy --app scrapix-proxy-iad --region iad
+
+# Deploy to Europe
+fly deploy --app scrapix-proxy-lhr --region lhr
+
+# Deploy to Asia
+fly deploy --app scrapix-proxy-sin --region sin
 ```
 
-This will deploy to:
-- `iad` - Washington D.C. (US East)
-- `lax` - Los Angeles (US West)
-- `lhr` - London (Europe)
-- `sin` - Singapore (Asia)
-- `syd` - Sydney (Australia)
+## 🔒 Security Considerations
 
-Each region will have its own app: `scrapix-proxy-iad`, `scrapix-proxy-lax`, etc.
+1. **Always enable authentication in production** to prevent unauthorized usage
+2. **Use HTTPS** for management endpoints when exposed publicly
+3. **Rotate tokens regularly** for bearer authentication
+4. **Monitor logs** for suspicious activity
+5. **Set up rate limiting** at the infrastructure level if needed
 
-### Environment Variables
+## 🏗️ Architecture
 
-- `PORT` - Server port (default: 3000)
-- `FLY_REGION` - Automatically set by Fly.io
-- `NODE_ENV` - Environment (development/production)
-
-## Usage Examples
-
-### Basic Crawling
-```bash
-curl -X POST https://scrapix-proxy-iad.fly.dev/crawl \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Crawler   │────▶│ Proxy Server│────▶│   Target    │
+│   Client    │     │   (Auth)    │     │   Website   │
+└─────────────┘     └─────────────┘     └─────────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │ Management  │
+                    │     API     │
+                    └─────────────┘
 ```
 
-### Advanced Crawling with Custom Selectors
-```bash
-curl -X POST https://scrapix-proxy-iad.fly.dev/crawl \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://example.com",
-    "options": {
-      "crawlerType": "playwright",
-      "includeLinks": true,
-      "selectors": {
-        "content": "main article",
-        "metadata": {
-          "author": ".author-name",
-          "publishDate": ".publish-date"
-        }
-      }
-    }
-  }'
-```
+## 📄 License
 
-### JavaScript-Heavy Sites
-```bash
-curl -X POST https://scrapix-proxy-iad.fly.dev/crawl \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://spa-example.com",
-    "options": {
-      "crawlerType": "playwright"
-    }
-  }'
-```
-
-## Architecture
-
-The proxy service is built with:
-- **Express.js** - Web server framework
-- **Crawlee** - Web scraping and crawling library
-- **TypeScript** - Type safety and better development experience
-- **Docker** - Containerization for consistent deployment
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-MIT License
+MIT

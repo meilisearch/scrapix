@@ -8,7 +8,9 @@
     "dev": "tsc && node dist/index.js",
     "lint": "eslint . --config eslint.config.mjs",
     "lint:fix": "eslint . --fix --config eslint.config.mjs",
-    "test": "jest --config jest.integration.config.js"
+    "test": "jest --config jest.config.js",
+    "test:watch": "jest --config jest.config.js --watch",
+    "test:coverage": "jest --config jest.config.js --coverage"
   },
   "dependencies": {
     "cheerio": "^1.0.0",
@@ -22,7 +24,8 @@
     "puppeteer": "23.9.0",
     "puppeteer-core": "23.9.0",
     "sitemapper": "^3.2.18",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@apify/log": "2.5.9",
@@ -48,7 +51,7 @@
     "playwright": "1.49.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "typescript": "5.7.2",
+    "typescript": "^5.9.2",
     "typescript-eslint": "^7.0.0"
   }
 }

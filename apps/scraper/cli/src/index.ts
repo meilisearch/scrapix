@@ -3,10 +3,14 @@ import { Log } from 'crawlee'
 
 const log = new Log({ prefix: 'Scraper CLI' })
 
+// Store the original working directory where the command was run
+const originalCwd = process.env.INIT_CWD || process.cwd()
+
 // Load .env file first from project root
 dotenv.config({ path: ['../../../.env.local', '../../../.env'] })
 
 import fs from 'fs'
+import path from 'path'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { Sender, Crawler, Config, ConfigSchema } from '@scrapix/core';
@@ -21,8 +25,13 @@ function getConfig({
   let parsedConfig: unknown
 
   if (configPath) {
+    // Resolve path relative to original working directory
+    const resolvedPath = path.isAbsolute(configPath) 
+      ? configPath 
+      : path.resolve(originalCwd, configPath)
+    
     parsedConfig = JSON.parse(
-      fs.readFileSync(configPath, { encoding: 'utf-8' })
+      fs.readFileSync(resolvedPath, { encoding: 'utf-8' })
     )
   } else if (config) {
     parsedConfig = JSON.parse(config)

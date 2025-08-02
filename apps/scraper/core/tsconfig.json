@@ -1,25 +1,19 @@
 {
-  "extends": "@apify/tsconfig",
+  "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "ES2022",
-    "moduleResolution": "node",
-    "lib": ["ES2019", "DOM"],
     "outDir": "./dist/",
     "rootDir": "./src/",
-    "declaration": true,
-    "allowJs": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types", "../../../node_modules/@types"]
   },
   "include": ["./src/**/*.ts"],
-  "exclude": ["node_modules", "playground", "dist", "**/*.js", "**/*.d.ts"]
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "**/*.js", 
+    "**/*.d.ts", 
+    "**/__tests__/**", 
+    "**/*.test.ts",
+    "jest.setup.js"
+  ]
 }

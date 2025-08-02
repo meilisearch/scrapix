@@ -3,6 +3,7 @@ import httpProxy from 'http-proxy'
 import express from 'express'
 import { URL } from 'node:url'
 import { v4 as uuidv4 } from 'uuid'
+import { logger, LogLevel } from './logger'
 
 interface ProxyStats {
   requestsToday: number
@@ -21,13 +22,35 @@ interface RequestLog {
   clientIP: string
 }
 
+interface AuthConfig {
+  enabled: boolean
+  username?: string
+  password?: string
+  token?: string
+}
+
 class CrawlerProxy {
   private proxy: httpProxy
   private stats: ProxyStats
   private requestLogs: RequestLog[] = []
   private maxLogs = 1000
+  private authConfig: AuthConfig
 
   constructor() {
+    // Setup authentication from environment variables
+    this.authConfig = {
+      enabled: process.env.PROXY_AUTH_ENABLED === 'true',
+      username: process.env.PROXY_AUTH_USERNAME,
+      password: process.env.PROXY_AUTH_PASSWORD,
+      token: process.env.PROXY_AUTH_TOKEN,
+    }
+
+    if (this.authConfig.enabled) {
+      logger.info('Proxy authentication enabled')
+      if (!this.authConfig.username && !this.authConfig.token) {
+        logger.warn('Authentication enabled but no credentials configured!')
+      }
+    }
     this.proxy = httpProxy.createProxyServer({
       changeOrigin: true,
       followRedirects: true,
@@ -46,8 +69,8 @@ class CrawlerProxy {
   }
 
   private setupProxyEvents(): void {
-    this.proxy.on('error', (err, req, res) => {
-      console.error('Proxy error:', err.message)
+    this.proxy.on('error', (err, _req, res) => {
+      logger.error('Proxy error', err)
       if (res instanceof http.ServerResponse && !res.headersSent) {
         res.writeHead(500, { 'Content-Type': 'text/plain' })
         res.end('Proxy error: ' + err.message)
@@ -101,8 +124,8 @@ class CrawlerProxy {
       this.requestLogs = this.requestLogs.slice(0, this.maxLogs)
     }
 
-    console.log(
-      `[${log.timestamp.toISOString()}] ${log.method} ${log.url} - ${log.statusCode} (${log.duration}ms) - ${log.clientIP}`
+    logger.debug(
+      `${log.method} ${log.url} - ${log.statusCode} (${log.duration}ms) - ${log.clientIP}`
     )
   }
 
@@ -123,15 +146,67 @@ class CrawlerProxy {
       ) {
         this.stats.requestsToday = 0
         this.stats.lastReset = now
-        console.log('Daily stats reset')
+        logger.info('Daily stats reset')
       }
     }, 60000) // Check every minute
+  }
+
+  private authenticateRequest(req: http.IncomingMessage): boolean {
+    if (!this.authConfig.enabled) {
+      return true
+    }
+
+    const authHeader =
+      req.headers['proxy-authorization'] || req.headers['authorization']
+
+    if (!authHeader) {
+      return false
+    }
+
+    // Check token-based auth
+    if (this.authConfig.token) {
+      const bearerMatch = authHeader.toString().match(/^Bearer (.+)$/i)
+      if (bearerMatch && bearerMatch[1] === this.authConfig.token) {
+        return true
+      }
+    }
+
+    // Check basic auth
+    if (this.authConfig.username && this.authConfig.password) {
+      const basicMatch = authHeader.toString().match(/^Basic (.+)$/i)
+      if (basicMatch) {
+        const decoded = Buffer.from(basicMatch[1], 'base64').toString()
+        const [username, password] = decoded.split(':')
+        if (
+          username === this.authConfig.username &&
+          password === this.authConfig.password
+        ) {
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
+  private sendAuthRequired(res: http.ServerResponse): void {
+    res.writeHead(407, {
+      'Proxy-Authenticate': 'Basic realm="Scrapix Proxy"',
+      'Content-Type': 'text/plain',
+    })
+    res.end('Proxy authentication required')
   }
 
   public handleHttpRequest(
     req: http.IncomingMessage,
     res: http.ServerResponse
   ): void {
+    // Check authentication
+    if (!this.authenticateRequest(req)) {
+      this.sendAuthRequired(res)
+      return
+    }
+
     const url = new URL(req.url!, `http://${req.headers.host}`)
 
     // Don't proxy requests to the management interface
@@ -152,8 +227,17 @@ class CrawlerProxy {
   public handleHttpsConnect(
     req: http.IncomingMessage,
     socket: any,
-    head: Buffer
+    _head: Buffer
   ): void {
+    // Check authentication
+    if (!this.authenticateRequest(req)) {
+      socket.write('HTTP/1.1 407 Proxy Authentication Required\r\n')
+      socket.write('Proxy-Authenticate: Basic realm="Scrapix Proxy"\r\n')
+      socket.write('\r\n')
+      socket.end()
+      return
+    }
+
     const [hostname, port] = req.url!.split(':')
     const targetPort = parseInt(port) || 443
 
@@ -176,12 +260,12 @@ class CrawlerProxy {
     })
 
     targetSocket.on('error', (err: any) => {
-      console.error('HTTPS tunnel error:', err.message)
+      logger.error('HTTPS tunnel error', err)
       socket.end()
     })
 
     socket.on('error', (err: any) => {
-      console.error('Client socket error:', err.message)
+      logger.error('Client socket error', err)
       targetSocket.end()
     })
   }
@@ -192,6 +276,10 @@ class CrawlerProxy {
 
   public getRecentLogs(limit: number = 50): RequestLog[] {
     return this.requestLogs.slice(0, limit)
+  }
+
+  public getAuthConfig(): AuthConfig {
+    return { ...this.authConfig }
   }
 }
 
@@ -213,7 +301,7 @@ const app = express()
 app.use(express.json())
 
 // Health check endpoint
-app.get('/proxy-health', (req, res) => {
+app.get('/proxy-health', (_req, res) => {
   res.json({
     status: 'healthy',
     region: process.env.FLY_REGION || 'local',
@@ -223,25 +311,64 @@ app.get('/proxy-health', (req, res) => {
 })
 
 // Stats endpoint
-app.get('/proxy-stats', (req, res) => {
+app.get('/proxy-stats', (_req, res) => {
   res.json({
     stats: crawlerProxy.getStats(),
     recentLogs: crawlerProxy.getRecentLogs(20),
   })
 })
 
+// Logs endpoint
+app.get('/proxy-logs', (req, res) => {
+  const limit = parseInt(req.query.limit as string) || 100
+  const level = req.query.level as string
+  let logLevel: LogLevel | undefined
+
+  if (level) {
+    logLevel = LogLevel[level.toUpperCase() as keyof typeof LogLevel]
+  }
+
+  res.json({
+    logs: logger.getRecentLogs(limit, logLevel),
+  })
+})
+
 // Info endpoint
 app.get('/proxy-info', (req, res) => {
+  const authConfig = crawlerProxy.getAuthConfig()
+  const authInfo = authConfig.enabled
+    ? {
+        authentication: {
+          enabled: true,
+          methods: [
+            authConfig.token ? 'Bearer token' : null,
+            authConfig.username ? 'Basic auth' : null,
+          ].filter(Boolean),
+        },
+      }
+    : { authentication: { enabled: false } }
+
   res.json({
     name: '@scrapix/proxy',
     version: '0.1.0',
     type: 'HTTP/HTTPS Proxy',
     region: process.env.FLY_REGION || 'local',
     uptime: process.uptime(),
+    ...authInfo,
     usage: {
       http: `http://${req.headers.host}`,
       https: `http://${req.headers.host}`,
       note: 'Configure your crawler to use this server as HTTP/HTTPS proxy',
+      authExample: authConfig.enabled
+        ? {
+            basic: authConfig.username
+              ? `http://username:password@${req.headers.host}`
+              : undefined,
+            bearer: authConfig.token
+              ? 'Use Proxy-Authorization: Bearer YOUR_TOKEN header'
+              : undefined,
+          }
+        : undefined,
     },
   })
 })
@@ -251,11 +378,11 @@ const proxyPort = process.env.PROXY_PORT || 8080
 const managementPort = process.env.PORT || 3000
 
 proxyServer.listen(proxyPort, () => {
-  console.log(`🌐 Scrapix HTTP/HTTPS Proxy running on port ${proxyPort}`)
-  console.log(`📊 Management interface on port ${managementPort}`)
-  console.log(`🌍 Region: ${process.env.FLY_REGION || 'local'}`)
+  logger.info(`Scrapix HTTP/HTTPS Proxy running on port ${proxyPort}`)
+  logger.info(`Management interface on port ${managementPort}`)
+  logger.info(`Region: ${process.env.FLY_REGION || 'local'}`)
 })
 
 app.listen(managementPort, () => {
-  console.log(`✅ Management server ready`)
+  logger.info('Management server ready')
 })

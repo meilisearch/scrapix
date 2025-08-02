@@ -8,31 +8,80 @@ Scrapix is an enterprise-grade web crawling and content extraction platform opti
 
 - **🤖 AI-Powered Extraction**: OpenAI GPT integration for intelligent content extraction and summarization
 - **🔧 Multiple Crawler Engines**: Cheerio (fast), Puppeteer (JS-enabled), Playwright (cross-browser)
-- **🌐 Enterprise Proxy Support**: Built-in proxy rotation and dedicated proxy server
+- **🌐 Enterprise Proxy Support**: Built-in proxy rotation and dedicated proxy server with authentication
 - **📊 Advanced Content Processing**: Schema.org, PDF extraction, custom selectors, markdown conversion
 - **🎯 Smart Content Splitting**: Hierarchical block splitting for optimal search relevance
 - **📡 Real-time Monitoring**: Webhooks, progress tracking, and health monitoring
-- **⚡ High Performance**: Concurrent crawling, intelligent batching, and distributed architecture
+- **⚡ High Performance**: Concurrent crawling, intelligent batching, connection pooling, and distributed architecture
 - **🗺️ Sitemap Integration**: Automatic sitemap discovery and parsing
+- **🔒 Security**: Input validation, rate limiting, and authentication support
+- **🏗️ Modern Architecture**: Dependency injection, comprehensive error handling, and TypeScript throughout
 
 ## 🎯 Quick Start
+
+### Development Setup
+
+```bash
+# Install dependencies
+yarn install
+
+# Build all packages
+yarn build
+
+# Run in development mode
+yarn dev
+```
 
 ### CLI Usage
 
 ```bash
-# Start with configuration file
-yarn start -p config.json
+# Quick scraper usage (works from anywhere in the project)
+yarn scrape -p misc/tests/meilisearch/simple.json
 
-# Start with inline JSON config
-yarn start -c '{"start_urls":["https://example.com"],"meilisearch_url":"http://localhost:7700"}'
+# With inline JSON config
+yarn scrape -c '{"start_urls":["https://example.com"],"meilisearch_url":"http://localhost:7700","meilisearch_api_key":"masterKey","meilisearch_index_uid":"test"}'
 
 # Use custom browser for Playwright/Puppeteer
-yarn start -p config.json -b /path/to/chrome
+yarn scrape -p config.json -b /path/to/chrome
+```
+
+### Server Usage
+
+```bash
+# Start the API server (default port 8080)
+yarn server
+
+# Custom port
+yarn server -p 3000
+
+# With Redis for job queue
+yarn server -r redis://localhost:6379
+
+# With custom .env file
+yarn server -e .env.production
+
+# Development mode with hot-reload
+yarn server:dev
+
+# Get help
+yarn server --help
 ```
 
 ### API Usage
 
-Scrapix provides a REST API for programmatic crawling control.
+```bash
+# Start the API server (requires Redis)
+cd apps/scraper/server && yarn dev
+
+# Or use Docker Compose for the full stack
+docker-compose up
+```
+
+The API server provides endpoints for asynchronous and synchronous crawling:
+- `POST /crawl` - Start an asynchronous crawl job
+- `POST /crawl/sync` - Start a synchronous crawl (waits for completion)
+- `GET /job/:id/status` - Check job status
+- `GET /job/:id/events` - Stream job events (SSE)
 
 ## 🔧 Crawler Engines
 
@@ -50,7 +99,7 @@ Scrapix supports multiple crawler engines optimized for different use cases:
 - **Capabilities**: JavaScript execution, dynamic content rendering
 - **Use case**: React/Vue/Angular apps, complex web applications
 
-### Playwright (Beta)
+### Playwright
 - **Best for**: Cross-browser testing, modern web apps
 - **Performance**: Similar to Puppeteer with modern APIs
 - **Capabilities**: Chrome, Firefox, Safari support
@@ -58,7 +107,7 @@ Scrapix supports multiple crawler engines optimized for different use cases:
 
 ```json
 {
-  "crawler": "cheerio", // "cheerio" | "puppeteer" | "playwright"
+  "crawler_type": "cheerio", // "cheerio" | "puppeteer" | "playwright"
   "launch_options": {
     "headless": true,
     "args": ["--no-sandbox"]
@@ -100,7 +149,7 @@ Generate concise summaries optimized for search:
 **Environment Variables:**
 ```bash
 OPENAI_API_KEY=your_openai_key
-OPENAI_MODEL=gpt-4.1-mini  # Default model
+OPENAI_MODEL=gpt-4o-mini  # Default model
 ```
 
 ## 🌐 Proxy Support
@@ -250,9 +299,38 @@ WEBHOOK_INTERVAL=5000  # Milliseconds
 
 ## 🔌 API Reference
 
-### POST /crawl
+### POST /crawl (Asynchronous)
 
-Start a crawling job with comprehensive configuration:
+Start an asynchronous crawling job that returns immediately with a job ID:
+
+```bash
+curl -X POST http://localhost:8080/crawl \
+  -H "Content-Type: application/json" \
+  -d @config.json
+```
+
+Response:
+```json
+{
+  "status": "ok",
+  "jobId": "123",
+  "indexUid": "my_index",
+  "statusUrl": "/job/123/status",
+  "eventsUrl": "/job/123/events"
+}
+```
+
+### POST /crawl/sync (Synchronous)
+
+Start a synchronous crawling job that waits for completion:
+
+```bash
+curl -X POST http://localhost:8080/crawl/sync \
+  -H "Content-Type: application/json" \
+  -d @config.json
+```
+
+### Configuration Schema
 
 ```json
 {
@@ -528,12 +606,44 @@ It is possible to add additional information in the webhook payload through the 
 ```bash
 # AI Features
 OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-4.1-mini
+OPENAI_MODEL=gpt-4o-mini
+SCRAPIX_AI_MAX_CONTENT_LENGTH=4000
+SCRAPIX_AI_EXTRACTION_TEMP=0.1
+SCRAPIX_AI_SUMMARY_TEMP=0.3
+SCRAPIX_AI_SUMMARY_MAX_TOKENS=150
 
 # Webhooks
 WEBHOOK_URL=https://your-app.com/webhook
 WEBHOOK_TOKEN=your_webhook_secret
 WEBHOOK_INTERVAL=5000
+
+# Server Configuration
+PORT=8080
+REDIS_URL=redis://localhost:6379
+SCRAPIX_MAX_BODY_SIZE=10mb
+
+# Rate Limiting
+SCRAPIX_RATE_LIMIT_WINDOW=900000  # 15 minutes
+SCRAPIX_RATE_LIMIT_CRAWL=100
+SCRAPIX_RATE_LIMIT_STATUS=60
+SCRAPIX_RATE_LIMIT_GLOBAL=1000
+
+# Proxy Server
+PROXY_PORT=8080
+PROXY_AUTH_ENABLED=true
+PROXY_AUTH_TYPE=basic  # or "bearer"
+PROXY_AUTH_USERS=user1:pass1,user2:pass2
+PROXY_AUTH_TOKENS=token1,token2
+
+# HTTP Client Configuration
+SCRAPIX_HTTP_KEEP_ALIVE_MS=1000
+SCRAPIX_HTTP_MAX_SOCKETS=256
+SCRAPIX_HTTP_TIMEOUT=30000
+
+# Retry Configuration
+SCRAPIX_RETRY_MAX_ATTEMPTS=3
+SCRAPIX_RETRY_BASE_DELAY=1000
+SCRAPIX_RETRY_MAX_DELAY=10000
 
 # Regional Deployment
 FLY_REGION=ord

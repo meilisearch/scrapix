@@ -1,0 +1,12 @@
+{
+    "start_urls": [
+      "https://www.bienici.com/recherche/location/haute-garonne-31?mode=liste"
+    ],
+    "meilisearch_url": "https://ms-00623fd6e9e0-72.fra.meilisearch.io",
+    "meilisearch_api_key": "0535f600cead62b1c1a88d33312f6e482ee62195c2236cfa5677621b401c84ec",
+    "meilisearch_index_uid": "bienici",
+    "crawler_type": "puppeteer",
+    "use_sitemap": true,
+    "batch_size": 100
+  }
+  

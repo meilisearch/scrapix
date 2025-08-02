@@ -1,18 +1,47 @@
 import { Log, RequestQueue } from 'crawlee'
-import { PuppeteerCrawler } from './puppeteer'
-import { CheerioCrawler } from './cheerio'
-import { PlaywrightCrawler } from './playwright'
+// import { PuppeteerCrawler } from './puppeteer'
+// import { CheerioCrawler } from './cheerio'
+// import { PlaywrightCrawler } from './playwright'
 import { Sender } from '../sender'
 import { Config, CrawlerType } from '../types'
 import { Webhook } from '../webhook'
 import { BaseCrawler } from './base'
 import { extractUrlsFromSitemap } from '../utils/sitemap'
+import { getConfig } from '../constants'
+import { CrawlerFactory } from './factory'
+import { Container } from '../container'
 
 const log = new Log({ prefix: 'Crawler' })
 
+/**
+ * Factory class for creating and managing web crawlers
+ * 
+ * @description
+ * The Crawler class provides a factory pattern for creating different types
+ * of crawlers (Puppeteer, Cheerio, Playwright) and manages their execution
+ * lifecycle including request queue setup and webhook handling.
+ * 
+ * @example
+ * ```typescript
+ * const sender = new Sender(config);
+ * const crawler = Crawler.create('cheerio', sender, config);
+ * await Crawler.run(crawler);
+ * ```
+ */
 export class Crawler {
   private static config: Config
+  // private static _factory: CrawlerFactory = new CrawlerFactory()
 
+  /**
+   * Create a crawler instance based on the specified type
+   * 
+   * @param {CrawlerType} crawlerType - Type of crawler to create ('puppeteer', 'cheerio', or 'playwright')
+   * @param {Sender} sender - Sender instance for document delivery to Meilisearch
+   * @param {Config} config - Crawler configuration
+   * @param {Record<string, any>} launchOptions - Browser launch options (for Puppeteer/Playwright)
+   * @returns {BaseCrawler} The created crawler instance
+   * @throws {Error} If an unsupported crawler type is specified
+   */
   static create(
     crawlerType: CrawlerType,
     sender: Sender,
@@ -20,19 +49,34 @@ export class Crawler {
     launchOptions: Record<string, any> = {}
   ): BaseCrawler {
     this.config = config
-    log.info(`Creating ${crawlerType} crawler`, { config })
-    switch (crawlerType) {
-      case 'puppeteer':
-        return new PuppeteerCrawler(sender, config, launchOptions)
-      case 'cheerio':
-        return new CheerioCrawler(sender, config)
-      case 'playwright':
-        return new PlaywrightCrawler(sender, config, launchOptions)
-      default:
-        throw new Error(`Unsupported crawler type: ${crawlerType}`)
-    }
+    // Use factory with injected sender
+    const factory = new CrawlerFactory({ sender })
+    return factory.create(crawlerType, config, launchOptions)
   }
 
+  /**
+   * Create a crawler with dependency injection container
+   */
+  static createWithContainer(
+    crawlerType: CrawlerType,
+    config: Config,
+    container: Container,
+    launchOptions: Record<string, any> = {}
+  ): BaseCrawler {
+    this.config = config
+    const factory = CrawlerFactory.withContainer(container)
+    return factory.create(crawlerType, config, launchOptions)
+  }
+
+  /**
+   * Run a crawler instance
+   * 
+   * @param {BaseCrawler} crawler - The crawler instance to run
+   * 
+   * @description
+   * Sets up the request queue, creates router handlers, initializes webhooks,
+   * and runs the crawler. Handles cleanup and error reporting automatically.
+   */
   static async run(crawler: BaseCrawler): Promise<void> {
     log.info(`Starting ${crawler.constructor.name} run`)
     const requestQueue = await Crawler.setupRequestQueue(crawler.urls)
@@ -43,10 +87,7 @@ export class Crawler {
     const crawlerOptions = crawler.getCrawlerOptions(requestQueue, router)
     const crawlerInstance = crawler.createCrawlerInstance(crawlerOptions)
 
-    let interval = 5000
-    if (process.env.WEBHOOK_INTERVAL) {
-      interval = parseInt(process.env.WEBHOOK_INTERVAL)
-    }
+    const interval = getConfig('WEBHOOK', 'DEFAULT_INTERVAL')
 
     const intervalId = Crawler.handleWebhook(crawler, interval)
 

@@ -16,7 +16,9 @@ yarn dev:build        # Build in watch mode
 
 # Building & Running
 yarn build            # Build all packages
-yarn scrape          # Build and run the CLI scraper
+yarn scrape          # Run the CLI scraper (works from anywhere)
+yarn server          # Run the API server
+yarn server:dev      # Run server in development mode
 
 # Code Quality
 yarn lint            # Run ESLint across all packages
@@ -25,7 +27,7 @@ yarn test            # Run Jest tests
 
 # Specific Apps
 cd apps/scraper/core && yarn dev    # Work on core library
-cd apps/scraper/server && yarn dev  # Work on API server
+cd apps/scraper/server && yarn dev  # Work on API server with hot-reload
 cd apps/proxy && yarn dev           # Work on proxy server
 ```
 
@@ -43,14 +45,32 @@ docker-compose up
 
 ### Testing Crawlers
 ```bash
-# CLI with config file
-yarn start -p misc/config_examples/basic.json
+# Quick scraper usage (works from anywhere in the project)
+yarn scrape -p misc/tests/meilisearch/simple.json
 
-# CLI with inline config
-yarn start -c '{"start_urls":["https://example.com"],"meilisearch_url":"http://localhost:7700"}'
+# With inline config
+yarn scrape -c '{"start_urls":["https://example.com"],"meilisearch_url":"http://localhost:7700","meilisearch_api_key":"masterKey","meilisearch_index_uid":"my_index"}'
 
 # With custom browser
-yarn start -p config.json -b /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
+yarn scrape -p misc/config_examples/default-simple.json -b "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+```
+
+### Running the API Server
+```bash
+# Start server on default port 8080
+yarn server
+
+# Custom port
+yarn server -p 3000
+
+# With Redis for job queue
+yarn server -r redis://localhost:6379
+
+# With custom environment file
+yarn server -e .env.production
+
+# Development mode with hot-reload
+yarn server:dev
 ```
 
 ## Architecture

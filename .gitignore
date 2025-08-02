@@ -82,6 +82,8 @@ typings/
 # Nuxt.js build / generate output
 .nuxt
 dist
+*/dist
+apps/*/dist
 
 # TypeScript compiled files in source directories (but allow dist folders)
 apps/scraper/core/*.js

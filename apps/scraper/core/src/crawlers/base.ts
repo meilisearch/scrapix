@@ -71,9 +71,11 @@ export abstract class BaseCrawler {
         let $: cheerio.CheerioAPI
 
         try {
+          let pageContent: string | undefined
+          
           if (this.crawlerType === 'puppeteer') {
-            const pageContent = await context.page.content()
-            $ = cheerio.load(pageContent)
+            pageContent = await context.page.content()
+            $ = cheerio.load(pageContent || '')
           } else {
             $ = context.$
           }
@@ -97,11 +99,31 @@ export abstract class BaseCrawler {
           log.debug('Starting scraper.get', { url: request.loadedUrl })
           await this.scraper.get(request.loadedUrl, $)
           log.debug('Completed scraper.get', { url: request.loadedUrl })
+          
+          // Clean up to help garbage collection
+          if (pageContent) {
+            pageContent = undefined
+          }
+          
+          // For Puppeteer, explicitly clear the $ reference
+          if (this.crawlerType === 'puppeteer') {
+            $ = null as any
+          }
         } catch (error) {
           log.error('Error processing page', {
             url: request.loadedUrl,
             error: error instanceof Error ? error.message : String(error),
           })
+        } finally {
+          // Additional cleanup for Puppeteer pages
+          if (this.crawlerType === 'puppeteer' && context.page) {
+            try {
+              // Clear any event listeners that might have been added
+              await context.page.removeAllListeners()
+            } catch (e) {
+              // Ignore cleanup errors
+            }
+          }
         }
       }
     }
@@ -136,50 +158,64 @@ export abstract class BaseCrawler {
   }
 
   protected __is_file_url(url: string): boolean {
-    // Add more file extensions to check for
-    const fileExtensions = [
+    // Use a Set for O(1) lookup performance and automatic deduplication
+    const fileExtensions = new Set([
+      // Data formats
       '.json',
       '.csv',
       '.yaml',
       '.yml',
-      '.md',
-      '.markdown',
-      '.ini',
-      '.config',
-      '.log',
+      '.xml',
       '.sql',
       '.db',
       '.sqlite',
-      '.exe',
-      '.bin',
-      '.iso',
-      '.dmg',
-      '.apk',
-      '.ipa',
-      '.zip',
+      
+      // Documents
+      '.md',
+      '.markdown',
+      '.txt',
+      '.rtf',
       '.doc',
       '.docx',
       '.xls',
       '.xlsx',
       '.ppt',
       '.pptx',
+      
+      // Configuration
+      '.ini',
+      '.config',
+      '.log',
+      
+      // Archives
+      '.zip',
       '.rar',
       '.tar',
       '.gz',
       '.tgz',
       '.7z',
       '.bz2',
+      
+      // Executables
+      '.exe',
+      '.bin',
+      '.apk',
+      '.ipa',
+      '.dmg',
+      '.iso',
+      
+      // Images
       '.jpg',
       '.jpeg',
       '.png',
       '.gif',
       '.svg',
+      
+      // Web assets
       '.css',
       '.js',
-      '.xml',
-      '.txt',
-      '.csv',
-      '.rtf',
+      
+      // Media
       '.mp3',
       '.wav',
       '.mp4',
@@ -193,8 +229,11 @@ export abstract class BaseCrawler {
       '.mpg',
       '.mpeg',
       '.swf',
-    ]
-    return fileExtensions.some((extension) => url.endsWith(extension))
+    ])
+    
+    // Extract the extension from the URL (ignoring query parameters)
+    const urlPath = url.split('?')[0].toLowerCase()
+    return Array.from(fileExtensions).some((extension) => urlPath.endsWith(extension))
   }
 
   protected __is404Page($: cheerio.CheerioAPI): boolean {

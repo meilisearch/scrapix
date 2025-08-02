@@ -1,5 +1,6 @@
 import Queue, { Job, DoneCallback } from 'bull'
 import { fork } from 'child_process'
+import { join } from 'path'
 import { Config, initMeilisearchClient } from '@scrapix/core'
 import { Log } from '@crawlee/core'
 
@@ -60,11 +61,22 @@ export class TaskQueue {
 
   __process(job: Job, done: DoneCallback) {
     log.debug('Processing job', { jobId: job.id })
-    const childProcess = fork('./dist/src/crawler_process.js')
+    const crawlerPath = join(__dirname, 'crawler_process.js')
+    const childProcess = fork(crawlerPath)
     childProcess.send(job.data)
     childProcess.on('message', (message) => {
       log.info('Crawler process message', { message })
       done()
+    })
+    childProcess.on('error', (error) => {
+      log.error('Crawler process error', { error })
+      done(error)
+    })
+    childProcess.on('exit', (code) => {
+      if (code !== 0) {
+        log.error('Crawler process exited with non-zero code', { code })
+        done(new Error(`Crawler process exited with code ${code}`))
+      }
     })
   }
 

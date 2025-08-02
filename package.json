@@ -12,10 +12,18 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "lint:fix": "turbo run lint:fix",
-    "scrape": "cd apps/scraper && yarn build:core && cd cli && yarn build && yarn start"
+    "scrape": "./scripts/scrape.sh",
+    "server": "./scripts/server.sh",
+    "server:dev": "cd apps/scraper/server && yarn dev"
   },
   "devDependencies": {
+    "eslint-plugin-jest": "^28.0.0",
+    "eslint-plugin-prettier": "^5.5.3",
+    "prettier": "^3.6.2",
     "turbo": "^2.5.4"
+  },
+  "resolutions": {
+    "form-data": "^4.0.4"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

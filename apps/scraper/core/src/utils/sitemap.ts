@@ -3,6 +3,25 @@ import { XMLParser } from 'fast-xml-parser'
 
 const log = new Log({ prefix: 'SitemapUtils' })
 
+/**
+ * Extract URLs from sitemaps and sitemap indexes
+ * 
+ * @param {string[]} startUrls - Array of starting URLs to check for sitemaps
+ * @returns {Promise<string[]>} Array of unique URLs found in all sitemaps
+ * 
+ * @description
+ * This function automatically discovers and processes sitemaps by:
+ * - Checking common sitemap locations (/sitemap.xml, /robots.txt, etc.)
+ * - Parsing sitemap index files and following nested sitemaps
+ * - Extracting all unique URLs from discovered sitemaps
+ * - Handling various sitemap formats and edge cases
+ * 
+ * @example
+ * ```typescript
+ * const urls = await extractUrlsFromSitemap(['https://example.com']);
+ * console.log(`Found ${urls.length} URLs in sitemaps`);
+ * ```
+ */
 export async function extractUrlsFromSitemap(
   startUrls: string[]
 ): Promise<string[]> {

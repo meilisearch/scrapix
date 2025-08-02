@@ -649,29 +649,42 @@ SCRAPIX_RETRY_MAX_DELAY=10000
 FLY_REGION=ord
 ```
 
-## 🐳 Docker Deployment
+## 🚀 Deployment
 
-### Quick Start
+### Deploy to Fly.io (Recommended)
 ```bash
-# With environment file
-docker run --rm --env-file .env getmeili/scrapix
+# Install Fly CLI
+curl -L https://fly.io/install.sh | sh
 
-# With inline configuration
-docker run --rm -e CRAWLER_CONFIG='{"start_urls":["https://example.com"]}' getmeili/scrapix
+# Deploy with one command
+fly launch
+
+# Set secrets
+fly secrets set MEILISEARCH_URL="https://your-instance.meilisearch.io" \
+  MEILISEARCH_API_KEY="your-key" \
+  REDIS_URL="redis://your-redis.upstash.io"
+
+# Deploy updates
+fly deploy
 ```
 
-### Docker Compose
-```yaml
-version: '3.8'
-services:
-  scrapix:
-    image: getmeili/scrapix
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - WEBHOOK_URL=${WEBHOOK_URL}
-    volumes:
-      - ./config.json:/app/config.json
-    command: yarn start -p /app/config.json
+### Docker Deployment
+```bash
+# Using Docker Compose (includes Meilisearch + Redis)
+docker-compose up -d
+
+# Or use standalone Docker
+docker build -t scrapix .
+docker run -p 8080:8080 --env-file .env scrapix
+```
+
+### Quick Cloud Deploy
+```bash
+# Deploy to Fly.io with our script
+./scripts/deploy-fly.sh production
+
+# Or use GitHub Actions (on push to main)
+git push origin main
 ```
 
 ## 🏗️ Architecture

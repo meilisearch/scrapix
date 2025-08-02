@@ -1,0 +1,62 @@
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+jobs:
+  deploy:
+    name: Deploy to Fly.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to production
+        if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'production'
+        run: |
+          fly deploy --remote-only \
+            --app scrapix \
+            --dockerfile Dockerfile.fly
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Deploy to staging
+        if: github.ref == 'refs/heads/staging' || github.event.inputs.environment == 'staging'
+        run: |
+          fly deploy --remote-only \
+            --app scrapix-staging \
+            --dockerfile Dockerfile.fly
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Health check
+        run: |
+          sleep 10
+          APP_NAME=${{ github.event.inputs.environment == 'staging' && 'scrapix-staging' || 'scrapix' }}
+          curl -f https://$APP_NAME.fly.dev/health || exit 1
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          echo "Environment: ${{ github.event.inputs.environment || 'production' }}"
+          echo "Commit: ${{ github.sha }}"

@@ -70,7 +70,8 @@
     {
       "group": "Deployment",
       "pages": [
-        "deployment/docker"
+        "deployment/docker",
+        "deployment/fly-io"
       ]
     },
     {

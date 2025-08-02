@@ -1,0 +1,474 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Scrapix API",
+    "description": "RESTful API for web crawling and content extraction",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Meilisearch Support",
+      "email": "support@meilisearch.com",
+      "url": "https://meilisearch.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local development server"
+    },
+    {
+      "url": "https://api.scrapix.com",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/crawl": {
+      "post": {
+        "summary": "Submit async crawl job",
+        "description": "Submit an asynchronous crawl job that runs in the background",
+        "operationId": "createCrawlJob",
+        "tags": ["Crawling"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrawlConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Job created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string",
+                      "example": "job_123456"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["queued", "processing", "completed", "failed"]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/crawl/sync": {
+      "post": {
+        "summary": "Submit sync crawl job",
+        "description": "Submit a synchronous crawl job that waits for completion",
+        "operationId": "createSyncCrawlJob",
+        "tags": ["Crawling"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrawlConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Crawl completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["completed"]
+                    },
+                    "documentsIndexed": {
+                      "type": "integer"
+                    },
+                    "pagesProcessed": {
+                      "type": "integer"
+                    },
+                    "duration": {
+                      "type": "number",
+                      "description": "Duration in seconds"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/job/{jobId}/status": {
+      "get": {
+        "summary": "Get job status",
+        "description": "Retrieve the current status and progress of a crawl job",
+        "operationId": "getJobStatus",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The job ID returned from crawl endpoint"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatus"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/job/{jobId}/events": {
+      "get": {
+        "summary": "Get job events stream",
+        "description": "Stream real-time events for a crawl job using Server-Sent Events",
+        "operationId": "getJobEvents",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event stream opened",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/webhook": {
+      "post": {
+        "summary": "Configure webhook",
+        "description": "Configure webhook notifications for job events",
+        "operationId": "configureWebhook",
+        "tags": ["Webhooks"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook configured successfully"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Check if the API server is healthy",
+        "operationId": "healthCheck",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Server is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "uptime": {
+                      "type": "number",
+                      "description": "Uptime in seconds"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CrawlConfig": {
+        "type": "object",
+        "required": ["start_urls", "meilisearch_url", "meilisearch_api_key", "meilisearch_index_uid"],
+        "properties": {
+          "start_urls": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "example": ["https://example.com"]
+          },
+          "meilisearch_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "http://localhost:7700"
+          },
+          "meilisearch_api_key": {
+            "type": "string",
+            "example": "masterKey"
+          },
+          "meilisearch_index_uid": {
+            "type": "string",
+            "example": "my_index"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": ["default", "docssearch", "schema", "custom"],
+            "default": "default"
+          },
+          "crawler_type": {
+            "type": "string",
+            "enum": ["cheerio", "puppeteer", "playwright"],
+            "default": "cheerio"
+          },
+          "max_pages_per_domain": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 100
+          },
+          "max_concurrency": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10
+          },
+          "batch_size": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1000
+          },
+          "wait_between_requests": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "example": [1, 3]
+          },
+          "openai_api_key": {
+            "type": "string",
+            "description": "OpenAI API key for AI features"
+          },
+          "extraction_prompt": {
+            "type": "string",
+            "description": "Custom prompt for AI extraction"
+          },
+          "enable_summary": {
+            "type": "boolean",
+            "default": false
+          },
+          "webhook_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "webhook_token": {
+            "type": "string"
+          }
+        }
+      },
+      "JobStatus": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["queued", "processing", "completed", "failed"]
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "pagesProcessed": {
+                "type": "integer"
+              },
+              "documentsIndexed": {
+                "type": "integer"
+              },
+              "urlsDiscovered": {
+                "type": "integer"
+              },
+              "errors": {
+                "type": "integer"
+              }
+            }
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if job failed"
+          }
+        }
+      },
+      "WebhookConfig": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "token": {
+            "type": "string",
+            "description": "Authentication token sent in webhook headers"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["started", "progress", "completed", "failed"]
+            },
+            "default": ["completed", "failed"]
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Job not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Crawling",
+      "description": "Endpoints for submitting crawl jobs"
+    },
+    {
+      "name": "Jobs",
+      "description": "Endpoints for managing and monitoring jobs"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhook configuration endpoints"
+    },
+    {
+      "name": "System",
+      "description": "System health and status endpoints"
+    }
+  ]
+}

@@ -1,0 +1,417 @@
+---
+title: 'Documentation Site Example'
+description: 'Crawl and index technical documentation with code snippets'
+icon: 'book'
+---
+
+## Overview
+
+This example demonstrates how to crawl technical documentation sites, preserving code blocks, hierarchical structure, and navigation paths. Perfect for creating searchable documentation portals.
+
+## Use Case
+
+You want to make your technical documentation searchable with:
+- Preserved code syntax highlighting
+- Hierarchical page structure
+- Breadcrumb navigation
+- API references
+- Version-specific content
+
+## Configuration
+
+<Tabs>
+  <Tab title="Basic Setup">
+    ```json
+    {
+      "start_urls": ["https://docs.example.com"],
+      "meilisearch_url": "http://localhost:7700",
+      "meilisearch_api_key": "masterKey",
+      "meilisearch_index_uid": "docs",
+      "strategy": "docssearch",
+      "crawler_type": "cheerio",
+      "max_pages_per_domain": 500,
+      "exclude_urls": [
+        "*/api/deprecated/*",
+        "*/changelog/*"
+      ]
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Advanced with AI">
+    ```json
+    {
+      "start_urls": ["https://docs.example.com"],
+      "meilisearch_url": "http://localhost:7700",
+      "meilisearch_api_key": "masterKey",
+      "meilisearch_index_uid": "docs",
+      "strategy": "docssearch",
+      "crawler_type": "puppeteer",
+      "openai_api_key": "sk-...",
+      "extraction_prompt": "Extract the main content, code examples, and API endpoints. Identify the programming language for code blocks.",
+      "enable_summary": true,
+      "custom_selectors": {
+        "title": "h1",
+        "content": "article.content",
+        "code_blocks": "pre code",
+        "breadcrumb": "nav.breadcrumb",
+        "version": ".version-selector"
+      },
+      "metadata": {
+        "source": "official_docs",
+        "type": "technical_documentation"
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Step-by-Step Implementation
+
+<Steps>
+  <Step title="Identify documentation structure">
+    Analyze your documentation site to understand:
+    - URL patterns for different sections
+    - Navigation structure
+    - Code block formatting
+    - Version handling
+  </Step>
+  
+  <Step title="Configure selectors">
+    ```javascript
+    const config = {
+      custom_selectors: {
+        // Main content area
+        content: "main.documentation-content",
+        
+        // Navigation elements
+        sidebar: "nav.docs-sidebar",
+        breadcrumb: "ol.breadcrumb",
+        
+        // Code elements
+        code_blocks: "pre > code",
+        inline_code: "code:not(pre > code)",
+        
+        // Metadata
+        last_updated: "time.last-updated",
+        authors: ".doc-authors",
+        tags: ".doc-tags span"
+      }
+    };
+    ```
+  </Step>
+  
+  <Step title="Handle code blocks">
+    Preserve syntax highlighting and language detection:
+    ```javascript
+    {
+      "custom_processing": {
+        "code_blocks": {
+          "preserve_formatting": true,
+          "extract_language": true,
+          "add_line_numbers": false
+        }
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Set up hierarchical indexing">
+    ```javascript
+    {
+      "hierarchical_levels": [
+        {
+          "level": 0,
+          "selector": "h1",
+          "default": "Documentation"
+        },
+        {
+          "level": 1,
+          "selector": "h2"
+        },
+        {
+          "level": 2,
+          "selector": "h3"
+        }
+      ]
+    }
+    ```
+  </Step>
+</Steps>
+
+## Real-World Example: VuePress Documentation
+
+<CodeGroup>
+```json config.json
+{
+  "start_urls": [
+    "https://vuepress.vuejs.org/guide/",
+    "https://vuepress.vuejs.org/config/",
+    "https://vuepress.vuejs.org/theme/"
+  ],
+  "meilisearch_url": "http://localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "vuepress_docs",
+  "strategy": "docssearch",
+  "crawler_type": "puppeteer",
+  "wait_between_requests": [1, 2],
+  "max_concurrency": 5,
+  "custom_selectors": {
+    "lvl0": {
+      "selector": ".sidebar-heading.open",
+      "default": "Documentation"
+    },
+    "lvl1": ".theme-default-content h1",
+    "lvl2": ".theme-default-content h2",
+    "lvl3": ".theme-default-content h3",
+    "content": ".theme-default-content p, .theme-default-content li",
+    "code": ".theme-default-content code"
+  },
+  "strip_selectors": [
+    ".page-nav",
+    ".page-edit",
+    ".global-ui"
+  ],
+  "metadata": {
+    "framework": "vuepress",
+    "version": "2.x"
+  }
+}
+```
+
+```bash CLI Command
+scrapix crawl -p vuepress-config.json
+```
+
+```javascript Node.js Script
+import { Crawler } from '@scrapix/core';
+import fs from 'fs';
+
+const config = JSON.parse(
+  fs.readFileSync('vuepress-config.json', 'utf-8')
+);
+
+async function crawlDocs() {
+  const crawler = await Crawler.create(config);
+  
+  crawler.on('page_crawled', (data) => {
+    console.log(`Indexed: ${data.url}`);
+    console.log(`  - Headers found: ${data.headers.length}`);
+    console.log(`  - Code blocks: ${data.code_blocks?.length || 0}`);
+  });
+  
+  crawler.on('error', (error) => {
+    console.error(`Error: ${error.message}`);
+  });
+  
+  const results = await crawler.run();
+  console.log(`\nCrawl completed:`);
+  console.log(`  - Pages processed: ${results.pages_processed}`);
+  console.log(`  - Documents indexed: ${results.documents_indexed}`);
+}
+
+crawlDocs();
+```
+</CodeGroup>
+
+## Optimizing for Search
+
+### 1. Configure Meilisearch Settings
+
+```javascript
+// Configure Meilisearch for documentation search
+const meilisearchClient = new MeiliSearch({
+  host: 'http://localhost:7700',
+  apiKey: 'masterKey'
+});
+
+await meilisearchClient.index('docs').updateSettings({
+  searchableAttributes: [
+    'title',
+    'headers',
+    'content',
+    'code'
+  ],
+  displayedAttributes: [
+    'title',
+    'url',
+    'content',
+    'hierarchy',
+    'breadcrumb'
+  ],
+  filterableAttributes: [
+    'version',
+    'language',
+    'category',
+    'type'
+  ],
+  sortableAttributes: [
+    'last_updated'
+  ],
+  rankingRules: [
+    'words',
+    'typo',
+    'proximity',
+    'attribute',
+    'sort',
+    'exactness'
+  ]
+});
+```
+
+### 2. Handle Versioned Documentation
+
+```json
+{
+  "start_urls": [
+    {
+      "url": "https://docs.example.com/v3/",
+      "variables": {
+        "version": "3.x"
+      }
+    },
+    {
+      "url": "https://docs.example.com/v2/",
+      "variables": {
+        "version": "2.x"
+      }
+    }
+  ],
+  "metadata": {
+    "version": "{version}"
+  }
+}
+```
+
+## Common Patterns
+
+<AccordionGroup>
+  <Accordion title="API Reference Documentation">
+    ```json
+    {
+      "custom_selectors": {
+        "endpoint": ".api-endpoint",
+        "method": ".http-method",
+        "parameters": ".api-parameters",
+        "response": ".api-response",
+        "example": ".api-example"
+      },
+      "extraction_prompt": "Extract API endpoint, HTTP method, parameters with types, and example responses"
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Multi-language Documentation">
+    ```json
+    {
+      "start_urls": [
+        "https://docs.example.com/en/",
+        "https://docs.example.com/fr/",
+        "https://docs.example.com/de/"
+      ],
+      "url_variables": {
+        "lang": ["en", "fr", "de"]
+      },
+      "metadata": {
+        "language": "{lang}"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Framework-specific Documentation">
+    ```json
+    {
+      "strategy": "docssearch",
+      "custom_selectors": {
+        // React documentation
+        "component": ".component-docs",
+        "props": ".prop-table",
+        "examples": ".live-example",
+        
+        // Vue documentation
+        "template": ".template-example",
+        "script": ".script-example",
+        "style": ".style-example"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Tips
+
+<Info>
+  **Best Practices for Documentation Sites**
+  
+  1. **Use Cheerio for static docs** - Much faster than Puppeteer
+  2. **Batch by sections** - Crawl one section at a time
+  3. **Cache parsed content** - Avoid re-parsing unchanged pages
+  4. **Respect rate limits** - Documentation sites often have strict limits
+  5. **Index incrementally** - Update only changed pages
+</Info>
+
+## Monitoring and Analytics
+
+Track crawling performance:
+
+```javascript
+{
+  "webhook_url": "https://your-monitoring.com/webhook",
+  "webhook_events": ["completed", "failed"],
+  "custom_tracking": {
+    "track_broken_links": true,
+    "track_missing_images": true,
+    "track_redirect_chains": true,
+    "generate_sitemap": true
+  }
+}
+```
+
+## Sample Output
+
+Example of indexed documentation:
+
+```json
+{
+  "id": "doc_12345",
+  "url": "https://docs.example.com/guide/getting-started",
+  "title": "Getting Started Guide",
+  "hierarchy": {
+    "lvl0": "Guide",
+    "lvl1": "Getting Started",
+    "lvl2": "Installation"
+  },
+  "content": "This guide will help you get started with...",
+  "code_blocks": [
+    {
+      "language": "javascript",
+      "content": "npm install example-package"
+    }
+  ],
+  "breadcrumb": ["Home", "Guide", "Getting Started"],
+  "version": "3.2.1",
+  "last_updated": "2024-01-15",
+  "type": "guide",
+  "tags": ["installation", "setup", "beginner"]
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="E-commerce Example"
+    icon="shopping-cart"
+    href="/examples/ecommerce"
+  >
+    Learn to crawl product catalogs
+  </Card>
+  <Card
+    title="SPA Applications"
+    icon="react"
+    href="/examples/spa-application"
+  >
+    Handle JavaScript-heavy sites
+  </Card>
+</CardGroup>

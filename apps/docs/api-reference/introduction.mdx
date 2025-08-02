@@ -1,0 +1,222 @@
+---
+title: 'API Introduction'
+description: 'RESTful API for programmatic web crawling'
+icon: 'code'
+---
+
+## Overview
+
+The Scrapix API provides a RESTful interface for submitting crawl jobs, monitoring their progress, and managing crawling operations at scale. The API server can be deployed as a standalone service or integrated into your existing infrastructure.
+
+## Base URL
+
+```
+http://localhost:8080
+```
+
+<Note>
+  Replace `localhost:8080` with your deployed server URL in production.
+</Note>
+
+## Authentication
+
+Currently, the Scrapix API does not require authentication for basic operations. For production deployments, we recommend:
+
+- Implementing API key authentication
+- Using a reverse proxy with authentication
+- Deploying behind a VPN or private network
+
+## Quick Start
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST http://localhost:8080/crawl \
+      -H "Content-Type: application/json" \
+      -d '{
+        "start_urls": ["https://example.com"],
+        "meilisearch_url": "http://localhost:7700",
+        "meilisearch_api_key": "masterKey",
+        "meilisearch_index_uid": "my_index"
+      }'
+    ```
+  </Tab>
+  
+  <Tab title="JavaScript">
+    ```javascript
+    const response = await fetch('http://localhost:8080/crawl', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        start_urls: ['https://example.com'],
+        meilisearch_url: 'http://localhost:7700',
+        meilisearch_api_key: 'masterKey',
+        meilisearch_index_uid: 'my_index'
+      })
+    });
+    
+    const job = await response.json();
+    console.log('Job ID:', job.jobId);
+    ```
+  </Tab>
+  
+  <Tab title="Python">
+    ```python
+    import requests
+    
+    response = requests.post('http://localhost:8080/crawl', json={
+        'start_urls': ['https://example.com'],
+        'meilisearch_url': 'http://localhost:7700',
+        'meilisearch_api_key': 'masterKey',
+        'meilisearch_index_uid': 'my_index'
+    })
+    
+    job = response.json()
+    print(f"Job ID: {job['jobId']}")
+    ```
+  </Tab>
+</Tabs>
+
+## Response Format
+
+All API responses follow a consistent JSON structure:
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "data": {
+    // Response data
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": {
+      // Additional error context
+    }
+  }
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success - Request completed successfully |
+| `201` | Created - Resource created successfully |
+| `400` | Bad Request - Invalid request parameters |
+| `404` | Not Found - Resource not found |
+| `500` | Internal Server Error - Server-side error |
+
+## Rate Limiting
+
+The API server implements rate limiting to prevent abuse:
+
+- **Default limit**: 100 requests per minute per IP
+- **Burst allowance**: 20 requests
+- **Headers returned**:
+  - `X-RateLimit-Limit`: Maximum requests allowed
+  - `X-RateLimit-Remaining`: Requests remaining
+  - `X-RateLimit-Reset`: Reset timestamp
+
+## Webhooks
+
+Configure webhooks to receive real-time updates about job status:
+
+```json
+{
+  "webhook_url": "https://your-server.com/webhook",
+  "webhook_token": "your-secret-token",
+  "webhook_events": ["completed", "failed", "progress"]
+}
+```
+
+## Error Handling
+
+<Accordion title="Common Error Codes">
+| Code | Description | Solution |
+|------|-------------|----------|
+| `INVALID_CONFIG` | Invalid crawler configuration | Check configuration schema |
+| `MEILISEARCH_ERROR` | Cannot connect to Meilisearch | Verify Meilisearch URL and credentials |
+| `JOB_NOT_FOUND` | Job ID does not exist | Verify job ID is correct |
+| `QUEUE_FULL` | Job queue is at capacity | Retry after some time |
+| `CRAWLER_ERROR` | Crawler encountered an error | Check job logs for details |
+</Accordion>
+
+## SDK Support
+
+While we don't have official SDKs yet, the API is designed to work with any HTTP client:
+
+<CardGroup cols={3}>
+  <Card title="Node.js" icon="node-js">
+    Use `fetch`, `axios`, or `node-fetch`
+  </Card>
+  <Card title="Python" icon="python">
+    Use `requests` or `httpx`
+  </Card>
+  <Card title="Go" icon="golang">
+    Use standard `net/http` package
+  </Card>
+</CardGroup>
+
+## API Endpoints
+
+<CardGroup cols={2}>
+  <Card
+    title="POST /crawl"
+    icon="play"
+    href="/api-reference/endpoints/crawl-async"
+  >
+    Submit an asynchronous crawl job
+  </Card>
+  <Card
+    title="POST /crawl/sync"
+    icon="clock"
+    href="/api-reference/endpoints/crawl-sync"
+  >
+    Submit a synchronous crawl job
+  </Card>
+  <Card
+    title="GET /job/:id/status"
+    icon="chart-line"
+    href="/api-reference/endpoints/job-status"
+  >
+    Get job status and progress
+  </Card>
+  <Card
+    title="POST /webhook"
+    icon="webhook"
+    href="/api-reference/endpoints/webhook"
+  >
+    Configure webhook notifications
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<Steps>
+  <Step title="Start the API Server">
+    ```bash
+    scrapix server -p 8080
+    ```
+  </Step>
+  
+  <Step title="Submit Your First Job">
+    Check out the [async crawl endpoint](/api-reference/endpoints/crawl-async)
+  </Step>
+  
+  <Step title="Monitor Job Progress">
+    Learn about [job status tracking](/api-reference/endpoints/job-status)
+  </Step>
+</Steps>

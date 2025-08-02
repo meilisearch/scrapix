@@ -1,0 +1,237 @@
+---
+title: 'Quickstart'
+description: 'Get up and running with Scrapix in under 5 minutes'
+icon: 'rocket'
+---
+
+<Info>
+  **Prerequisites**
+  - Node.js 18+ installed
+  - Meilisearch instance (local or cloud)
+  - Basic knowledge of web scraping concepts
+</Info>
+
+## Installation
+
+Choose your preferred package manager:
+
+<CodeGroup>
+```bash npm
+npm install -g @scrapix/cli
+npm install @scrapix/core
+```
+
+```bash yarn
+yarn global add @scrapix/cli
+yarn add @scrapix/core
+```
+
+```bash pnpm
+pnpm add -g @scrapix/cli
+pnpm add @scrapix/core
+```
+</CodeGroup>
+
+## Quick Start Options
+
+<Tabs>
+  <Tab title="CLI">
+    The fastest way to start crawling:
+
+    ```bash
+    # Basic crawl with inline config
+    scrapix crawl -c '{
+      "start_urls": ["https://example.com"],
+      "meilisearch_url": "http://localhost:7700",
+      "meilisearch_api_key": "masterKey",
+      "meilisearch_index_uid": "my_index"
+    }'
+
+    # Or use a config file
+    scrapix crawl -p config.json
+    ```
+  </Tab>
+  
+  <Tab title="API Server">
+    Run Scrapix as an API service:
+
+    ```bash
+    # Start the server
+    scrapix server -p 8080
+
+    # Submit a crawl job
+    curl -X POST http://localhost:8080/crawl \
+      -H "Content-Type: application/json" \
+      -d '{
+        "start_urls": ["https://example.com"],
+        "meilisearch_url": "http://localhost:7700",
+        "meilisearch_api_key": "masterKey",
+        "meilisearch_index_uid": "my_index"
+      }'
+    ```
+  </Tab>
+
+  <Tab title="Docker">
+    Use Docker Compose for a complete setup:
+
+    ```bash
+    # Clone the repository
+    git clone https://github.com/meilisearch/scrapix
+    cd scrapix
+
+    # Start all services
+    docker-compose up
+
+    # Services available:
+    # - Meilisearch: http://localhost:7700
+    # - Scrapix API: http://localhost:8080
+    # - Redis Queue: localhost:6379
+    ```
+  </Tab>
+
+  <Tab title="Programmatic">
+    Use Scrapix in your Node.js application:
+
+    ```typescript
+    import { Crawler } from '@scrapix/core';
+
+    const config = {
+      start_urls: ['https://example.com'],
+      meilisearch_url: 'http://localhost:7700',
+      meilisearch_api_key: 'masterKey',
+      meilisearch_index_uid: 'my_index',
+      strategy: 'default'
+    };
+
+    const crawler = await Crawler.create(config);
+    await crawler.run();
+    ```
+  </Tab>
+</Tabs>
+
+## Basic Configuration
+
+<Accordion title="Minimal Configuration">
+```json
+{
+  "start_urls": ["https://example.com"],
+  "meilisearch_url": "http://localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "my_index"
+}
+```
+</Accordion>
+
+<Accordion title="With AI Features">
+```json
+{
+  "start_urls": ["https://example.com"],
+  "meilisearch_url": "http://localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "my_index",
+  "openai_api_key": "sk-...",
+  "extraction_prompt": "Extract product information including title, price, and description",
+  "enable_summary": true
+}
+```
+</Accordion>
+
+<Accordion title="Advanced Options">
+```json
+{
+  "start_urls": ["https://example.com"],
+  "meilisearch_url": "http://localhost:7700",
+  "meilisearch_api_key": "masterKey",
+  "meilisearch_index_uid": "my_index",
+  "strategy": "docssearch",
+  "max_pages_per_domain": 100,
+  "max_concurrency": 10,
+  "batch_size": 50,
+  "wait_between_requests": [1, 3],
+  "exclude_urls": ["*/admin/*", "*/login/*"],
+  "user_agent": "Scrapix/1.0"
+}
+```
+</Accordion>
+
+## Verify Your Setup
+
+<Steps>
+  <Step title="Check Meilisearch Connection">
+    ```bash
+    curl http://localhost:7700/health
+    ```
+  </Step>
+  
+  <Step title="Run a Test Crawl">
+    ```bash
+    scrapix crawl -c '{
+      "start_urls": ["https://example.com"],
+      "meilisearch_url": "http://localhost:7700",
+      "meilisearch_api_key": "masterKey",
+      "meilisearch_index_uid": "test_index",
+      "max_pages_per_domain": 5
+    }'
+    ```
+  </Step>
+  
+  <Step title="Verify Data in Meilisearch">
+    ```bash
+    curl http://localhost:7700/indexes/test_index/documents \
+      -H "Authorization: Bearer masterKey"
+    ```
+  </Step>
+</Steps>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card
+    title="Configuration Guide"
+    icon="gear"
+    href="/References/config-reference"
+  >
+    Learn about all configuration options
+  </Card>
+  <Card
+    title="Choosing a Strategy"
+    icon="strategy"
+    href="/Documentation/choosing-best-configuration"
+  >
+    Select the best crawler for your use case
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    Integrate Scrapix into your application
+  </Card>
+  <Card
+    title="Examples"
+    icon="book-open"
+    href="/examples/overview"
+  >
+    See real-world implementations
+  </Card>
+</CardGroup>
+
+## Common Issues
+
+<Warning>
+  **Meilisearch Connection Failed?**
+  
+  Ensure Meilisearch is running and accessible:
+  ```bash
+  docker run -p 7700:7700 getmeili/meilisearch:latest \
+    meilisearch --master-key="masterKey"
+  ```
+</Warning>
+
+<Note>
+  **Need Help?**
+  
+  - Join our [Discord community](https://discord.meilisearch.com)
+  - Check the [troubleshooting guide](/debugging/troubleshooting)
+  - Report issues on [GitHub](https://github.com/meilisearch/scrapix/issues)
+</Note>

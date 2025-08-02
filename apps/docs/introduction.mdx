@@ -1,142 +1,252 @@
-# Scrapix
+---
+title: 'Welcome to Scrapix'
+description: 'Enterprise-grade web crawling and content extraction platform for Meilisearch'
+sidebarTitle: 'Introduction'
+icon: 'house'
+---
 
-Scrapix is an advanced web scraping and crawling project designed to simplify the process of extracting and indexing data from websites into Meilisearch. It provides a flexible and efficient way to crawl websites and index their content for search.
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.svg"
+  alt="Scrapix Hero Light"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.svg"
+  alt="Scrapix Hero Dark"
+/>
 
-## Features
+## Transform Websites into Searchable Knowledge
 
-### Crawler Types
-- **Cheerio**: Fast and lightweight HTML parser
-  - Best for static websites
-  - Low memory usage
-  - Cannot execute JavaScript
-- **Puppeteer**: Full Chrome browser automation
-  - Handles JavaScript rendering
-  - Good for SPAs
-  - Higher resource usage
-- **Playwright** (Beta): Modern browser automation
-  - Cross-browser support
-  - Modern APIs
-  - Currently in beta
+Scrapix is a powerful, production-ready web scraping platform that intelligently crawls websites and indexes content directly into Meilisearch. Built with TypeScript and powered by AI, it handles everything from simple static sites to complex SPAs.
 
-### Content Extraction Features
-- **Block Split**: Splits page content into blocks
-  - Extracts all page text
-  - Uses p tags for content blocks
-  - Builds sections from h1-h6 tags
-- **Full Page**: Extracts complete page content
-  - Preserves page structure
-  - Maintains hierarchical content
-- **Schema**: Structured data extraction
-  - Works with Schema.org markup
-  - Good for e-commerce sites
-  - Supports rich metadata
-  - Optional date conversion
-- **Markdown**: HTML to Markdown conversion
-  - Ideal for documentation
-  - Perfect for RAG systems
-  - Preserves code blocks
-- **Custom Selectors**: User-defined extraction
-  - Custom CSS selectors
-  - Flexible data structures
-- **Metadata**: Extracts page metadata
-  - HTML meta tags
-  - Open Graph data
-  - Additional page information
-- **PDF**: PDF document processing
-  - Extract PDF content
-  - Extract PDF metadata
-  - Support for linked PDFs
-- **AI Extraction**: AI-powered content extraction
-  - Custom prompts for extraction
-  - Uses OpenAI API
-  - Flexible AI-driven processing
-- **AI Summary**: AI-generated content summaries
-  - Automatic content summarization
-  - Uses OpenAI API
-  - Concise content overview
+<CardGroup cols={3}>
+  <Card
+    title="Intelligent Crawling"
+    icon="brain"
+    color="#0D9373"
+  >
+    AI-powered content extraction with GPT models for structured data and summaries
+  </Card>
+  <Card
+    title="Multiple Strategies"
+    icon="layer-group"
+    color="#07C983"
+  >
+    Choose from Cheerio, Puppeteer, or Playwright based on your site's needs
+  </Card>
+  <Card
+    title="Production Ready"
+    icon="rocket"
+    color="#0D9373"
+  >
+    Battle-tested with rate limiting, retry logic, and distributed job queues
+  </Card>
+</CardGroup>
 
-### URL Control
-- **Start URLs**: Define crawl entry points
-- **URL Exclusion**: Skip specific URLs/patterns
-- **Index Control**: Choose what to index
-- **Not Found Detection**: Custom 404 detection
-- **Sitemap Support**: 
-  - Automatic sitemap discovery
-  - Custom sitemap URLs
-  - Robots.txt parsing
-  - XML sitemap processing
+## Key Features
 
-### Performance Settings
-- **Concurrency Control**: Limit parallel requests
-- **Rate Limiting**: Requests per minute
-- **Batch Processing**: Document batch size
-- **Resource Management**: Memory optimization
+<Tabs>
+  <Tab title="🎯 Core Features">
+    <AccordionGroup>
+      <Accordion title="Multiple Crawler Strategies" icon="spider">
+        - **Cheerio**: Lightning-fast static HTML parsing
+        - **Puppeteer**: Chrome automation for JavaScript-heavy sites
+        - **Playwright**: Cross-browser support with advanced capabilities
+      </Accordion>
+      
+      <Accordion title="AI-Powered Extraction" icon="wand-magic-sparkles">
+        - Custom extraction prompts with OpenAI GPT models
+        - Automatic content summarization
+        - Structured data extraction from unstructured content
+      </Accordion>
+      
+      <Accordion title="Smart Document Processing" icon="file-lines">
+        - Automatic text chunking for large documents
+        - Markdown conversion for clean indexing
+        - Custom CSS selectors for precise extraction
+      </Accordion>
+      
+      <Accordion title="Enterprise Features" icon="building">
+        - Distributed job queue with Redis
+        - Webhook notifications for job status
+        - Rate limiting and retry mechanisms
+        - Proxy support for IP rotation
+      </Accordion>
+    </AccordionGroup>
+  </Tab>
+  
+  <Tab title="⚡ Performance">
+    - **Concurrent crawling** with configurable parallelism
+    - **Batch processing** for efficient Meilisearch indexing
+    - **Memory-efficient** streaming for large sites
+    - **Smart caching** to avoid redundant requests
+    - **Automatic retries** with exponential backoff
+  </Tab>
+  
+  <Tab title="🔧 Flexibility">
+    - **CLI tool** for quick one-off crawls
+    - **REST API** for integration into your stack
+    - **Docker support** for containerized deployments
+    - **Programmatic API** for custom implementations
+    - **Extensible architecture** with custom features
+  </Tab>
+</Tabs>
 
-### Request Configuration
-- **Custom Headers**: Add HTTP headers
-- **User Agents**: Rotate user agents
-- **Browser Options**: Custom Puppeteer settings
+## Use Cases
 
-### Meilisearch Integration
-- **Index Settings**: Configure search behavior
-- **Primary Keys**: Custom document identifiers
-- **Batch Indexing**: Efficient document upload
-- **Settings Sync**: Automatic index configuration
+<CardGroup cols={2}>
+  <Card
+    title="Documentation Sites"
+    icon="book"
+    href="/examples/documentation-site"
+  >
+    Index technical documentation with code highlighting and structured navigation
+  </Card>
+  <Card
+    title="E-commerce Catalogs"
+    icon="shopping-cart"
+    href="/examples/ecommerce"
+  >
+    Extract product data with prices, descriptions, and specifications
+  </Card>
+  <Card
+    title="News Aggregation"
+    icon="newspaper"
+    href="/examples/news-aggregator"
+  >
+    Crawl news sites and blogs with automatic summarization
+  </Card>
+  <Card
+    title="Knowledge Bases"
+    icon="database"
+    href="/examples/spa-application"
+  >
+    Index SPAs and dynamic content with JavaScript rendering
+  </Card>
+</CardGroup>
 
-### Webhook Support
-- **Status Updates**: Real-time crawl progress
-- **Custom Payloads**: Additional context
-- **Event Types**: Started, active, completed, failed
-- **Error Reporting**: Detailed failure info
+## Quick Comparison
+
+<Table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Scrapix</th>
+      <th>Traditional Scrapers</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Meilisearch Integration</td>
+      <td>✅ Native</td>
+      <td>❌ Manual</td>
+    </tr>
+    <tr>
+      <td>AI Extraction</td>
+      <td>✅ Built-in</td>
+      <td>❌ Custom code</td>
+    </tr>
+    <tr>
+      <td>Multiple Strategies</td>
+      <td>✅ 3 engines</td>
+      <td>⚠️ Usually 1</td>
+    </tr>
+    <tr>
+      <td>Job Queue</td>
+      <td>✅ Redis/Bull</td>
+      <td>❌ DIY</td>
+    </tr>
+    <tr>
+      <td>Production Ready</td>
+      <td>✅ Yes</td>
+      <td>⚠️ Varies</td>
+    </tr>
+    <tr>
+      <td>TypeScript</td>
+      <td>✅ Full support</td>
+      <td>⚠️ Varies</td>
+    </tr>
+  </tbody>
+</Table>
+
+## Architecture Overview
+
+```mermaid
+graph LR
+    A[Web Pages] --> B[Crawler Engine]
+    B --> C[Feature Pipeline]
+    C --> D[Document Processor]
+    D --> E[Meilisearch]
+    
+    B --> F[Cheerio/Puppeteer/Playwright]
+    C --> G[AI Extraction]
+    C --> H[Selectors]
+    C --> I[Markdown]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style E fill:#0D9373,stroke:#333,stroke-width:2px,color:#fff
+```
 
 ## Getting Started
 
-### CLI Usage
-Download from [releases](https://github.com/meilisearch/scrapix/releases):
+<Steps>
+  <Step title="Install Scrapix">
+    ```bash
+    npm install -g @scrapix/cli
+    ```
+  </Step>
+  
+  <Step title="Set up Meilisearch">
+    ```bash
+    docker run -p 7700:7700 getmeili/meilisearch:latest
+    ```
+  </Step>
+  
+  <Step title="Run your first crawl">
+    ```bash
+    scrapix crawl -c '{"start_urls":["https://example.com"]}'
+    ```
+  </Step>
+</Steps>
 
-```bash
-# Using config file path
-scrapix --configPath config.json
-scrapix -p config.json
+<Info>
+  **Ready to dive in?** Check out our [Quickstart Guide](/quickstart) to get up and running in 5 minutes.
+</Info>
 
-# Using inline config
-scrapix --config '{"meilisearch_url": "...", ...}'
-scrapix -c '{"meilisearch_url": "...", ...}'
+## Community & Support
 
-# With custom browser path
-scrapix -p config.json --browserPath /path/to/browser
-scrapix -p config.json -b /path/to/browser
-```
+<CardGroup cols={4}>
+  <Card
+    title="Discord"
+    icon="discord"
+    href="https://discord.meilisearch.com"
+  >
+    Join our community
+  </Card>
+  <Card
+    title="GitHub"
+    icon="github"
+    href="https://github.com/meilisearch/scrapix"
+  >
+    Star & contribute
+  </Card>
+  <Card
+    title="Documentation"
+    icon="book"
+    href="https://docs.meilisearch.com"
+  >
+    Meilisearch docs
+  </Card>
+  <Card
+    title="Blog"
+    icon="rss"
+    href="https://blog.meilisearch.com"
+  >
+    Latest updates
+  </Card>
+</CardGroup>
 
-### API Server
-Start the HTTP server by running the server component:
-
-```bash
-# Start the server (default port 8080)
-node dist/server/index.js
-
-# With custom port
-PORT=3000 node dist/server/index.js
-```
-
-#### API Endpoints
-
-1. **POST /crawl** (alias for /crawl/async)
-   - Queue async crawl task  
-   - Body: Crawl configuration (JSON)
-   - Response: `{"status": "ok", "indexUid": "your-index"}`
-
-2. **POST /crawl/async**
-   - Queue async crawl task (requires Redis)
-   - Body: Crawl configuration (JSON)
-   - Response: `{"status": "ok", "indexUid": "your-index"}`
-
-3. **POST /crawl/sync**
-   - Run synchronous crawl task
-   - Body: Crawl configuration (JSON)
-   - Response: `{"status": "ok", "indexUid": "your-index"}`
-   - Note: Blocks until crawling is complete
-
-4. **POST /webhook**
-   - Internal webhook endpoint for logging
-   - Used for webhook testing and debugging
+<Note>
+  **Built by Meilisearch** - The team behind the lightning-fast, open-source search engine that developers love.
+</Note>

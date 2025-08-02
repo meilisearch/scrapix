@@ -1,0 +1,466 @@
+---
+title: 'Docker Deployment'
+description: 'Deploy Scrapix using Docker and Docker Compose'
+icon: 'docker'
+---
+
+## Overview
+
+Docker provides the easiest way to deploy Scrapix with all its dependencies. We provide official Docker images and a complete Docker Compose setup for production deployments.
+
+## Quick Start with Docker Compose
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/meilisearch/scrapix
+    cd scrapix
+    ```
+  </Step>
+  
+  <Step title="Configure environment">
+    ```bash
+    cp .env.example .env
+    ```
+    
+    Edit `.env` with your configuration:
+    ```env
+    # Meilisearch
+    MEILISEARCH_URL=http://meilisearch:7700
+    MEILISEARCH_MASTER_KEY=masterKey
+    
+    # Redis (for job queue)
+    REDIS_URL=redis://redis:6379
+    
+    # OpenAI (optional)
+    OPENAI_API_KEY=sk-...
+    
+    # Server
+    PORT=8080
+    NODE_ENV=production
+    ```
+  </Step>
+  
+  <Step title="Start services">
+    ```bash
+    docker-compose up -d
+    ```
+    
+    This starts:
+    - Scrapix API server on port 8080
+    - Meilisearch on port 7700
+    - Redis on port 6379
+  </Step>
+  
+  <Step title="Verify deployment">
+    ```bash
+    # Check health
+    curl http://localhost:8080/health
+    
+    # Check Meilisearch
+    curl http://localhost:7700/health
+    ```
+  </Step>
+</Steps>
+
+## Docker Compose Configuration
+
+<CodeGroup>
+```yaml docker-compose.yml
+version: '3.8'
+
+services:
+  scrapix:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - MEILISEARCH_URL=http://meilisearch:7700
+      - MEILISEARCH_MASTER_KEY=${MEILISEARCH_MASTER_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - redis
+      - meilisearch
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config
+    networks:
+      - scrapix-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - scrapix-network
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_MASTER_KEY=${MEILISEARCH_MASTER_KEY}
+      - MEILI_ENV=production
+    volumes:
+      - meilisearch-data:/meili_data
+    restart: unless-stopped
+    networks:
+      - scrapix-network
+
+volumes:
+  redis-data:
+  meilisearch-data:
+
+networks:
+  scrapix-network:
+    driver: bridge
+```
+
+```dockerfile Dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY yarn.lock ./
+COPY lerna.json ./
+COPY apps/ ./apps/
+
+# Install dependencies
+RUN yarn install --frozen-lockfile
+
+# Build all packages
+RUN yarn build
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install production dependencies only
+COPY package*.json ./
+COPY yarn.lock ./
+RUN yarn install --production --frozen-lockfile
+
+# Copy built files
+COPY --from=builder /app/apps/scraper/core/dist ./apps/scraper/core/dist
+COPY --from=builder /app/apps/scraper/server/dist ./apps/scraper/server/dist
+COPY --from=builder /app/apps/scraper/cli/dist ./apps/scraper/cli/dist
+
+# Install Chrome for Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Set Puppeteer to use installed Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+EXPOSE 8080
+
+CMD ["node", "apps/scraper/server/dist/index.js"]
+```
+</CodeGroup>
+
+## Production Deployment
+
+### Using Pre-built Images
+
+<Tabs>
+  <Tab title="Docker Hub">
+    ```bash
+    # Pull official image
+    docker pull meilisearch/scrapix:latest
+    
+    # Run with environment variables
+    docker run -d \
+      --name scrapix \
+      -p 8080:8080 \
+      -e REDIS_URL=redis://your-redis:6379 \
+      -e MEILISEARCH_URL=http://your-meilisearch:7700 \
+      -e MEILISEARCH_MASTER_KEY=your-key \
+      meilisearch/scrapix:latest
+    ```
+  </Tab>
+  
+  <Tab title="GitHub Container Registry">
+    ```bash
+    # Pull from GitHub
+    docker pull ghcr.io/meilisearch/scrapix:latest
+    
+    # Run with config file
+    docker run -d \
+      --name scrapix \
+      -p 8080:8080 \
+      -v $(pwd)/config.json:/app/config.json \
+      ghcr.io/meilisearch/scrapix:latest
+    ```
+  </Tab>
+</Tabs>
+
+### Multi-Stage Build
+
+For production, use a multi-stage build to minimize image size:
+
+```dockerfile
+# Build stage
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN yarn install --frozen-lockfile && yarn build
+
+# Runtime stage
+FROM node:20-alpine
+WORKDIR /app
+
+# Only copy production files
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+
+# Add non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+USER nodejs
+
+EXPOSE 8080
+CMD ["node", "dist/index.js"]
+```
+
+## Scaling with Docker Swarm
+
+<Accordion title="Docker Swarm Configuration">
+```yaml docker-stack.yml
+version: '3.8'
+
+services:
+  scrapix:
+    image: meilisearch/scrapix:latest
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MEILISEARCH_URL=http://meilisearch:7700
+    networks:
+      - scrapix-net
+
+  redis:
+    image: redis:7-alpine
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - redis-data:/data
+    networks:
+      - scrapix-net
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - meilisearch-data:/meili_data
+    networks:
+      - scrapix-net
+
+networks:
+  scrapix-net:
+    driver: overlay
+
+volumes:
+  redis-data:
+  meilisearch-data:
+```
+
+Deploy the stack:
+```bash
+docker stack deploy -c docker-stack.yml scrapix
+```
+</Accordion>
+
+## Environment Variables
+
+<Table>
+  <thead>
+    <tr>
+      <th>Variable</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>`NODE_ENV`</td>
+      <td>Environment mode</td>
+      <td>development</td>
+    </tr>
+    <tr>
+      <td>`PORT`</td>
+      <td>Server port</td>
+      <td>8080</td>
+    </tr>
+    <tr>
+      <td>`REDIS_URL`</td>
+      <td>Redis connection URL</td>
+      <td>redis://localhost:6379</td>
+    </tr>
+    <tr>
+      <td>`MEILISEARCH_URL`</td>
+      <td>Meilisearch URL</td>
+      <td>http://localhost:7700</td>
+    </tr>
+    <tr>
+      <td>`MEILISEARCH_MASTER_KEY`</td>
+      <td>Meilisearch master key</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>`OPENAI_API_KEY`</td>
+      <td>OpenAI API key for AI features</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>`WEBHOOK_URL`</td>
+      <td>Default webhook URL</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>`MAX_CONCURRENCY`</td>
+      <td>Max concurrent crawlers</td>
+      <td>10</td>
+    </tr>
+  </tbody>
+</Table>
+
+## Health Checks
+
+Configure Docker health checks for reliability:
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8080/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})"
+```
+
+## Volumes and Persistence
+
+<Info>
+  **Important Volumes**
+  
+  - `/meili_data` - Meilisearch index data
+  - `/data` - Redis persistence
+  - `/app/config` - Configuration files
+  - `/app/logs` - Application logs
+</Info>
+
+## Monitoring
+
+Add monitoring with Prometheus and Grafana:
+
+```yaml
+monitoring:
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+  
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+```
+
+## Security Best Practices
+
+<Warning>
+  **Production Security Checklist**
+  
+  - ✅ Use specific image tags, not `latest`
+  - ✅ Run containers as non-root user
+  - ✅ Use secrets management for API keys
+  - ✅ Enable TLS/SSL with reverse proxy
+  - ✅ Implement rate limiting
+  - ✅ Use private networks for internal communication
+  - ✅ Regular security updates
+</Warning>
+
+## Troubleshooting
+
+<Accordion title="Common Issues">
+**Container fails to start**
+```bash
+# Check logs
+docker logs scrapix
+
+# Common fixes:
+# - Verify environment variables
+# - Check network connectivity
+# - Ensure volumes have correct permissions
+```
+
+**Puppeteer/Playwright issues**
+```bash
+# Install missing dependencies
+docker exec -it scrapix sh
+apk add chromium chromium-chromedriver
+```
+
+**Memory issues**
+```yaml
+# Set memory limits in docker-compose.yml
+services:
+  scrapix:
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+```
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Kubernetes Deployment"
+    icon="kubernetes"
+    href="/deployment/kubernetes"
+  >
+    Deploy on Kubernetes clusters
+  </Card>
+  <Card
+    title="Fly.io Deployment"
+    icon="plane"
+    href="/deployment/fly-io"
+  >
+    Deploy globally with Fly.io
+  </Card>
+</CardGroup>

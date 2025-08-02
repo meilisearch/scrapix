@@ -1,0 +1,458 @@
+---
+title: 'Troubleshooting Guide'
+description: 'Common issues and solutions when using Scrapix'
+icon: 'wrench'
+---
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Meilisearch Connection Failed" icon="plug">
+    **Error Message:**
+    ```
+    Error: Failed to connect to Meilisearch at http://localhost:7700
+    ```
+    
+    **Solutions:**
+    
+    <Steps>
+      <Step title="Verify Meilisearch is running">
+        ```bash
+        curl http://localhost:7700/health
+        ```
+      </Step>
+      
+      <Step title="Check your master key">
+        ```bash
+        # Ensure the key matches your Meilisearch configuration
+        curl http://localhost:7700/keys \
+          -H "Authorization: Bearer masterKey"
+        ```
+      </Step>
+      
+      <Step title="Test with Docker">
+        ```bash
+        docker run -p 7700:7700 getmeili/meilisearch:latest \
+          meilisearch --master-key="masterKey"
+        ```
+      </Step>
+    </Steps>
+  </Accordion>
+
+  <Accordion title="Puppeteer/Playwright Won't Start" icon="browser">
+    **Error Message:**
+    ```
+    Error: Failed to launch the browser process
+    ```
+    
+    **Solutions:**
+    
+    1. **Install browser dependencies:**
+    ```bash
+    # Ubuntu/Debian
+    sudo apt-get install -y \
+      libnss3 libatk1.0-0 libatk-bridge2.0-0 \
+      libcups2 libdrm2 libxkbcommon0 libxcomposite1 \
+      libxdamage1 libxrandr2 libgbm1 libpango-1.0-0 \
+      libasound2
+    
+    # macOS
+    brew install --cask chromium
+    
+    # Alpine Linux (Docker)
+    apk add chromium chromium-chromedriver
+    ```
+    
+    2. **Use system Chrome:**
+    ```json
+    {
+      "browser_path": "/usr/bin/google-chrome",
+      "crawler_type": "puppeteer"
+    }
+    ```
+    
+    3. **Run in headless mode:**
+    ```json
+    {
+      "browser_options": {
+        "headless": true,
+        "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Out of Memory Errors" icon="memory">
+    **Error Message:**
+    ```
+    FATAL ERROR: Reached heap limit Allocation failed
+    ```
+    
+    **Solutions:**
+    
+    1. **Increase Node.js memory:**
+    ```bash
+    export NODE_OPTIONS="--max-old-space-size=4096"
+    scrapix crawl -p config.json
+    ```
+    
+    2. **Reduce concurrency:**
+    ```json
+    {
+      "max_concurrency": 3,
+      "batch_size": 100
+    }
+    ```
+    
+    3. **Enable streaming mode:**
+    ```json
+    {
+      "streaming_mode": true,
+      "max_pages_in_memory": 10
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Rate Limiting / 429 Errors" icon="gauge">
+    **Error Message:**
+    ```
+    Error: Request failed with status 429 - Too Many Requests
+    ```
+    
+    **Solutions:**
+    
+    1. **Add delays between requests:**
+    ```json
+    {
+      "wait_between_requests": [2, 5],
+      "max_concurrency": 1
+    }
+    ```
+    
+    2. **Use exponential backoff:**
+    ```json
+    {
+      "retry_config": {
+        "max_retries": 3,
+        "initial_delay": 1000,
+        "multiplier": 2
+      }
+    }
+    ```
+    
+    3. **Rotate user agents:**
+    ```json
+    {
+      "rotate_user_agents": true,
+      "user_agents": [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+      ]
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="SSL/Certificate Errors" icon="lock">
+    **Error Message:**
+    ```
+    Error: unable to verify the first certificate
+    ```
+    
+    **Solutions:**
+    
+    1. **For development only:**
+    ```bash
+    export NODE_TLS_REJECT_UNAUTHORIZED=0
+    ```
+    
+    2. **Add custom CA certificate:**
+    ```json
+    {
+      "request_options": {
+        "ca": "/path/to/ca-cert.pem"
+      }
+    }
+    ```
+    
+    3. **Use proxy with SSL termination:**
+    ```json
+    {
+      "proxy_url": "http://proxy.company.com:8080"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Content Not Being Extracted" icon="file-circle-xmark">
+    **Issues:**
+    - Empty documents in Meilisearch
+    - Missing content fields
+    - Incorrect selectors
+    
+    **Solutions:**
+    
+    1. **Debug selectors:**
+    ```json
+    {
+      "debug_mode": true,
+      "save_html": true,
+      "screenshot_on_error": true
+    }
+    ```
+    
+    2. **Wait for content to load:**
+    ```json
+    {
+      "crawler_type": "puppeteer",
+      "wait_for_selector": ".main-content",
+      "wait_timeout": 10000
+    }
+    ```
+    
+    3. **Use custom extraction:**
+    ```json
+    {
+      "custom_selectors": {
+        "title": "h1.page-title",
+        "content": "div.article-body",
+        "metadata": "script[type='application/ld+json']"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Issues
+
+### Slow Crawling Speed
+
+<Tabs>
+  <Tab title="Diagnosis">
+    Check bottlenecks:
+    ```bash
+    # Monitor CPU usage
+    top -p $(pgrep -f scrapix)
+    
+    # Check network latency
+    ping target-website.com
+    
+    # Monitor memory
+    watch -n 1 free -h
+    ```
+  </Tab>
+  
+  <Tab title="Optimization">
+    ```json
+    {
+      // Increase parallelism
+      "max_concurrency": 20,
+      
+      // Use faster crawler for static sites
+      "crawler_type": "cheerio",
+      
+      // Reduce unnecessary processing
+      "disable_javascript": true,
+      "skip_images": true,
+      
+      // Cache responses
+      "enable_cache": true,
+      "cache_ttl": 3600
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### High Memory Usage
+
+Monitor and optimize:
+
+```javascript
+// Add memory monitoring
+{
+  "monitoring": {
+    "memory_threshold": 1024, // MB
+    "gc_interval": 100, // pages
+    "heap_snapshot_on_oom": true
+  }
+}
+```
+
+## Docker-Specific Issues
+
+<Warning>
+  **Common Docker Problems**
+  
+  1. **Chrome won't start in container:**
+  ```dockerfile
+  # Add to Dockerfile
+  RUN apt-get update && apt-get install -y \
+    wget gnupg ca-certificates \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable
+  ```
+  
+  2. **Permission errors:**
+  ```dockerfile
+  # Run as non-root user
+  USER node
+  WORKDIR /home/node/app
+  ```
+  
+  3. **Network issues:**
+  ```yaml
+  # docker-compose.yml
+  services:
+    scrapix:
+      network_mode: host
+  ```
+</Warning>
+
+## Debugging Tools
+
+### Enable Debug Logging
+
+```bash
+# Set debug environment variable
+export DEBUG=scrapix:*
+scrapix crawl -p config.json
+
+# Or in config
+{
+  "log_level": "debug",
+  "verbose": true
+}
+```
+
+### Capture Network Traffic
+
+```json
+{
+  "capture_options": {
+    "save_har": true,
+    "save_screenshots": true,
+    "save_console_logs": true
+  }
+}
+```
+
+### Test Selectors
+
+```javascript
+// Test your selectors before full crawl
+import { testSelectors } from '@scrapix/core';
+
+const results = await testSelectors({
+  url: 'https://example.com',
+  selectors: {
+    title: 'h1',
+    content: '.main-content'
+  }
+});
+
+console.log(results);
+```
+
+## Error Recovery
+
+### Implement Retry Logic
+
+```json
+{
+  "error_handling": {
+    "retry_failed_pages": true,
+    "max_retries": 3,
+    "retry_delay": 1000,
+    "save_failed_urls": true,
+    "continue_on_error": true
+  }
+}
+```
+
+### Resume Failed Crawls
+
+```bash
+# Save state for resume capability
+scrapix crawl -p config.json --save-state crawl-state.json
+
+# Resume from saved state
+scrapix crawl --resume crawl-state.json
+```
+
+## Getting Help
+
+<Steps>
+  <Step title="Check the logs">
+    ```bash
+    # View detailed logs
+    tail -f ~/.scrapix/logs/crawler.log
+    
+    # Check error logs
+    grep ERROR ~/.scrapix/logs/crawler.log
+    ```
+  </Step>
+  
+  <Step title="Enable verbose mode">
+    ```bash
+    scrapix crawl -p config.json --verbose
+    ```
+  </Step>
+  
+  <Step title="Test with minimal config">
+    ```json
+    {
+      "start_urls": ["https://example.com"],
+      "meilisearch_url": "http://localhost:7700",
+      "meilisearch_api_key": "masterKey",
+      "meilisearch_index_uid": "test"
+    }
+    ```
+  </Step>
+  
+  <Step title="Join the community">
+    - [Discord](https://discord.meilisearch.com) - Get help from the community
+    - [GitHub Issues](https://github.com/meilisearch/scrapix/issues) - Report bugs
+    - [Stack Overflow](https://stackoverflow.com/questions/tagged/scrapix) - Q&A
+  </Step>
+</Steps>
+
+## FAQ
+
+<Accordion title="Frequently Asked Questions">
+**Q: Can I run multiple crawlers simultaneously?**
+A: Yes, use different Redis queues or job IDs to avoid conflicts.
+
+**Q: How do I handle login-protected pages?**
+A: Use cookies or authentication headers:
+```json
+{
+  "headers": {
+    "Cookie": "session=abc123"
+  }
+}
+```
+
+**Q: Can I crawl localhost URLs?**
+A: Yes, but ensure the service is accessible from the crawler's network context.
+
+**Q: How do I limit crawling to specific paths?**
+A: Use URL patterns:
+```json
+{
+  "include_patterns": ["/docs/*", "/api/*"],
+  "exclude_patterns": ["/admin/*"]
+}
+```
+</Accordion>
+
+<Note>
+  **Still having issues?**
+  
+  Create a detailed bug report with:
+  - Your configuration (remove sensitive data)
+  - Full error messages and stack traces
+  - Environment details (OS, Node version, etc.)
+  - Steps to reproduce
+  
+  Post on [GitHub Issues](https://github.com/meilisearch/scrapix/issues)
+</Note>

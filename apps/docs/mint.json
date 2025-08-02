@@ -17,13 +17,13 @@
   },
   "topbarLinks": [
     {
-      "name": "Support",
-      "url": "mailto:support@meilisearch.com"
+      "name": "GitHub",
+      "url": "https://github.com/meilisearch/scrapix"
     }
   ],
   "topbarCtaButton": {
-    "name": "Dashboard",
-    "url": "https://cloud.meilisearch.com"
+    "name": "Get Started",
+    "url": "/quickstart"
   },
   "tabs": [
     {
@@ -31,45 +31,53 @@
       "url": "api-reference"
     }
   ],
-  "anchors": [
-    {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "https://docs.meilisearch.com"
-    },
-    {
-      "name": "Community",
-      "icon": "slack",
-      "url": "https://discord.meilisearch.com"
-    },
-    {
-      "name": "Blog",
-      "icon": "newspaper",
-      "url": "https://blog.meilisearch.com"
-    }
-  ],
   "navigation": [
     {
-      "group": "Get Started",
+      "group": "Getting Started",
       "pages": [
         "introduction",
-        "Documentation/getting-started",
+        "quickstart",
+        "Documentation/getting-started"
+      ]
+    },
+    {
+      "group": "Configuration",
+      "pages": [
+        "References/config-reference",
+        "References/strategies",
         "Documentation/choosing-best-configuration"
       ]
     },
     {
-      "group": "References",
+      "group": "API Documentation",
       "pages": [
-        "References/config-reference",
-        "References/cli-reference",
-        "References/api-reference",
-        "References/strategies"
+        "api-reference/introduction",
+        "References/api-reference"
       ]
     },
     {
-      "group": "Internals",
+      "group": "CLI",
       "pages": [
-        "Internals/crawling"
+        "References/cli-reference"
+      ]
+    },
+    {
+      "group": "Examples",
+      "pages": [
+        "examples/documentation-site"
+      ]
+    },
+    {
+      "group": "Deployment",
+      "pages": [
+        "deployment/docker"
+      ]
+    },
+    {
+      "group": "Advanced",
+      "pages": [
+        "Internals/crawling",
+        "debugging/troubleshooting"
       ]
     },
     {
@@ -80,9 +88,18 @@
     }
   ],
   "footerSocials": {
-    "x": "https://x.com/meilisearch",
-    "github": "https://github.com/meilisearch",
-    "linkedin": "https://www.linkedin.com/company/meilisearch",
+    "github": "https://github.com/meilisearch/scrapix",
     "discord": "https://discord.meilisearch.com"
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true
+  },
+  "search": {
+    "prompt": "Search documentation..."
+  },
+  "modeToggle": {
+    "default": "light",
+    "isHidden": false
   }
 }

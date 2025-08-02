@@ -102,9 +102,7 @@ npm install @scrapix/core
 
 ```bash yarn
 yarn add @scrapix/core
-```
 </CodeGroup>
-```
 
 ## 🎨 Configuration
 

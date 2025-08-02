@@ -37,17 +37,6 @@ services:
     networks:
       - crawler-network
 
-  playground:
-    build:
-      context: ./apps/playground
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    depends_on:
-      - scraper
-    networks:
-      - crawler-network
-
 volumes:
   meili_data:
 

@@ -21,7 +21,7 @@ services:
 
   scraper:
     build:
-      context: ./apps/scraper
+      context: .
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=production

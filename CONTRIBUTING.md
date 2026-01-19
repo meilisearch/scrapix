@@ -1,3 +1,14 @@
+# Coding with AI
+
+We accept the use of AI-powered tools (GitHub Copilot, ChatGPT, Claude, Cursor, etc.) for contributions, whether for code, tests, or documentation.
+
+⚠️ However, transparency is required: if you use AI assistance, please mention it in your PR description. This helps maintainers during code review and ensure the quality of contributions.
+
+What we expect:
+- **Disclose AI usage**: A simple note like "Used GitHub Copilot for autocompletion" or "Generated initial test structure with ChatGPT" is sufficient.
+- **Specify the scope**: Indicate which parts of your contribution involved AI assistance.
+- **Review AI-generated content**: Ensure you understand and have verified any AI-generated code before submitting.
+
 # Run linting tests
 
 ```sh
